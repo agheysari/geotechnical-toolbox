@@ -267,45 +267,8 @@
     transform: translateY(-1px) !important;
     box-shadow: 0 6px 16px rgba(37,99,235,0.35) !important;
   }
-  .btn-demo-action {
-    background: #eff6ff !important;
-    color: #1d4ed8 !important;
-    border: 1px solid #bfdbfe !important;
-    border-radius: 10px !important;
-    padding: 12px 18px !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    transition: all 0.2s ease !important;
-  }
-  .btn-demo-action:hover {
-    background: #dbeafe !important;
-    color: #1e40af !important;
-  }
-  .btn-clear-action {
-    background: transparent !important;
-    color: #64748b !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 10px !important;
-    padding: 12px 16px !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 6px !important;
-    transition: all 0.2s ease !important;
-  }
-  .btn-clear-action:hover {
-    background: #fee2e2 !important;
-    border-color: #fca5a5 !important;
-    color: #b91c1c !important;
-  }
+  
+  
   .coffee-link-under-calc {
     display: flex;
     align-items: center;
@@ -412,46 +375,8 @@
     background: #1d4ed8 !important;
     box-shadow: 0 4px 10px rgba(37,99,235,0.3) !important;
   }
-  .btn-demo-action {
-    background: #f8fafc !important;
-    color: #334155 !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 8px !important;
-    padding: 10px 16px !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 5px !important;
-    transition: all 0.15s ease !important;
-  }
-  .btn-demo-action:hover {
-    background: #f1f5f9 !important;
-    color: #0f172a !important;
-    border-color: #94a3b8 !important;
-  }
-  .btn-clear-action {
-    background: transparent !important;
-    color: #64748b !important;
-    border: 1px solid #e2e8f0 !important;
-    border-radius: 8px !important;
-    padding: 10px 14px !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 5px !important;
-    transition: all 0.15s ease !important;
-  }
-  .btn-clear-action:hover {
-    background: #fee2e2 !important;
-    border-color: #fca5a5 !important;
-    color: #b91c1c !important;
-  }
+  
+  
   .coffee-text-link {
     margin: 6px 0 22px;
     font-size: 12.5px;
@@ -565,9 +490,6 @@
     
     
 
-
-
-
     <!-- Results Section -->
     <div 
     
@@ -576,22 +498,18 @@
     
     
 
+
 <div class="standard-actions-bar">
       <button type="button" class="btn-primary-action" onclick="calculateLiquefaction()">
         <span>⚡ Calculate Liquefaction FS</span>
       </button>
-      <button type="button" class="btn-demo-action" onclick="loadDemoData()">
-        <span>📋 Load Demo Data</span>
-      </button>
-      <button type="button" class="btn-clear-action" onclick="clearToolData()">
-        <span>🗑️ Clear</span>
-      </button>
-    </div>
+      </div>
     <div class="coffee-text-link">
       <span>☕ Support development:</span>
       <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">Buy me a coffee</a>
     </div>
-<div id="results" style="display:none;">
+
+    <div id="results" style="display:none;">
         <div id="fsBox" class="result-box">
             <div style="font-size: 1.1rem; color: #34495e; font-weight: 600;">Factor of Safety Against Liquefaction (FS)</div>
             <div id="outFS" class="result-value">0.00</div>
@@ -781,27 +699,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
 
 
-    // ── Standard Demo & Clear Helpers ─────────────────────────────────
-    function loadDemoData() {
-        
-        document.getElementById('mw').value = '7.5';
-        document.getElementById('pga').value = '0.35';
-        document.getElementById('depthZ').value = '6.0';
-        document.getElementById('waterTableDw').value = '2.0';
-        document.getElementById('gamma').value = '19.0';
-        document.getElementById('fc').value = '8.0';
-        document.getElementById('sptN').value = '14';
-        document.getElementById('er').value = '60';
-        calculateLiquefaction();
-        
-    }
-    function clearToolData() {
-        
-        document.querySelectorAll('input[type=number]').forEach(i => i.value = '');
-        const res = document.getElementById('results');
-        if (res) res.style.display = 'none';
-        
-    }
+    
     
 </script>
 
