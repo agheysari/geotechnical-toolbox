@@ -1,7 +1,8 @@
 # 🌍 Open-Source Geotechnical Engineering & Geospatial Calculators
 
-A comprehensive collection of **25+ standalone, client-side HTML/JavaScript calculation tools and utilities** for geotechnical engineers, civil engineering researchers, and geospatial analysts.
+A comprehensive collection of **25+ standalone, client-side HTML/JavaScript calculation tools and utilities** developed by **Ali Gheysari, PhD** for geotechnical engineers, civil engineering researchers, and geospatial analysts.
 
+[![Made in Canada](https://img.shields.io/badge/Made%20with%20%E2%9D%A4%EF%B8%8F%20in-Canada-red.svg)](https://github.com/agheysari/geotechnical-tools)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Calculators](https://img.shields.io/badge/Calculators-25%2B-blue.svg)](https://github.com/agheysari/geotechnical-tools)
 [![Support](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Donate-orange.svg)](https://buymeacoffee.com/agheysari)
