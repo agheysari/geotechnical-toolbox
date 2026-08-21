@@ -276,15 +276,158 @@
     box-shadow: 0 2px 6px rgba(217,119,6,0.15);
   }
 
+
+  /* ── Unified Geotechnical Toolbox Theme ────────────────────────────── */
+  :root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --bg-page: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+  }
+  
+  .tool-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .tool-back-link {
+    text-decoration: none;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.15s;
+  }
+  .tool-back-link:hover {
+    color: #2563eb;
+  }
+  .unit-toggle-btn {
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    padding: 6px 14px !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+    cursor: pointer !important;
+    transition: all 0.15s !important;
+  }
+  .unit-toggle-btn:hover {
+    background: #f1f5f9 !important;
+    border-color: #94a3b8 !important;
+  }
+  .unit-toggle-btn.imperial {
+    background: #eff6ff !important;
+    border-color: #93c5fd !important;
+    color: #1d4ed8 !important;
+  }
+
+  .standard-actions-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 24px 0 8px;
+  }
+  .btn-primary-action {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 10px 22px !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    box-shadow: 0 2px 6px rgba(37,99,235,0.2) !important;
+    transition: all 0.15s ease !important;
+  }
+  .btn-primary-action:hover {
+    background: #1d4ed8 !important;
+    box-shadow: 0 4px 10px rgba(37,99,235,0.3) !important;
+  }
+  .btn-demo-action {
+    background: #f8fafc !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    padding: 10px 16px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    transition: all 0.15s ease !important;
+  }
+  .btn-demo-action:hover {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    border-color: #94a3b8 !important;
+  }
+  .btn-clear-action {
+    background: transparent !important;
+    color: #64748b !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 10px 14px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    transition: all 0.15s ease !important;
+  }
+  .btn-clear-action:hover {
+    background: #fee2e2 !important;
+    border-color: #fca5a5 !important;
+    color: #b91c1c !important;
+  }
+  .coffee-text-link {
+    margin: 6px 0 22px;
+    font-size: 12.5px;
+    color: #64748b;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .coffee-text-link a {
+    color: #d97706;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.15s;
+  }
+  .coffee-text-link a:hover {
+    color: #b45309;
+  }
+
 </style>
 </head>
 <body>
 
 <div class="container">
-  <div class="legacy-top-bar">
-    <div class="legacy-actions">
-      
+
+    <div class="tool-header-bar">
+      <a href="index.html" class="tool-back-link">&larr; All Calculators</a>
+      <button type="button" id="unit-toggle-btn" class="unit-toggle-btn" onclick="toggleUnitSystem()">🌐 Switch to Imperial (US)</button>
     </div>
+    
   </div>
     <h2>Rock Mass Classification Tool</h2>
     
@@ -471,7 +614,18 @@
     </div>
 
     
-    <div class="standard-actions-bar">
+    
+    
+    
+
+
+
+
+    <div class="result-box hidden" 
+    
+    
+
+<div class="standard-actions-bar">
       <button type="button" class="btn-primary-action" onclick="calculateClassification()">
         <span>⚡ Calculate Classification</span>
       </button>
@@ -482,17 +636,11 @@
         <span>🗑️ Clear</span>
       </button>
     </div>
-    <div class="coffee-link-under-calc">
-      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">
-        <span>☕ Enjoying this free tool? <u>Buy me a coffee</u></span>
-      </a>
+    <div class="coffee-text-link">
+      <span>☕ Support development:</span>
+      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">Buy me a coffee</a>
     </div>
-    
-
-
-
-
-    <div class="result-box hidden" id="resultBox">
+<div id="resultBox">
         <div id="resultLabel">Result</div>
         <div class="result-value" id="resultValue">---</div>
         <div class="factors-row">
@@ -616,6 +764,10 @@
             e.target.classList.remove('input-error');
         }
     });
+
+
+    
+    
 
 
     
