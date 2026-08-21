@@ -1,9 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>1D Consolidation Settlement Calculator</title>
@@ -117,160 +114,56 @@
             border: 2px solid #e74c3c !important;
             background-color: #fdf2f2 !important;
         }
-        /* Unit Toggle Styles */
-        .unit-toggle-bar { display:flex; justify-content:flex-end; margin-bottom:1rem; }
-            
-    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
-    .legacy-top-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
+        
+    /* ── Geotechnical Toolbox Template ── */
+    .tool-nav {
+        display: flex;
+        align-items: center;
+        margin-bottom: 18px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e2e8f0;
     }
-    .legacy-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
+    .tool-nav a {
+        text-decoration: none;
+        color: #475569;
+        font-size: 13px;
+        font-weight: 600;
+        transition: color 0.15s;
     }
-    .bmc-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #FFDD00;
-      color: #000000;
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-weight: 700;
-      font-size: 12px;
-      text-decoration: none;
-      border: 1px solid #E6C800;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    .tool-nav a:hover { color: #2563eb; }
+    .tool-footer {
+        text-align: center;
+        padding: 20px 12px 8px;
+        margin-top: 36px;
+        border-top: 1px solid #e2e8f0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    .bmc-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    .tool-footer .disclaimer {
+        font-size: 11.5px;
+        color: #94a3b8;
+        max-width: 780px;
+        margin: 0 auto 10px;
+        line-height: 1.5;
     }
-    .demo-disclaimer-banner {
-      background: #fffbeb;
-      border: 1px solid #fef3c7;
-      border-left: 4px solid #f59e0b;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 11px;
-      color: #92400e;
-      line-height: 1.4;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: flex-start;
-      gap: 8px;
+    .tool-footer .author {
+        font-size: 13px;
+        color: #64748b;
     }
-    
+    .tool-footer .author a {
+        color: #d97706;
+        font-weight: 600;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+    .tool-footer .author a:hover { color: #b45309; }
 
-  
-  /* Standard Unified Action Bar & Coffee Link Styles */
-  
-  
-  
-  
-
-
-  
-
-
-  /* ── Clean Geotechnical Toolbox Standards ─────────────────────────── */
-  .tool-header-bar {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #e2e8f0;
-  }
-  .tool-back-link {
-    text-decoration: none;
-    color: #475569;
-    font-size: 13px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    transition: color 0.15s;
-  }
-  .tool-back-link:hover {
-    color: #2563eb;
-  }
-  .btn-calculate {
-    background: #2563eb !important;
-    color: #ffffff !important;
-    border: none !important;
-    border-radius: 8px !important;
-    padding: 11px 24px !important;
-    font-size: 14px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    box-shadow: 0 2px 6px rgba(37,99,235,0.25) !important;
-    transition: all 0.15s ease !important;
-    margin-top: 12px !important;
-  }
-  .btn-calculate:hover {
-    background: #1d4ed8 !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 4px 10px rgba(37,99,235,0.35) !important;
-  }
-  .coffee-text-link {
-    margin: 8px 0 24px;
-    font-size: 12.5px;
-    color: #64748b;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .coffee-text-link a {
-    color: #d97706;
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    transition: color 0.15s;
-  }
-  .coffee-text-link a:hover {
-    color: #b45309;
-  }
-  .tool-footer {
-    text-align: center;
-    padding: 24px 12px 12px;
-    margin-top: 40px;
-    border-top: 1px solid #e2e8f0;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  }
-  .tool-footer .disclaimer-note {
-    font-size: 12px;
-    color: #94a3b8;
-    max-width: 800px;
-    margin: 0 auto 12px;
-    line-height: 1.5;
-  }
-  .tool-footer .author-attribution {
-    font-size: 13px;
-    color: #64748b;
-  }
-
-</style>
+    </style>
 </head>
 <body>
 
 <div class="container">
+    <div class="tool-nav"><a href="index.html">&larr; Back to All Calculators</a></div>
 
-    <div class="tool-header-bar">
-      <a href="index.html" class="tool-back-link">&larr; Back to All Calculators</a>
-    </div>
     <h2>1D Consolidation Settlement Calculator</h2>
     
     <div class="form-row" style="background: #e8f4fd; padding: 10px; border-radius: 6px; justify-content: flex-start; gap: 1.5rem; margin-bottom: 1.5rem;">
@@ -365,25 +258,7 @@
         <!-- LaTeX formula injected here -->
     </div>
 
-    
-    
-    
-    
-
-    
-    
-
-    
-    <div style="margin: 20px 0 6px;">
-      <button type="button" class="btn-calculate" onclick="calculateSettlement()">
-        <span>⚡ Calculate Primary Consolidation (Sc)</span>
-      </button>
-    </div>
-    <div class="coffee-text-link">
-      <span>☕ Support development:</span>
-      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">Buy me a coffee</a>
-    </div>
-    
+    <button onclick="calculateSettlement()">Calculate Primary Consolidation (Sc)</button>
 
     <div class="result-box hidden" id="resultBox">
         <div>Primary Consolidation Settlement (S<sub>c</sub>)</div>
@@ -754,31 +629,20 @@
     });
 
     
-
-
-    
-    
-
-
-    
-    
-
-
-    
-    
 </script>
 
-    
-    
 
-    <div class="tool-footer">
-      <div class="disclaimer-note">
-        ⚠️ <strong>Engineering Disclaimer:</strong> This calculation module is provided for preliminary screening, educational, and verification purposes only. All calculations must be independently reviewed and validated by a qualified Professional Engineer (P.Eng. / PE) prior to engineering design or construction application.
-      </div>
-      <div class="author-attribution">
-        Developed by <strong>Ali Gheysari, PhD</strong> &bull; Made with <span style="color: #ef4444;">❤️</span> in Canada 🇨🇦 &bull; Licensed under GNU GPL v3.0
-      </div>
-    </div>
-    
+<div class="tool-footer">
+  <div class="disclaimer">
+    &#9888;&#65039; <strong>Engineering Disclaimer:</strong> This tool is for preliminary screening, educational, and verification purposes only.
+    All results must be independently reviewed by a qualified Professional Engineer (P.Eng. / PE) before use in design or construction.
+  </div>
+  <div class="author">
+    Developed by <strong>Ali Gheysari, PhD</strong> &bull;
+    Made with <span style="color:#ef4444;">&hearts;</span> in Canada &#127464;&#127462; &bull;
+    &#9749; <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener">Buy me a coffee</a>
+  </div>
+</div>
+
 </body>
 </html>
