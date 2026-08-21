@@ -2,8 +2,11 @@
 
 A comprehensive collection of **25+ standalone, client-side HTML/JavaScript calculation tools and utilities** developed by **Ali Gheysari, PhD** for geotechnical engineers, civil engineering researchers, and geospatial analysts.
 
+🌐 **[Launch Interactive Web Portal](https://agheysari.github.io/geotechnical-tools/)**
+
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-success.svg)](https://agheysari.github.io/geotechnical-tools/)
 [![Made in Canada](https://img.shields.io/badge/Made%20with%20%E2%9D%A4%EF%B8%8F%20in-Canada-red.svg)](https://github.com/agheysari/geotechnical-tools)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Calculators](https://img.shields.io/badge/Calculators-25%2B-blue.svg)](https://github.com/agheysari/geotechnical-tools)
 [![Support](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Donate-orange.svg)](https://buymeacoffee.com/agheysari)
 
@@ -20,33 +23,33 @@ A comprehensive collection of **25+ standalone, client-side HTML/JavaScript calc
 
 ## 📚 Included Calculation Modules
 
-| # | Calculator Module | Filename | Key Methods / Theories |
-|---|-------------------|----------|------------------------|
-| 1 | **Axial Pile Capacity** | [`axial_pile_capacity.html`](./axial_pile_capacity.html) | Alpha (API RP 2A), Beta (Burland), Lambda (Vijayvergiya & Focht) |
-| 2 | **Pile Group Efficiency & Settlement** | [`pile_group_efficiency.html`](./pile_group_efficiency.html) | Converse-Labarre, Sayed-Baker, Cohesive Block Shear, 2:1 Raft Model |
-| 3 | **Shallow Bearing Capacity** | [`bearing_capacity.html`](./bearing_capacity.html) | Terzaghi, Meyerhof, Hansen, Vesic General Formulations |
-| 4 | **Lateral Pile P-y Curves** | [`lateral_pile_py_curves.html`](./lateral_pile_py_curves.html) | Matlock (1970) Soft Clay, API RP 2A Sand |
-| 5 | **Lateral Earth Pressure** | [`earth_pressure.html`](./earth_pressure.html) | Rankine & Coulomb Theories (Ka, Kp, Ko, Surcharge) |
-| 6 | **Cantilever Retaining Wall Stability** | [`retaining_wall_stability.html`](./retaining_wall_stability.html) | Sliding, Overturning, Base Contact & Eccentricity Checks |
-| 7 | **1D Consolidation Settlement** | [`consolidation_calculator.html`](./consolidation_calculator.html) | Terzaghi Primary NC/OC Settlement, Secondary Compression |
-| 8 | **Terzaghi Time Rate & Isochrones** | [`terzaghi_consolidation.html`](./terzaghi_consolidation.html) | Tv vs. U% Fourier Series Excess Pore Pressure Dissipation |
-| 9 | **Immediate Elastic Settlement** | [`elastic_settlement.html`](./elastic_settlement.html) | Theory of Elasticity (Fox / Bowles) & Schmertmann (1978) CPT |
-| 10 | **Multi-Layer Stratigraphy Settlement** | [`layered_settlement.html`](./layered_settlement.html) | Multi-Layer Sublayer Integration & Boussinesq Attenuation |
-| 11 | **USCS Soil Classification** | [`uscs_classifier.html`](./uscs_classifier.html) | ASTM D2487 Coarse/Fine Decision Tree & Casagrande Plasticity |
-| 12 | **Particle Size Distribution (PSD)** | [`gradation_plotter.html`](./gradation_plotter.html) | Semi-Log Sieve Curve, D10/D30/D60, Cu, Cc Calculations |
-| 13 | **Proctor Compaction Curve Analyzer** | [`proctor_analyzer.html`](./proctor_analyzer.html) | Quadratic Regression, OMC, MDD & Zero Air Voids (ZAV) |
-| 14 | **Stress Distribution Calculator** | [`stress_calculator.html`](./stress_calculator.html) | Boussinesq Point/Line/Area Load Vertical Stress Isobars |
-| 15 | **Rock Mass Classification** | [`rock_mass_classification.html`](./rock_mass_classification.html) | Bieniawski RMR89, Barton Q-System, Hoek GSI Matrix |
-| 16 | **Hoek-Brown Failure Criterion** | [`hoek_brown_criterion.html`](./hoek_brown_criterion.html) | Generalized Hoek-Brown (2002/2019) & Equivalent Mohr-Coulomb |
-| 17 | **Seismic Site Classification** | [`seismic_site_classification.html`](./seismic_site_classification.html) | ASCE 7-16/22 & Eurocode 8 Vs30/N60 Site Class & Response Spectra |
-| 18 | **CPT Soil Behavior Type (SBT)** | [`cpt_soil_classification.html`](./cpt_soil_classification.html) | Robertson (1990/2016) Non-Normalized & Normalized SBT Charts |
-| 19 | **Soil Permeability Calculator** | [`soil_permeability.html`](./soil_permeability.html) | Constant Head, Falling Head & Hazen Empirical Conductivity |
-| 20 | **Soil Phase Relationships** | [`soil_phase_relationships.html`](./soil_phase_relationships.html) | 3-Phase Weight-Volume Solver (w, e, n, Sr, Gs, Unit Weights) |
-| 21 | **Liquefaction Potential Analyzer** | [`liquefaction_potential.html`](./liquefaction_potential.html) | Idriss & Boulanger (2008) SPT Triggering Procedure |
-| 22 | **Spatial & GIS Format Converter** | [`spatial_converter.html`](./spatial_converter.html) | GeoJSON, KML, KMZ, GPX, CSV Multi-Format Transformation |
-| 23 | **CSV to KML Batch Converter** | [`csv_to_kml.html`](./csv_to_kml.html) | Borehole & CPT Coordinate Transform to Styled Google Earth KML |
-| 24 | **Geometry Simplifier & Optimizer** | [`geometry_simplifier.html`](./geometry_simplifier.html) | Douglas-Peucker Vertex Reduction & Interactive Map Preview |
-| 25 | **Stress Calculator (Simple Edition)** | [`stress_calculator_simple.html`](./stress_calculator_simple.html) | Lightweight Single-Point Boussinesq & Westergaard Solver |
+| # | Calculator Module | 🚀 Live Interactive Tool | 📄 Source Code | Key Methods / Theories |
+|---|-------------------|--------------------------|----------------|------------------------|
+| 1 | **Axial Pile Capacity** | [Launch App](https://agheysari.github.io/geotechnical-tools/axial_pile_capacity.html) | [`axial_pile_capacity.html`](./axial_pile_capacity.html) | Alpha (API RP 2A), Beta (Burland), Lambda (Vijayvergiya & Focht) |
+| 2 | **Pile Group Efficiency & Settlement** | [Launch App](https://agheysari.github.io/geotechnical-tools/pile_group_efficiency.html) | [`pile_group_efficiency.html`](./pile_group_efficiency.html) | Converse-Labarre, Sayed-Baker, Cohesive Block Shear, 2:1 Raft Model |
+| 3 | **Shallow Bearing Capacity** | [Launch App](https://agheysari.github.io/geotechnical-tools/bearing_capacity.html) | [`bearing_capacity.html`](./bearing_capacity.html) | Terzaghi, Meyerhof, Hansen, Vesic General Formulations |
+| 4 | **Lateral Pile P-y Curves** | [Launch App](https://agheysari.github.io/geotechnical-tools/lateral_pile_py_curves.html) | [`lateral_pile_py_curves.html`](./lateral_pile_py_curves.html) | Matlock (1970) Soft Clay, API RP 2A Sand |
+| 5 | **Lateral Earth Pressure** | [Launch App](https://agheysari.github.io/geotechnical-tools/earth_pressure.html) | [`earth_pressure.html`](./earth_pressure.html) | Rankine & Coulomb Theories (Ka, Kp, Ko, Surcharge) |
+| 6 | **Cantilever Retaining Wall Stability** | [Launch App](https://agheysari.github.io/geotechnical-tools/retaining_wall_stability.html) | [`retaining_wall_stability.html`](./retaining_wall_stability.html) | Sliding, Overturning, Base Contact & Eccentricity Checks |
+| 7 | **1D Consolidation Settlement** | [Launch App](https://agheysari.github.io/geotechnical-tools/consolidation_calculator.html) | [`consolidation_calculator.html`](./consolidation_calculator.html) | Terzaghi Primary NC/OC Settlement, Secondary Compression |
+| 8 | **Terzaghi Time Rate & Isochrones** | [Launch App](https://agheysari.github.io/geotechnical-tools/terzaghi_consolidation.html) | [`terzaghi_consolidation.html`](./terzaghi_consolidation.html) | Tv vs. U% Fourier Series Excess Pore Pressure Dissipation |
+| 9 | **Immediate Elastic Settlement** | [Launch App](https://agheysari.github.io/geotechnical-tools/elastic_settlement.html) | [`elastic_settlement.html`](./elastic_settlement.html) | Theory of Elasticity (Fox / Bowles) & Schmertmann (1978) CPT |
+| 10 | **Multi-Layer Stratigraphy Settlement** | [Launch App](https://agheysari.github.io/geotechnical-tools/layered_settlement.html) | [`layered_settlement.html`](./layered_settlement.html) | Multi-Layer Sublayer Integration & Boussinesq Attenuation |
+| 11 | **USCS Soil Classification** | [Launch App](https://agheysari.github.io/geotechnical-tools/uscs_classifier.html) | [`uscs_classifier.html`](./uscs_classifier.html) | ASTM D2487 Coarse/Fine Decision Tree & Casagrande Plasticity |
+| 12 | **Particle Size Distribution (PSD)** | [Launch App](https://agheysari.github.io/geotechnical-tools/gradation_plotter.html) | [`gradation_plotter.html`](./gradation_plotter.html) | Semi-Log Sieve Curve, D10/D30/D60, Cu, Cc Calculations |
+| 13 | **Proctor Compaction Curve Analyzer** | [Launch App](https://agheysari.github.io/geotechnical-tools/proctor_analyzer.html) | [`proctor_analyzer.html`](./proctor_analyzer.html) | Quadratic Regression, OMC, MDD & Zero Air Voids (ZAV) |
+| 14 | **Stress Distribution Calculator** | [Launch App](https://agheysari.github.io/geotechnical-tools/stress_calculator.html) | [`stress_calculator.html`](./stress_calculator.html) | Boussinesq Point/Line/Area Load Vertical Stress Isobars |
+| 15 | **Rock Mass Classification** | [Launch App](https://agheysari.github.io/geotechnical-tools/rock_mass_classification.html) | [`rock_mass_classification.html`](./rock_mass_classification.html) | Bieniawski RMR89, Barton Q-System, Hoek GSI Matrix |
+| 16 | **Hoek-Brown Failure Criterion** | [Launch App](https://agheysari.github.io/geotechnical-tools/hoek_brown_criterion.html) | [`hoek_brown_criterion.html`](./hoek_brown_criterion.html) | Generalized Hoek-Brown (2002/2019) & Equivalent Mohr-Coulomb |
+| 17 | **Seismic Site Classification** | [Launch App](https://agheysari.github.io/geotechnical-tools/seismic_site_classification.html) | [`seismic_site_classification.html`](./seismic_site_classification.html) | ASCE 7-16/22 & Eurocode 8 Vs30/N60 Site Class & Response Spectra |
+| 18 | **CPT Soil Behavior Type (SBT)** | [Launch App](https://agheysari.github.io/geotechnical-tools/cpt_soil_classification.html) | [`cpt_soil_classification.html`](./cpt_soil_classification.html) | Robertson (1990/2016) Non-Normalized & Normalized SBT Charts |
+| 19 | **Soil Permeability Calculator** | [Launch App](https://agheysari.github.io/geotechnical-tools/soil_permeability.html) | [`soil_permeability.html`](./soil_permeability.html) | Constant Head, Falling Head & Hazen Empirical Conductivity |
+| 20 | **Soil Phase Relationships** | [Launch App](https://agheysari.github.io/geotechnical-tools/soil_phase_relationships.html) | [`soil_phase_relationships.html`](./soil_phase_relationships.html) | 3-Phase Weight-Volume Solver (w, e, n, Sr, Gs, Unit Weights) |
+| 21 | **Liquefaction Potential Analyzer** | [Launch App](https://agheysari.github.io/geotechnical-tools/liquefaction_potential.html) | [`liquefaction_potential.html`](./liquefaction_potential.html) | Idriss & Boulanger (2008) SPT Triggering Procedure |
+| 22 | **Spatial & GIS Format Converter** | [Launch App](https://agheysari.github.io/geotechnical-tools/spatial_converter.html) | [`spatial_converter.html`](./spatial_converter.html) | GeoJSON, KML, KMZ, GPX, CSV Multi-Format Transformation |
+| 23 | **CSV to KML Batch Converter** | [Launch App](https://agheysari.github.io/geotechnical-tools/csv_to_kml.html) | [`csv_to_kml.html`](./csv_to_kml.html) | Borehole & CPT Coordinate Transform to Styled Google Earth KML |
+| 24 | **Geometry Simplifier & Optimizer** | [Launch App](https://agheysari.github.io/geotechnical-tools/geometry_simplifier.html) | [`geometry_simplifier.html`](./geometry_simplifier.html) | Douglas-Peucker Vertex Reduction & Interactive Map Preview |
+| 25 | **Stress Calculator (Simple Edition)** | [Launch App](https://agheysari.github.io/geotechnical-tools/stress_calculator_simple.html) | [`stress_calculator_simple.html`](./stress_calculator_simple.html) | Lightweight Single-Point Boussinesq & Westergaard Solver |
 
 ---
 
@@ -59,4 +62,4 @@ If these open-source calculation tools and charts help your engineering projects
 ---
 
 ## 📄 License
-This repository is open-sourced under the [MIT License](LICENSE).
+This project is open-sourced under the [GNU General Public License v3.0 (GPL-3.0)](LICENSE).

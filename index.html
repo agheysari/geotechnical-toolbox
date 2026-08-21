@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Open-Source Geotechnical Engineering Calculators</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand: #2563eb;
+      --brand-hover: #1d4ed8;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding: 0 16px 48px;
+    }
+    header {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 48px 0 24px;
+      text-align: center;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 14px;
+      border-radius: 9999px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: #0f172a;
+      margin-bottom: 12px;
+    }
+    p.subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 700px;
+      margin: 0 auto 24px;
+    }
+    .search-box {
+      max-width: 540px;
+      margin: 0 auto 32px;
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 14px 20px 14px 44px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      font-size: 14px;
+      outline: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      transition: all 0.2s;
+    }
+    .search-box input:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 4px rgba(37,99,235,0.12);
+    }
+    .search-box svg {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+      transition: all 0.25s ease;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px rgba(37,99,235,0.08);
+      border-color: #93c5fd;
+    }
+    .card-tag {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--brand);
+      margin-bottom: 6px;
+    }
+    .card h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #0f172a;
+    }
+    .card p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--brand);
+    }
+    footer {
+      max-width: 1100px;
+      margin: 48px auto 0;
+      text-align: center;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="badge">
+      <span>🇨🇦 Open-Source Engineering Suite</span>
+    </div>
+    <h1>Geotechnical & Geospatial Calculators</h1>
+    <p class="subtitle">
+      25+ interactive, client-side calculation modules with metric/imperial conversion and instant visual feedback.
+    </p>
+
+    <div class="search-box">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input type="text" id="filterInput" placeholder="Search calculators (e.g. Pile Group, Hoek-Brown, Terzaghi, CPT, USCS)..." oninput="filterTools()">
+    </div>
+  </header>
+
+  <main class="grid" id="toolsGrid">
+    <a href="axial_pile_capacity.html" class="card" data-title="axial pile capacity alpha beta lambda compressive uplift">
+      <div>
+        <div class="card-tag">Foundations & Piles</div>
+        <h2>🏗️ Axial Pile Capacity</h2>
+        <p>Calculates ultimate compressive and uplift axial capacity using Alpha, Beta, and Lambda static methods with multi-layer stratigraphy.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="pile_group_efficiency.html" class="card" data-title="pile group efficiency settlement converse-labarre sayed-baker block failure equivalent raft">
+      <div>
+        <div class="card-tag">Foundations & Piles</div>
+        <h2>🏢 Pile Group Efficiency & Settlement</h2>
+        <p>Converse-Labarre, Sayed-Baker reduction efficiency, cohesive block shear check, and 2:1 equivalent raft 1D consolidation settlement.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="bearing_capacity.html" class="card" data-title="bearing capacity shallow footings terzaghi meyerhof hansen vesic">
+      <div>
+        <div class="card-tag">Foundations & Piles</div>
+        <h2>📐 Shallow Bearing Capacity</h2>
+        <p>Ultimate and allowable bearing capacity for strip, square, circular, and rectangular footings via Terzaghi, Meyerhof, Hansen, and Vesic.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="lateral_pile_py_curves.html" class="card" data-title="lateral pile py curves matlock api sand soft clay">
+      <div>
+        <div class="card-tag">Foundations & Piles</div>
+        <h2>🌊 Lateral Pile P-y Curves</h2>
+        <p>Generates non-linear p-y response curves for laterally loaded piles in soft clays (Matlock 1970) and sands (API RP 2A).</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="earth_pressure.html" class="card" data-title="lateral earth pressure rankine coulomb active passive at rest">
+      <div>
+        <div class="card-tag">Retaining Walls</div>
+        <h2>🧱 Lateral Earth Pressure</h2>
+        <p>Active (Ka), passive (Kp), and at-rest (Ko) lateral earth pressures using Rankine & Coulomb theories with slope, batter, and water table.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="retaining_wall_stability.html" class="card" data-title="retaining wall stability sliding overturning eccentricity bearing pressure">
+      <div>
+        <div class="card-tag">Retaining Walls</div>
+        <h2>🛡️ Cantilever Wall Stability</h2>
+        <p>Analyzes sliding, overturning, eccentricity, middle-third check, and base contact pressure distributions for cantilever retaining walls.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="consolidation_calculator.html" class="card" data-title="1d consolidation settlement terzaghi overconsolidation secondary compression">
+      <div>
+        <div class="card-tag">Settlement</div>
+        <h2>📉 1D Consolidation Settlement</h2>
+        <p>Primary consolidation settlement for normally consolidated (NC) and overconsolidated (OC) soils with secondary compression.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="terzaghi_consolidation.html" class="card" data-title="terzaghi time rate consolidation isochrones fourier series pore pressure">
+      <div>
+        <div class="card-tag">Settlement</div>
+        <h2>⏱️ Terzaghi Time Rate & Isochrones</h2>
+        <p>Bidirectional solver for time factor (Tv) vs U% and Fourier series excess pore pressure dissipation profiles for single/double drainage.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="elastic_settlement.html" class="card" data-title="immediate elastic settlement schmertmann cpt boussinesq bowles">
+      <div>
+        <div class="card-tag">Settlement</div>
+        <h2>🎯 Immediate Elastic Settlement</h2>
+        <p>Computes elastic settlement under flexible and rigid footings using Theory of Elasticity and Schmertmann (1978) CPT strain influence.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="layered_settlement.html" class="card" data-title="multi layer settlement sublayer boussinesq stratigraphy">
+      <div>
+        <div class="card-tag">Settlement</div>
+        <h2>📊 Multi-Layer Settlement</h2>
+        <p>Multi-layer settlement combining sand elastic modulus, Schmertmann CPT, and non-linear clay consolidation with Boussinesq stress.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="uscs_classifier.html" class="card" data-title="uscs soil classification astm d2487 casagrande plasticity chart">
+      <div>
+        <div class="card-tag">Lab & Soil Mechanics</div>
+        <h2>🏷️ USCS Soil Classifier</h2>
+        <p>Standard ASTM D2487 coarse/fine soil classification with dual symbols, organic checks, and interactive Casagrande plasticity chart.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="gradation_plotter.html" class="card" data-title="particle size distribution psd gradation sieve curve d10 d30 d60 cu cc">
+      <div>
+        <div class="card-tag">Lab & Soil Mechanics</div>
+        <h2>📈 Particle Size Distribution (PSD)</h2>
+        <p>Semi-log gradation curve plotter with ASTM sieve presets, CSV import, boundary envelopes, D10/D30/D60, Cu, and Cc coefficients.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="proctor_analyzer.html" class="card" data-title="proctor compaction curve omc mdd zero air voids zav">
+      <div>
+        <div class="card-tag">Lab & Soil Mechanics</div>
+        <h2>🧪 Proctor Compaction Analyzer</h2>
+        <p>Quadratic regression compaction fitting to determine Optimum Moisture Content (OMC), Maximum Dry Density (MDD), and ZAV curves.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="stress_calculator.html" class="card" data-title="stress distribution boussinesq westergaard point line area load isobars">
+      <div>
+        <div class="card-tag">Stress Distribution</div>
+        <h2>🌐 Stress Distribution (Boussinesq)</h2>
+        <p>Vertical stress increase (Δσz) at any depth in semi-infinite soil masses under point, line, and rectangular loads with isobar bulbs.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="rock_mass_classification.html" class="card" data-title="rock mass classification rmr89 q system gsi bieniawski barton hoek">
+      <div>
+        <div class="card-tag">Rock Engineering</div>
+        <h2>⛰️ Rock Mass Classification</h2>
+        <p>Determines rock mass engineering quality ratings using Bieniawski (1989) RMR89, Barton (1974) Q-System, and Hoek (2013) GSI.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="hoek_brown_criterion.html" class="card" data-title="hoek brown criterion rock mass failure envelope mohr coulomb erm">
+      <div>
+        <div class="card-tag">Rock Engineering</div>
+        <h2>⛏️ Hoek-Brown Failure Criterion</h2>
+        <p>Generalized Hoek-Brown (2002/2019) with equivalent Mohr-Coulomb parameters (c', φ'), deformation modulus (Erm), and live plots.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="seismic_site_classification.html" class="card" data-title="seismic site classification response spectrum asce 7 eurocode 8 vs30 n60">
+      <div>
+        <div class="card-tag">Seismic & Foundations</div>
+        <h2>⚡ Seismic Site Classification</h2>
+        <p>Assigns ASCE 7-16/22 and Eurocode 8 Site Class from 30m average Vs30, N60, and su with live Design Response Spectrum (Sa vs. T).</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="cpt_soil_classification.html" class="card" data-title="cpt soil behavior type sbt robertson 1990 2016 su friction angle">
+      <div>
+        <div class="card-tag">Lab & Soil Mechanics</div>
+        <h2>🧭 CPT Soil Behavior Type (SBT)</h2>
+        <p>Robertson (1990/2016) CPT classification from cone resistance (qc), sleeve friction (fs), and pore pressure (u2) with live SBT charts.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="soil_permeability.html" class="card" data-title="soil permeability hydraulic conductivity constant head falling head hazen">
+      <div>
+        <div class="card-tag">Lab & Soil Mechanics</div>
+        <h2>💧 Soil Permeability Calculator</h2>
+        <p>Constant Head, Falling Head, and Hazen empirical hydraulic conductivity with void ratio and temperature corrections.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="soil_phase_relationships.html" class="card" data-title="soil phase relationships void ratio porosity saturation unit weight 3 phase diagram">
+      <div>
+        <div class="card-tag">Lab & Soil Mechanics</div>
+        <h2>📦 Soil Phase Relationships</h2>
+        <p>Bidirectional solver for soil index and phase properties (w, e, n, Sr, Gs, γ, γd, γsat, γ') with interactive 3-phase soil block visualizer.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="liquefaction_potential.html" class="card" data-title="liquefaction potential factor of safety idriss boulanger spt csr crr">
+      <div>
+        <div class="card-tag">Seismic & Foundations</div>
+        <h2>⚠️ Liquefaction Potential</h2>
+        <p>Factor of Safety (FS) against liquefaction triggering using Idriss & Boulanger (2008) SPT methodology with magnitude corrections.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="spatial_converter.html" class="card" data-title="spatial converter geojson kml kmz gpx csv gis mapping">
+      <div>
+        <div class="card-tag">GIS & Spatial</div>
+        <h2>🗺️ Spatial & GIS Format Converter</h2>
+        <p>Converts and filters survey and map datasets between GeoJSON, KML, KMZ, GPX, and CSV formats with instant browser download.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="csv_to_kml.html" class="card" data-title="csv to kml borehole coordinates placemarks google earth">
+      <div>
+        <div class="card-tag">GIS & Spatial</div>
+        <h2>📍 CSV to KML Placemark Converter</h2>
+        <p>Transforms tabular borehole and survey CSV files into styled Google Earth KML placemark files with custom field matching.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="geometry_simplifier.html" class="card" data-title="geometry simplifier douglas peucker vertex reduction geojson kml">
+      <div>
+        <div class="card-tag">GIS & Spatial</div>
+        <h2>✂️ Geometry Simplifier & Optimizer</h2>
+        <p>Reduces vertex count and file size of heavy spatial datasets using Douglas-Peucker optimization with interactive map comparison.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+
+    <a href="stress_calculator_simple.html" class="card" data-title="stress calculator simple point load boussinesq westergaard">
+      <div>
+        <div class="card-tag">Stress Distribution</div>
+        <h2>⚡ Stress Calculator (Simple)</h2>
+        <p>Fast single-point vertical stress increase solver under point and line loads using Boussinesq & Westergaard formulations.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+  </main>
+
+  <footer>
+    <p>Developed by <strong>Ali Gheysari, PhD</strong> &bull; Made with <span style="color:#ef4444;">❤️</span> in Canada 🇨🇦 &bull; Licensed under GNU GPL v3.0</p>
+  </footer>
+
+  <script>
+    function filterTools() {
+      const q = document.getElementById('filterInput').value.toLowerCase().trim();
+      const cards = document.querySelectorAll('.card');
+      cards.forEach(card => {
+        const title = card.getAttribute('data-title') || '';
+        const text = card.textContent.toLowerCase();
+        if (!q || title.includes(q) || text.includes(q)) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
