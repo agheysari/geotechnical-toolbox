@@ -213,110 +213,31 @@
       align-items: flex-start;
       gap: 8px;
     }
-    .unit-switcher-group {
-      display: inline-flex;
-      background: #f1f5f9;
-      padding: 3px;
-      border-radius: 10px;
-      border: 1px solid #cbd5e1;
-    }
-    .unit-switcher-btn {
-      padding: 5px 12px;
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 700;
-      border: none;
-      cursor: pointer;
-      background: transparent;
-      color: #64748b;
-      transition: all 0.2s;
-    }
-    .unit-switcher-btn.active {
-      background: #0284c7;
-      color: #ffffff;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
+    
 
   
   /* Standard Unified Action Bar & Coffee Link Styles */
-  .standard-actions-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
-    margin: 24px 0 8px;
-  }
-  .btn-primary-action {
-    background: #2563eb !important;
-    color: #ffffff !important;
-    border: none !important;
-    border-radius: 10px !important;
-    padding: 12px 24px !important;
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    cursor: pointer !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 8px !important;
-    box-shadow: 0 4px 12px rgba(37,99,235,0.25) !important;
-    transition: all 0.2s ease !important;
-  }
-  .btn-primary-action:hover {
-    background: #1d4ed8 !important;
-    transform: translateY(-1px) !important;
-    box-shadow: 0 6px 16px rgba(37,99,235,0.35) !important;
-  }
   
   
-  .coffee-link-under-calc {
-    display: flex;
-    align-items: center;
-    margin: 8px 0 28px;
-  }
-  .coffee-link-under-calc a {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: #b45309;
-    background: #fef3c7;
-    border: 1px solid #fde68a;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 6px 14px;
-    border-radius: 9999px;
-    text-decoration: none;
-    transition: all 0.2s ease;
-  }
-  .coffee-link-under-calc a:hover {
-    background: #fde68a;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(217,119,6,0.15);
-  }
+  
+  
 
 
-  /* ── Unified Geotechnical Toolbox Theme ────────────────────────────── */
-  :root {
-    --primary: #2563eb;
-    --primary-hover: #1d4ed8;
-    --bg-page: #f8fafc;
-    --card-bg: #ffffff;
-    --text-main: #0f172a;
-    --text-muted: #64748b;
-    --border-color: #e2e8f0;
-  }
   
+
+
+  /* ── Clean Geotechnical Toolbox Standards ─────────────────────────── */
   .tool-header-bar {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 12px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid #e2e8f0;
   }
   .tool-back-link {
     text-decoration: none;
-    color: #64748b;
+    color: #475569;
     font-size: 13px;
     font-weight: 600;
     display: inline-flex;
@@ -327,58 +248,29 @@
   .tool-back-link:hover {
     color: #2563eb;
   }
-  .unit-toggle-btn {
-    background: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 8px !important;
-    padding: 6px 14px !important;
-    font-size: 12px !important;
-    font-weight: 600 !important;
-    color: #334155 !important;
-    cursor: pointer !important;
-    transition: all 0.15s !important;
-  }
-  .unit-toggle-btn:hover {
-    background: #f1f5f9 !important;
-    border-color: #94a3b8 !important;
-  }
-  .unit-toggle-btn.imperial {
-    background: #eff6ff !important;
-    border-color: #93c5fd !important;
-    color: #1d4ed8 !important;
-  }
-
-  .standard-actions-bar {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-    margin: 24px 0 8px;
-  }
-  .btn-primary-action {
+  .btn-calculate {
     background: #2563eb !important;
     color: #ffffff !important;
     border: none !important;
     border-radius: 8px !important;
-    padding: 10px 22px !important;
-    font-size: 13.5px !important;
+    padding: 11px 24px !important;
+    font-size: 14px !important;
     font-weight: 600 !important;
     cursor: pointer !important;
     display: inline-flex !important;
     align-items: center !important;
-    justify-content: center !important;
     gap: 6px !important;
-    box-shadow: 0 2px 6px rgba(37,99,235,0.2) !important;
+    box-shadow: 0 2px 6px rgba(37,99,235,0.25) !important;
     transition: all 0.15s ease !important;
+    margin-top: 12px !important;
   }
-  .btn-primary-action:hover {
+  .btn-calculate:hover {
     background: #1d4ed8 !important;
-    box-shadow: 0 4px 10px rgba(37,99,235,0.3) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 10px rgba(37,99,235,0.35) !important;
   }
-  
-  
   .coffee-text-link {
-    margin: 6px 0 22px;
+    margin: 8px 0 24px;
     font-size: 12.5px;
     color: #64748b;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -396,6 +288,24 @@
   .coffee-text-link a:hover {
     color: #b45309;
   }
+  .tool-footer {
+    text-align: center;
+    padding: 24px 12px 12px;
+    margin-top: 40px;
+    border-top: 1px solid #e2e8f0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  .tool-footer .disclaimer-note {
+    font-size: 12px;
+    color: #94a3b8;
+    max-width: 800px;
+    margin: 0 auto 12px;
+    line-height: 1.5;
+  }
+  .tool-footer .author-attribution {
+    font-size: 13px;
+    color: #64748b;
+  }
 
 </style>
 </head>
@@ -405,9 +315,11 @@
 <div id="liquefaction-tool" class="container">
 
     <div class="tool-header-bar">
-      <a href="index.html" class="tool-back-link">&larr; All Calculators</a>
-      <button type="button" id="unit-toggle-btn" class="unit-toggle-btn" onclick="toggleUnitSystem()">🌐 Switch to Imperial (US)</button>
+      <a href="index.html" class="tool-back-link">&larr; Back to All Calculators</a>
     </div>
+    
+
+    
     
     <h2>Liquefaction Potential Analyzer</h2>
     <p class="subtitle">
@@ -426,7 +338,6 @@
             <input type="number" id="pga" value="0.40" step="0.01" min="0.01">
             <span class="hint">Geometric mean peak horizontal ground accel.</span>
         </div>
-    </div>
 
     <div class="section-title">2. Site & Soil Conditions</div>
     <div class="form-row">
@@ -498,16 +409,19 @@
     
     
 
+    
 
-<div class="standard-actions-bar">
-      <button type="button" class="btn-primary-action" onclick="calculateLiquefaction()">
+    
+    <div style="margin: 20px 0 6px;">
+      <button type="button" class="btn-calculate" onclick="calculateLiquefaction()">
         <span>⚡ Calculate Liquefaction FS</span>
       </button>
-      </div>
+    </div>
     <div class="coffee-text-link">
       <span>☕ Support development:</span>
       <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">Buy me a coffee</a>
     </div>
+    
 
     <div id="results" style="display:none;">
         <div id="fsBox" class="result-box">
@@ -703,16 +617,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
 </script>
 
-
-<div class="legacy-footer" style="text-align: center; padding: 24px 12px; margin-top: 40px; border-top: 1px solid #e2e8f0; font-size: 13px; color: #64748b; font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px;">
-  <span>Developed by <strong style="color: #1e293b;">Ali Gheysari, PhD</strong></span>
-  <span style="color: #cbd5e1;">&bull;</span>
-  <span>Made with <span style="color: #ef4444;">❤️</span> in Canada</span>
-  <svg style="width: 20px; height: 12px; vertical-align: middle; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);" viewBox="0 0 9600 4800" xmlns="http://www.w3.org/2000/svg">
-    <path fill="#f00" d="m0 0h2400l99 99h4602l99-99h2400v4800h-2400l-99-99h-4602l-99 99H0z"/>
-    <path fill="#fff" d="m2400 0h4800v4800h-4800zm2490 4430-45-863a95 95 0 0 1 111-98l859 151-116-320a65 65 0 0 1 20-73l941-762-212-99a65 65 0 0 1-34-79l186-572-542 115a65 65 0 0 1-73-38l-105-247-423 454a65 65 0 0 1-111-57l204-1052-327 189a65 65 0 0 1-91-27l-332-652-332 652a65 65 0 0 1-91 27l-327-189 204 1052a65 65 0 0 1-111 57l-423-454-105 247a65 65 0 0 1-73 38l-542-115 186 572a65 65 0 0 1-34 79l-212 99 941 762a65 65 0 0 1 20 73l-116 320 859-151a95 95 0 0 1 111 98l-45 863z"/>
-  </svg>
-</div>
-
+    <div class="tool-footer">
+      <div class="disclaimer-note">
+        ⚠️ <strong>Engineering Disclaimer:</strong> This calculation module is provided for preliminary screening, educational, and verification purposes only. All calculations must be independently reviewed and validated by a qualified Professional Engineer (P.Eng. / PE) prior to engineering design or construction application.
+      </div>
+      <div class="author-attribution">
+        Developed by <strong>Ali Gheysari, PhD</strong> &bull; Made with <span style="color: #ef4444;">❤️</span> in Canada 🇨🇦 &bull; Licensed under GNU GPL v3.0
+      </div>
+    </div>
+    
 </body>
 </html>
