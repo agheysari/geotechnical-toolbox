@@ -51,6 +51,17 @@ A comprehensive collection of **25+ standalone, client-side HTML/JavaScript calc
 
 ---
 
+## ⚠️ Engineering Disclaimer & Professional Judgment Notice
+
+> **IMPORTANT:**
+> These calculation modules and open-source interactive tools are provided for **preliminary estimation, screening, educational, and verification purposes only**. 
+> 
+> Geotechnical engineering involves complex site-specific ground conditions, stratigraphy, soil-structure interaction, and subsurface uncertainty. All calculations, analytical methods, charts, and recommendations produced by these tools **must be reviewed, verified, and validated by a licensed Professional Engineer (P.Eng. / PE)** prior to use in final engineering design, construction documents, or safety-critical decisions.
+> 
+> The author assumes no liability or responsibility for errors, omissions, or damages resulting from the use or interpretation of these calculators.
+
+---
+
 ## ☕ Support & Sponsorship
 
 If these open-source calculation tools and charts help your engineering projects, practice, or academic research, consider supporting continued open-source development:
