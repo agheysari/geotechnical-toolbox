@@ -1,0 +1,676 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bearing Capacity Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+        }
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+        input, select {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .hidden {
+            display: none !important;
+        }
+        button {
+            width: 100%;
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #eef7ff;
+            border-left: 5px solid #0066cc;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #004080;
+        }
+        .factors-row {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+            color: #444;
+        }
+        .note {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+        .formula-box {
+            text-align: center;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+        .input-error {
+            border: 2px solid #e74c3c !important;
+            background-color: #fdf2f2 !important;
+        }
+        /* Unit Toggle Styles */
+        .unit-toggle-bar { display:flex; justify-content:flex-end; margin-bottom:1rem; }
+        .unit-toggle-btn { width:auto !important; padding:7px 16px; font-size:0.85rem;
+            border-radius:8px; background:#0066cc; color:white; border:none; cursor:pointer;
+            font-weight:600; transition:background 0.2s; }
+        .unit-toggle-btn:hover { background:#004fa3; }
+        .unit-toggle-btn.imperial { background:#7c3aed; }    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="legacy-top-bar">
+    <div class="legacy-actions">
+      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+    </div>
+  </div>
+    <h2>Bearing Capacity Calculator</h2>
+    
+    <div class="form-row" style="background: #e8f4fd; padding: 10px; border-radius: 6px; justify-content: flex-start; gap: 1.5rem; margin-bottom: 1.5rem;">
+        <label style="margin: 0; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="checkbox" id="toggleGW" onchange="updateToggles()"> Groundwater Effects
+        </label>
+        <label style="margin: 0; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="checkbox" id="toggleInc" onchange="updateToggles()"> Load Inclination
+        </label>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="method">Theory / Method</label>
+            <select id="method" onchange="updateUI()">
+                <option value="meyerhof">Meyerhof (General)</option>
+                <option value="terzaghi">Terzaghi</option>
+                <option value="hansen">Hansen</option>
+                <option value="vesic">Vesic</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="shape">Foundation Shape</label>
+            <select id="shape" onchange="updateUI()">
+                <option value="strip">Strip</option>
+                <option value="square">Square</option>
+                <option value="circular">Circular</option>
+                <option value="rectangular">Rectangular</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label id="labelB" for="widthB">Width / Diameter (B) [<span data-unit="length">m</span>]</label>
+            <input type="number" id="widthB" step="any" placeholder="e.g., 2.0 m">
+        </div>
+        <div class="form-group hidden" id="length-group">
+            <label for="lengthL">Length (L) [<span data-unit="length">m</span>]</label>
+            <input type="number" id="lengthL" step="any" placeholder="e.g., 3.0 m">
+        </div>
+        <div class="form-group">
+            <label for="embedD">Embedment Depth (D<sub>f</sub>) [<span data-unit="length">m</span>]</label>
+            <input type="number" id="embedD" step="any" placeholder="e.g., 1.5 m">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="cohesionC">Cohesion (c') [<span data-unit="pressure">kPa</span>]</label>
+            <input type="number" id="cohesionC" step="any" placeholder="e.g., 15 kPa">
+        </div>
+        <div class="form-group">
+            <label for="anglePhi">Friction Angle (φ&deg;)</label>
+            <input type="number" id="anglePhi" step="any" min="0" max="50" placeholder="e.g., 30">
+        </div>
+        <div class="form-group">
+            <label for="gamma">Unit Weight (γ) [<span data-unit="unitweight">kN/m³</span>]</label>
+            <input type="number" id="gamma" step="any" placeholder="e.g., 18 kN/m³">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="factorSafety">Factor of Safety (FS)</label>
+            <input type="number" id="factorSafety" step="any" value="3.0">
+        </div>
+        <div class="form-group hidden" id="alpha-group">
+            <label for="angleAlpha">Load Angle (α&deg; from vertical)</label>
+            <input type="number" id="angleAlpha" step="any" min="0" max="90" value="0">
+        </div>
+    </div>
+
+    <div class="form-row hidden" id="gw-row">
+        <div class="form-group">
+            <label for="waterTableDw">Depth to Water Table (D<sub>w</sub>) [<span data-unit="length">m</span>]</label>
+            <input type="number" id="waterTableDw" step="any" placeholder="e.g., 1.0 m (blank if none)">
+        </div>
+        <div class="form-group">
+            <label for="gammaSat">Sat. Unit Weight (γ<sub>sat</sub>) [<span data-unit="unitweight">kN/m³</span>]</label>
+            <input type="number" id="gammaSat" step="any" placeholder="e.g., 20 kN/m³">
+        </div>
+        <div class="form-group">
+            <label for="gammaW">Unit Wt. Water (γ<sub>w</sub>)</label>
+            <input type="number" id="gammaW" step="any" value="9.81">
+        </div>
+    </div>
+
+    <div style="text-align: left; margin-bottom: 1rem;">
+        <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="checkbox" id="toggleFormula" onchange="updateToggles()"> Show Formulas
+        </label>
+    </div>
+
+    <div class="formula-box" id="formula-container">
+    </div>
+
+    <button onclick="calculateCapacity()">Calculate Bearing Capacity</button>
+
+    <div class="result-box hidden" id="resultBox">
+        <div>Allowable Bearing Capacity (q<sub>all</sub>)</div>
+        <div class="result-value" id="resultQall">---</div>
+        <div style="margin-top: 10px; color: #555;">Ultimate Capacity (q<sub>u</sub>): <span id="resultQu">---</span></div>
+        <div class="factors-row">
+            <span id="calcNc">N<sub>c</sub> = ---</span>
+            <span id="calcNq">N<sub>q</sub> = ---</span>
+            <span id="calcNg">N<sub>γ</sub> = ---</span>
+        </div>
+    </div>
+    <div class="note">
+        * Ensure units are consistent (e.g., c in kPa, γ in kN/m³, B/D in m -> q in kPa). <br>
+        <i>Note: Terzaghi's method conventionally incorporates shape factors into the main equation and assumes depth factors are 1.0.</i>
+    </div>
+</div>
+
+<script>
+    function updateToggles() {
+        document.getElementById('formula-container').classList.toggle('hidden', !document.getElementById('toggleFormula').checked);
+        document.getElementById('gw-row').classList.toggle('hidden', !document.getElementById('toggleGW').checked);
+        document.getElementById('alpha-group').classList.toggle('hidden', !document.getElementById('toggleInc').checked);
+    }
+
+    function updateUI() {
+        const method = document.getElementById('method').value;
+        const shape = document.getElementById('shape').value;
+        const lengthGroup = document.getElementById('length-group');
+        const labelB = document.getElementById('labelB');
+
+        if (shape === 'rectangular') {
+            lengthGroup.classList.remove('hidden');
+            labelB.innerHTML = "Width (B)";
+        } else if (shape === 'circular') {
+            lengthGroup.classList.add('hidden');
+            labelB.innerHTML = "Diameter (B)";
+        } else {
+            lengthGroup.classList.add('hidden');
+            labelB.innerHTML = "Width (B)";
+        }
+        
+        updateFormula(method);
+    }
+
+    function updateFormula(method) {
+        let formula = `$$ q_u = c' N_c s_c d_c i_c + q' N_q s_q d_q i_q + \\frac{1}{2} \\gamma' B N_\\gamma s_\\gamma d_\\gamma i_\\gamma $$`;
+        let factors = "";
+
+        if (method === 'terzaghi') {
+            factors = `
+                $$ N_q = \\frac{a^2}{2 \\cos^2(45^\\circ + \\phi/2)} \\text{ where } a = e^{(0.75\\pi - \\phi/2)\\tan\\phi} $$
+                $$ N_c = (N_q - 1)\\cot\\phi \\quad N_\\gamma = \\text{Empirical table} $$
+                <small style="display:block; margin-top: 10px; text-align: left; max-width: 650px; margin-left: auto; margin-right: auto;">
+                <b>Shape factors:</b> \\(s_c, s_\\gamma\\) vary by shape (e.g. Square: \\(s_c=1.3, s_\\gamma=0.8\\)). <br>
+                <b>Depth factors:</b> \\(d_c = d_q = d_\\gamma = 1.0\\). <br>
+                <b>Inclination factors:</b> Not conventionally defined (using \\(i_c=i_q=i_\\gamma=1.0\\)).
+                </small>
+            `;
+        } else if (method === 'meyerhof') {
+            factors = `
+                $$ N_q = e^{\\pi \\tan\\phi} \\tan^2(45^\\circ + \\phi/2) \\quad N_c = (N_q - 1)\\cot\\phi \\quad N_\\gamma = (N_q - 1)\\tan(1.4\\phi) $$
+                <small style="display:block; margin-top: 10px; text-align: left; max-width: 650px; margin-left: auto; margin-right: auto;">
+                <b>Shape factors:</b> \\(s_c = 1 + 0.2 K_p \\frac{B}{L}\\), \\(\\quad s_q = s_\\gamma = 1 + 0.1 K_p \\frac{B}{L}\\) (for \\(\\phi \\ge 10^\\circ\\)) <br>
+                <b>Depth factors:</b> \\(d_c = 1 + 0.2 \\sqrt{K_p} \\frac{D_f}{B}\\), \\(\\quad d_q = d_\\gamma = 1 + 0.1 \\sqrt{K_p} \\frac{D_f}{B}\\) (for \\(\\phi \\ge 10^\\circ\\)) <br>
+                <b>Inclination factors:</b> \\(i_c = i_q = (1 - \\alpha/90^\\circ)^2\\), \\(\\quad i_\\gamma = (1 - \\alpha/\\phi)^2\\) <br>
+                <i>where \\(K_p = \\tan^2(45^\\circ + \\phi/2)\\).</i>
+                </small>
+            `;
+        } else if (method === 'hansen') {
+            factors = `
+                $$ N_q = e^{\\pi \\tan\\phi} \\tan^2(45^\\circ + \\phi/2) \\quad N_c = (N_q - 1)\\cot\\phi \\quad N_\\gamma = 1.5(N_q - 1)\\tan\\phi $$
+                <small style="display:block; margin-top: 10px; text-align: left; max-width: 650px; margin-left: auto; margin-right: auto;">
+                <b>Shape factors:</b> \\(s_c = 1 + \\frac{N_q}{N_c} \\frac{B}{L}\\) (if \\(\\phi=0\\), \\(s_c = 1 + 0.2 \\frac{B}{L}\\)), \\(\\quad s_q = 1 + \\frac{B}{L}\\sin\\phi\\), \\(\\quad s_\\gamma = 1 - 0.4 \\frac{B}{L}\\) <br>
+                <b>Depth factors:</b> \\(d_c = 1 + 0.4k\\), \\(\\quad d_q = 1 + 2\\tan\\phi (1-\\sin\\phi)^2 k\\), \\(\\quad d_\\gamma = 1.0\\) <br>
+                <b>Inclination factors:</b> \\(i_q = (1 - 0.5\\tan\\alpha)^5\\), \\(\\quad i_\\gamma = (1 - 0.7\\tan\\alpha)^5\\) <br>
+                <i>where \\(k = D_f/B\\) (or \\(\\arctan(D_f/B)\\) if \\(> 1\\)). \\(i_c = i_q - (1-i_q)/(N_q-1)\\).</i>
+                </small>
+            `;
+        } else if (method === 'vesic') {
+            factors = `
+                $$ N_q = e^{\\pi \\tan\\phi} \\tan^2(45^\\circ + \\phi/2) \\quad N_c = (N_q - 1)\\cot\\phi \\quad N_\\gamma = 2(N_q + 1)\\tan\\phi $$
+                <small style="display:block; margin-top: 10px; text-align: left; max-width: 650px; margin-left: auto; margin-right: auto;">
+                <b>Shape factors:</b> \\(s_c = 1 + \\frac{N_q}{N_c} \\frac{B}{L}\\) (if \\(\\phi=0\\), \\(s_c = 1 + 0.2 \\frac{B}{L}\\)), \\(\\quad s_q = 1 + \\frac{B}{L}\\tan\\phi\\), \\(\\quad s_\\gamma = 1 - 0.4 \\frac{B}{L}\\) <br>
+                <b>Depth factors:</b> \\(d_c = 1 + 0.4k\\), \\(\\quad d_q = 1 + 2\\tan\\phi (1-\\sin\\phi)^2 k\\), \\(\\quad d_\\gamma = 1.0\\) <br>
+                <b>Inclination factors:</b> \\(i_q = (1 - \\tan\\alpha)^2\\), \\(\\quad i_\\gamma = (1 - \\tan\\alpha)^3\\) <br>
+                <i>where \\(k = D_f/B\\) (or \\(\\arctan(D_f/B)\\) if \\(> 1\\)). \\(i_c = i_q - (1-i_q)/(N_q-1)\\).</i>
+                </small>
+            `;
+        }
+
+        const container = document.getElementById('formula-container');
+        container.innerHTML = formula + factors;
+
+        if (window.MathJax) {
+            MathJax.typesetPromise([container]).catch(function (err) {
+                console.error('MathJax typeset failed:', err);
+            });
+        }
+    }
+
+    // Interpolation for Terzaghi Ng values
+    function getTerzaghiNg(phi) {
+        const phiVals = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50];
+        const ngVals = [0.0, 0.5, 1.2, 2.5, 5.0, 9.7, 19.7, 42.4, 100.4, 297.5, 1153.2];
+        if (phi <= 0) return 0.0;
+        if (phi >= 50) return 1153.2;
+        for (let i = 0; i < phiVals.length - 1; i++) {
+            if (phi >= phiVals[i] && phi <= phiVals[i+1]) {
+                const t = (phi - phiVals[i]) / (phiVals[i+1] - phiVals[i]);
+                return ngVals[i] + t * (ngVals[i+1] - ngVals[i]);
+            }
+        }
+        return 0;
+    }
+
+    function calculateCapacity() {
+        const method = document.getElementById('method').value;
+        const shape = document.getElementById('shape').value;
+        
+        let B = parseFloat(document.getElementById('widthB').value);
+        let L = parseFloat(document.getElementById('lengthL').value);
+        let Df = parseFloat(document.getElementById('embedD').value);
+        let c = parseFloat(document.getElementById('cohesionC').value);
+        let phi = parseFloat(document.getElementById('anglePhi').value);
+        let gamma = parseFloat(document.getElementById('gamma').value);
+        let fs = parseFloat(document.getElementById('factorSafety').value);
+        
+        const useGW = document.getElementById('toggleGW').checked;
+        const useInc = document.getElementById('toggleInc').checked;
+
+        document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+
+        let alpha = useInc ? (parseFloat(document.getElementById('angleAlpha').value) || 0) : 0;
+        let Dw = useGW ? parseFloat(document.getElementById('waterTableDw').value) : NaN;
+        let gammaSat = useGW ? (parseFloat(document.getElementById('gammaSat').value) || gamma) : gamma;
+        let gammaW = useGW ? (parseFloat(document.getElementById('gammaW').value) || 9.81) : 9.81;
+
+        const reqIds = ['widthB', 'gamma'];
+        if (shape === 'rectangular') reqIds.push('lengthL');
+        reqIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.value.trim() === '') {
+                el.classList.add('input-error');
+            }
+        });
+
+        const resultBox = document.getElementById('resultBox');
+        resultBox.classList.remove('hidden');
+
+        // Handle missing defaults
+        if (isNaN(fs) || fs <= 0) fs = 3.0;
+        if (isNaN(c)) c = 0;
+        if (isNaN(phi)) phi = 0;
+        if (isNaN(Df)) Df = 0;
+        if (isNaN(B) || isNaN(gamma)) {
+            document.getElementById('resultQall').innerText = "---";
+            document.getElementById('resultQu').innerText = "---";
+            return;
+        }
+        
+        // Fix L for rectangular if omitted or less than B
+        if (shape === 'rectangular') {
+            if (isNaN(L) || L <= 0) L = B;
+            if (L < B) {
+                let temp = L;
+                L = B;
+                B = temp;
+            }
+        }
+
+        let Nc, Nq, Ng;
+        let sc = 1, sq = 1, sg = 1;
+        let dc = 1, dq = 1, dg = 1;
+        
+        const phiRad = phi * Math.PI / 180;
+
+        if (method === 'terzaghi') {
+            if (phi === 0) {
+                Nc = 5.7; Nq = 1.0; Ng = 0.0;
+            } else {
+                const a = Math.exp((0.75 * Math.PI - phiRad/2) * Math.tan(phiRad));
+                Nq = Math.pow(a, 2) / (2 * Math.pow(Math.cos(Math.PI/4 + phiRad/2), 2));
+                Nc = (Nq - 1) / Math.tan(phiRad);
+                Ng = getTerzaghiNg(phi);
+            }
+
+            // Terzaghi shape factors
+            if (shape === 'strip') {
+                sc = 1.0; sq = 1.0; sg = 1.0;
+            } else if (shape === 'square') {
+                sc = 1.3; sq = 1.0; sg = 0.8;
+            } else if (shape === 'circular') {
+                sc = 1.3; sq = 1.0; sg = 0.6;
+            } else if (shape === 'rectangular') {
+                let bl = B / L;
+                sc = 1.0 + 0.3 * bl;
+                sq = 1.0;
+                sg = 1.0 - 0.2 * bl;
+            }
+            
+            // Terzaghi depth factors are implicitly 1.0
+        } else if (method === 'meyerhof') {
+            if (phi === 0) {
+                Nc = 5.14; Nq = 1.0; Ng = 0.0;
+            } else {
+                Nq = Math.exp(Math.PI * Math.tan(phiRad)) * Math.pow(Math.tan(Math.PI/4 + phiRad/2), 2);
+                Nc = (Nq - 1) / Math.tan(phiRad);
+                Ng = (Nq - 1) * Math.tan(1.4 * phiRad);
+            }
+
+            let Kp = Math.pow(Math.tan(Math.PI/4 + phiRad/2), 2);
+            let bl = (shape === 'strip') ? 0 : (shape === 'rectangular' ? B/L : 1);
+            
+            // Meyerhof Shape Factors
+            sc = 1 + 0.2 * Kp * bl;
+            if (phi >= 10) {
+                sq = 1 + 0.1 * Kp * bl;
+                sg = 1 + 0.1 * Kp * bl;
+            } else {
+                sq = 1.0; sg = 1.0;
+            }
+
+            // Meyerhof Depth Factors
+            let db = (B > 0) ? Df / B : 0;
+            dc = 1 + 0.2 * Math.sqrt(Kp) * db;
+            if (phi >= 10) {
+                dq = 1 + 0.1 * Math.sqrt(Kp) * db;
+                dg = 1 + 0.1 * Math.sqrt(Kp) * db;
+            } else {
+                dq = 1.0; dg = 1.0;
+            }
+        } else if (method === 'hansen' || method === 'vesic') {
+            if (phi === 0) {
+                Nc = 5.14; Nq = 1.0; Ng = 0.0;
+            } else {
+                Nq = Math.exp(Math.PI * Math.tan(phiRad)) * Math.pow(Math.tan(Math.PI/4 + phiRad/2), 2);
+                Nc = (Nq - 1) / Math.tan(phiRad);
+                if (method === 'hansen') {
+                    Ng = 1.5 * (Nq - 1) * Math.tan(phiRad);
+                } else {
+                    Ng = 2.0 * (Nq + 1) * Math.tan(phiRad);
+                }
+            }
+
+            let bl = (shape === 'strip') ? 0 : (shape === 'rectangular' ? B/L : 1);
+            
+            if (phi === 0) {
+                sc = 1 + 0.2 * bl;
+            } else {
+                sc = 1 + (Nq / Nc) * bl;
+            }
+            
+            if (method === 'hansen') {
+                sq = 1 + bl * Math.sin(phiRad);
+            } else {
+                sq = 1 + bl * Math.tan(phiRad);
+            }
+            
+            sg = 1 - 0.4 * bl;
+
+            let db = (B > 0) ? Df / B : 0;
+            let k = (db <= 1) ? db : Math.atan(db);
+            
+            dc = 1 + 0.4 * k;
+            dq = 1 + 2 * Math.tan(phiRad) * Math.pow(1 - Math.sin(phiRad), 2) * k;
+            dg = 1.0;
+        }
+
+        // Water table effects
+        let q_eff = gamma * Df;
+        let gamma_base = gamma;
+
+        if (!isNaN(Dw)) {
+            let gamma_sub = gammaSat - gammaW;
+            if (Dw <= 0) {
+                q_eff = gamma_sub * Df;
+                gamma_base = gamma_sub;
+            } else if (Dw > 0 && Dw <= Df) {
+                q_eff = gamma * Dw + gamma_sub * (Df - Dw);
+                gamma_base = gamma_sub;
+            } else if (Dw > Df && Dw <= Df + B) {
+                q_eff = gamma * Df;
+                gamma_base = gamma_sub + (gamma - gamma_sub) * ((Dw - Df) / B);
+            } else {
+                q_eff = gamma * Df;
+                gamma_base = gamma;
+            }
+        }
+
+        // Inclination factors
+        let ic = 1.0, iq = 1.0, ig = 1.0;
+        if (alpha > 0) {
+            let alphaRad = alpha * Math.PI / 180;
+            let tanAlpha = Math.tan(alphaRad);
+            
+            if (method === 'meyerhof') {
+                iq = Math.pow(1 - alpha / 90, 2);
+                ic = iq;
+                ig = phi > 0 ? Math.max(0, Math.pow(1 - alpha / phi, 2)) : 0;
+            } else if (method === 'hansen') {
+                iq = Math.max(0, Math.pow(1 - 0.5 * tanAlpha, 5));
+                ig = Math.max(0, Math.pow(1 - 0.7 * tanAlpha, 5));
+                ic = (phi === 0) ? (1 - alpha / 90) : (iq - (1 - iq) / (Nq - 1));
+            } else if (method === 'vesic') {
+                iq = Math.max(0, Math.pow(1 - tanAlpha, 2));
+                ig = Math.max(0, Math.pow(1 - tanAlpha, 3));
+                ic = (phi === 0) ? (1 - alpha / 90) : (iq - (1 - iq) / (Nq - 1));
+            }
+            
+            if (isNaN(ic)) ic = 1.0;
+            if (isNaN(iq)) iq = 1.0;
+            if (isNaN(ig)) ig = 1.0;
+        }
+
+        const termC = c * Nc * sc * dc * ic;
+        const termQ = q_eff * Nq * sq * dq * iq;
+        const termG = 0.5 * gamma_base * B * Ng * sg * dg * ig;
+
+        const qu = termC + termQ + termG;
+        const qall = qu / fs;
+
+        document.getElementById('resultQu').innerText = qu.toFixed(2);
+        document.getElementById('resultQall').innerText = qall.toFixed(2);
+        document.getElementById('calcNc').innerHTML = `N<sub>c</sub> = ${Nc.toFixed(2)}`;
+        document.getElementById('calcNq').innerHTML = `N<sub>q</sub> = ${Nq.toFixed(2)}`;
+        document.getElementById('calcNg').innerHTML = `N<sub>γ</sub> = ${Ng.toFixed(2)}`;
+    }
+
+    // Initialize UI state on load
+    updateToggles();
+    updateUI();
+
+    setTimeout(() => {
+        updateFormula(document.getElementById('method').value);
+    }, 500);
+
+    document.addEventListener('input', function(e) {
+        if (e.target.classList && e.target.classList.contains('input-error')) {
+            e.target.classList.remove('input-error');
+        }
+    });
+
+    // ── Unit System ────────────────────────────────────────────────────
+    const TO_IMP_BC = {length:3.28084,settlement:0.0393701,pressure:0.020885,unitweight:6.36587,force:0.224809,forcelength:0.0685218,cv:10.7639,pymodulus:0.003684};
+    const TO_MET_BC = Object.fromEntries(Object.entries(TO_IMP_BC).map(([k,v])=>[k,1/v]));
+    const LABELS_BC = {length:{metric:'m',imperial:'ft'},settlement:{metric:'mm',imperial:'in'},pressure:{metric:'kPa',imperial:'ksf'},unitweight:{metric:'kN/m³',imperial:'pcf'},force:{metric:'kN',imperial:'kip'},forcelength:{metric:'kN/m',imperial:'kip/ft'},cv:{metric:'m²/yr',imperial:'ft²/yr'},pymodulus:{metric:'kN/m³',imperial:'pci'}};
+    let unitSystem = 'metric';
+    function toDisp(v,qty){return unitSystem==='metric'?v:(TO_IMP_BC[qty]?v*TO_IMP_BC[qty]:v);}
+    function toMet(v,qty) {return unitSystem==='metric'?v:(TO_MET_BC[qty]?v*TO_MET_BC[qty]:v);}
+    function unitLbl(qty) {const e=LABELS_BC[qty];return e?(unitSystem==='metric'?e.metric:e.imperial):'';}
+    function toggleUnitSystem(){
+        const old=unitSystem;
+        unitSystem=unitSystem==='metric'?'imperial':'metric';
+        localStorage.setItem('geotools-units',unitSystem);
+        const btn=document.getElementById('unit-toggle-btn');
+        btn.textContent=unitSystem==='metric'?'🌐 Switch to Imperial (US)':'📏 Switch to Metric (SI)';
+        btn.classList.toggle('imperial',unitSystem==='imperial');
+        document.querySelectorAll('[data-unit]').forEach(el=>{el.textContent=unitLbl(el.dataset.unit);});
+        onUnitSwitch(old);
+    }
+    const UNIT_FIELDS=[
+        {id:'widthB',qty:'length'},{id:'lengthL',qty:'length'},{id:'embedD',qty:'length'},
+        {id:'cohesionC',qty:'pressure'},{id:'gamma',qty:'unitweight'},
+        {id:'waterTableDw',qty:'length'},{id:'gammaSat',qty:'unitweight'},
+    ];
+    function onUnitSwitch(old){
+        const f=unitSystem==='imperial'?TO_IMP_BC;
+        UNIT_FIELDS.forEach(({id,qty})=>{const el=document.getElementById(id);if(!el||el.value.trim()==='')return;const v=parseFloat(el.value);if(!isNaN(v)&&f[qty])el.value=parseFloat((v*f[qty]).toFixed(5));});
+    }
+    (function(){const s=localStorage.getItem('geotools-units');if(s==='imperial'){unitSystem='imperial';const btn=document.getElementById('unit-toggle-btn');if(btn){btn.textContent='📏 Switch to Metric (SI)';btn.classList.add('imperial');}document.querySelectorAll('[data-unit]').forEach(el=>{el.textContent=unitLbl(el.dataset.unit);});}})();
+    // ── End Unit System ────────────────────────────────────────────────
+</script>
+
+</body>
+</html>

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hoek-Brown Rock Mass Strength Criterion - Geotechnical Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --surface: #ffffff;
+      --background: #f8fafc;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: var(--background); color: var(--text); line-height: 1.5; padding: 24px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    header { margin-bottom: 24px; }
+    h1 { font-size: 24px; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    p.subtitle { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
+    .layout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; }
+    @media (max-width: 900px) { .layout-grid { grid-template-columns: 1fr; } }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--card-shadow); }
+    .card-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+    input, select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; background: #fff; font-family: inherit; }
+    input:focus, select:focus { outline: none; border-color: var(--primary); }
+    .results-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+    @media (max-width: 600px) { .results-grid { grid-template-columns: 1fr 1fr; } }
+    .stat-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center; }
+    .stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+    .stat-val { font-size: 18px; font-weight: 800; color: var(--primary-dark); margin: 4px 0; }
+    .stat-sub { font-size: 10px; color: var(--text-muted); }
+    .constants-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .const-item { background: #f1f5f9; padding: 8px; border-radius: 8px; text-align: center; font-size: 11px; }
+    .chart-container { position: relative; height: 280px; width: 100%; margin-top: 16px; }
+    .tab-bar { display: flex; gap: 8px; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-top: 12px; }
+    .tab-btn { padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; border: none; cursor: pointer; background: #f1f5f9; color: #475569; }
+    .tab-btn.active { background: var(--primary); color: #fff; }
+  
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="legacy-top-bar">
+      <div></div>
+      <div class="legacy-actions">
+        <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+      </div>
+    </div>
+    <h1>⛏️ Hoek-Brown Rock Mass Strength Criterion</h1>
+    <p class="subtitle">Generalized Hoek-Brown failure criterion (2002/2019) with equivalent Mohr-Coulomb shear strength parameters (c', φ'), deformation modulus (Erm), and non-linear envelopes.</p>
+  </header>
+
+  <div class="layout-grid">
+    <!-- Left: Inputs -->
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="card">
+        <div class="card-title">1. Rock Mass & Intact Properties</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Intact UCS σci (MPa)</label>
+            <input type="number" id="in_sigci" value="95" min="1" max="400" step="1">
+          </div>
+          <div class="form-group">
+            <label>Geological Strength Index (GSI)</label>
+            <input type="number" id="in_gsi" value="68" min="5" max="100" step="1">
+          </div>
+          <div class="form-group">
+            <label>Intact Constant mi</label>
+            <input type="number" id="in_mi" value="25" min="1" max="45" step="1">
+          </div>
+          <div class="form-group">
+            <label>Disturbance Factor D (0-1)</label>
+            <input type="number" id="in_dfactor" value="0.0" min="0.0" max="1.0" step="0.05">
+          </div>
+          <div class="form-group" style="grid-column: span 2;">
+            <label>Intact Rock Modulus Ei (GPa)</label>
+            <input type="number" id="in_ei" value="45" min="0.5" max="150" step="1">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">2. Application & Confinement (σ'3,max)</div>
+        <div class="form-grid">
+          <div class="form-group" style="grid-column: span 2;">
+            <label>Application Type</label>
+            <select id="in_appType">
+              <option value="tunnels">Tunnels / Underground Excavations</option>
+              <option value="slopes">Slopes & Open Cuts</option>
+              <option value="custom">Custom Specified σ'3,max</option>
+            </select>
+          </div>
+          <div class="form-group" id="grp_depth">
+            <label>Depth / Height H (m)</label>
+            <input type="number" id="in_h" value="120" min="5" max="2000" step="5">
+          </div>
+          <div class="form-group" id="grp_gamma">
+            <label>Unit Weight γ (kN/m³)</label>
+            <input type="number" id="in_gamma" value="27" min="15" max="35" step="0.5">
+          </div>
+          <div class="form-group" id="grp_custom" style="display: none; grid-column: span 2;">
+            <label>Custom σ'3,max (MPa)</label>
+            <input type="number" id="in_sig3custom" value="15" min="0.1" max="200" step="0.5">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Outputs -->
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="card">
+        <div class="results-grid">
+          <div class="stat-box">
+            <div class="stat-label">Global Strength σcma</div>
+            <div class="stat-val" id="out_sigma_cma">28.4 MPa</div>
+            <div class="stat-sub" id="out_sigc">σc: 18.2 MPa</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Eq. Friction φ'</div>
+            <div class="stat-val" id="out_phi" style="color: #15803d;">47.8°</div>
+            <div class="stat-sub" id="out_sig3max">At σ'3max: 12.5 MPa</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Eq. Cohesion c'</div>
+            <div class="stat-val" id="out_c" style="color: #15803d;">3.62 MPa</div>
+            <div class="stat-sub" id="out_ckpa">3,620 kPa</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Deformation Erm</div>
+            <div class="stat-val" id="out_erm">26.8 GPa</div>
+            <div class="stat-sub" id="out_sigt">σtm: -0.15 MPa</div>
+          </div>
+        </div>
+
+        <div class="constants-grid">
+          <div class="const-item">
+            <span style="color: var(--text-muted);">Hoek-Brown mb:</span> <strong id="out_mb">7.82</strong>
+          </div>
+          <div class="const-item">
+            <span style="color: var(--text-muted);">Hoek-Brown s:</span> <strong id="out_s">0.0286</strong>
+          </div>
+          <div class="const-item">
+            <span style="color: var(--text-muted);">Hoek-Brown a:</span> <strong id="out_a">0.502</strong>
+          </div>
+        </div>
+
+        <div class="tab-bar">
+          <button class="tab-btn active" id="btn_tab1" onclick="switchTab('principal')">Principal Envelope (σ'1 vs σ'3)</button>
+          <button class="tab-btn" id="btn_tab2" onclick="switchTab('shear')">Shear Envelope (τ vs σ'n)</button>
+        </div>
+
+        <div class="chart-container">
+          <canvas id="hbChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let hbChart = null;
+  let activeTab = 'principal';
+  let lastCalc = null;
+
+  function switchTab(tab) {
+    activeTab = tab;
+    document.getElementById('btn_tab1').className = tab === 'principal' ? 'tab-btn active' : 'tab-btn';
+    document.getElementById('btn_tab2').className = tab === 'shear' ? 'tab-btn active' : 'tab-btn';
+    updateChart();
+  }
+
+  function calculate() {
+    const sigci = parseFloat(document.getElementById('in_sigci').value) || 95;
+    const gsi = parseFloat(document.getElementById('in_gsi').value) || 68;
+    const mi = parseFloat(document.getElementById('in_mi').value) || 25;
+    const D = parseFloat(document.getElementById('in_dfactor').value) || 0.0;
+    const Ei = parseFloat(document.getElementById('in_ei').value) || 45;
+    const appType = document.getElementById('in_appType').value;
+    const H = parseFloat(document.getElementById('in_h').value) || 120;
+    const gamma = parseFloat(document.getElementById('in_gamma').value) || 27;
+    const sig3Custom = parseFloat(document.getElementById('in_sig3custom').value) || 15;
+
+    // Toggle custom vs depth
+    const isCustom = appType === 'custom';
+    document.getElementById('grp_custom').style.display = isCustom ? 'flex' : 'none';
+    document.getElementById('grp_depth').style.display = isCustom ? 'none' : 'flex';
+    document.getElementById('grp_gamma').style.display = isCustom ? 'none' : 'flex';
+
+    // 1. Constants
+    const mb = mi * Math.exp((gsi - 100) / (28 - 14 * D));
+    const s = Math.exp((gsi - 100) / (9 - 3 * D));
+    const a = 0.5 + (1 / 6) * (Math.exp(-gsi / 15) - Math.exp(-20 / 3));
+
+    // 2. Strengths
+    const sigcUni = sigci * Math.pow(s, a);
+    const globNum = (mb + 4 * s - a * (mb - 8 * s)) * Math.pow(mb / 4 + s, a - 1);
+    const globDenom = 2 * (1 + a) * (2 + a);
+    const sigcGlobal = sigci * (globNum / globDenom);
+    const sigtTensile = (s * sigci) / mb;
+
+    // 3. Modulus
+    const modulusRatio = 0.02 + (1 - D / 2) / (1 + Math.exp((60 + 15 * D - gsi) / 11));
+    const erm = Ei * modulusRatio;
+
+    // 4. Confinement sig3Max
+    let sig3Max = 15;
+    const gammaH = (gamma * H) / 1000;
+    if (appType === 'slopes' && gammaH > 0) {
+      sig3Max = 0.72 * sigcGlobal * Math.pow(sigcGlobal / gammaH, -0.91);
+    } else if (appType === 'tunnels' && gammaH > 0) {
+      sig3Max = 0.47 * sigcGlobal * Math.pow(sigcGlobal / gammaH, -0.94);
+    } else if (isCustom) {
+      sig3Max = sig3Custom;
+    }
+    sig3Max = Math.max(0.01, Math.min(sigci * 1.5, sig3Max));
+
+    // 5. Equivalent Mohr-Coulomb
+    const sig3n = sig3Max / sigci;
+    const powerTerm = Math.pow(s + mb * sig3n, a - 1);
+    const factor = 6 * a * mb * powerTerm;
+    const denominator = 2 * (1 + a) * (2 + a) + factor;
+    const sinPhi = factor / denominator;
+    const phiRad = Math.asin(Math.max(-1, Math.min(1, sinPhi)));
+    const phiDeg = phiRad * (180 / Math.PI);
+
+    const cNum = sigci * ((1 + 2 * a) * s + (1 - a) * mb * sig3n) * powerTerm;
+    const cDen = (1 + a) * (2 + a) * Math.sqrt(1 + factor / ((1 + a) * (2 + a)));
+    const cMPa = cNum / cDen;
+
+    // 6. Envelope Points
+    const numPoints = 20;
+    const step = (sig3Max * 1.4) / numPoints;
+    const s3Labels = [];
+    const s1HB = [];
+    const s1MC = [];
+    const snLabels = [];
+    const tauHB = [];
+    const tauMC = [];
+
+    const Nphi = (1 + Math.sin(phiRad)) / (1 - Math.sin(phiRad));
+    const s1Zero = 2 * cMPa * Math.sqrt(Nphi);
+
+    for (let i = 0; i <= numPoints; i++) {
+      const s3 = i * step;
+      const s1 = s3 + sigci * Math.pow(Math.max(0, s + mb * (s3 / sigci)), a);
+      const s1Lin = s1Zero + s3 * Nphi;
+
+      const dSig = 1 + a * mb * Math.pow(Math.max(0.0001, s + mb * (s3 / sigci)), a - 1);
+      const sn = s3 + (s1 - s3) / (1 + dSig);
+      const tau = ((s1 - s3) * Math.sqrt(dSig)) / (1 + dSig);
+      const tauLin = cMPa + sn * Math.tan(phiRad);
+
+      s3Labels.push(s3.toFixed(1));
+      s1HB.push(s1.toFixed(1));
+      s1MC.push(s1Lin.toFixed(1));
+
+      snLabels.push(sn.toFixed(1));
+      tauHB.push(tau.toFixed(1));
+      tauMC.push(tauLin.toFixed(1));
+    }
+
+    lastCalc = { s3Labels, s1HB, s1MC, snLabels, tauHB, tauMC };
+
+    // Update UI
+    document.getElementById('out_sigma_cma').innerText = sigcGlobal.toFixed(1) + ' MPa';
+    document.getElementById('out_sigc').innerText = 'σc: ' + sigcUni.toFixed(1) + ' MPa';
+    document.getElementById('out_phi').innerText = phiDeg.toFixed(1) + '°';
+    document.getElementById('out_sig3max').innerText = 'At σ\'3max: ' + sig3Max.toFixed(1) + ' MPa';
+    document.getElementById('out_c').innerText = cMPa.toFixed(2) + ' MPa';
+    document.getElementById('out_ckpa').innerText = Math.round(cMPa * 1000).toLocaleString() + ' kPa';
+    document.getElementById('out_erm').innerText = erm.toFixed(1) + ' GPa';
+    document.getElementById('out_sigt').innerText = 'σtm: ' + (-sigtTensile).toFixed(2) + ' MPa';
+
+    document.getElementById('out_mb').innerText = mb.toFixed(3);
+    document.getElementById('out_s').innerText = s.toFixed(5);
+    document.getElementById('out_a').innerText = a.toFixed(3);
+
+    updateChart();
+  }
+
+  function updateChart() {
+    if (!lastCalc) return;
+    const isPrincipal = activeTab === 'principal';
+    const labels = isPrincipal ? lastCalc.s3Labels : lastCalc.snLabels;
+    const d1 = isPrincipal ? lastCalc.s1HB : lastCalc.tauHB;
+    const d2 = isPrincipal ? lastCalc.s1MC : lastCalc.tauMC;
+    const l1 = isPrincipal ? "Hoek-Brown (σ'1)" : "Hoek-Brown (τ)";
+    const l2 = isPrincipal ? "Mohr-Coulomb Linear" : "Mohr-Coulomb Tangent";
+
+    if (hbChart) {
+      hbChart.data.labels = labels;
+      hbChart.data.datasets[0].data = d1;
+      hbChart.data.datasets[0].label = l1;
+      hbChart.data.datasets[1].data = d2;
+      hbChart.data.datasets[1].label = l2;
+      hbChart.options.scales.x.title.text = isPrincipal ? "Minor Principal Stress σ'3 (MPa)" : "Effective Normal Stress σ'n (MPa)";
+      hbChart.options.scales.y.title.text = isPrincipal ? "Major Principal Stress σ'1 (MPa)" : "Shear Stress τ (MPa)";
+      hbChart.update();
+    } else {
+      const ctx = document.getElementById('hbChart').getContext('2d');
+      hbChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: l1,
+              data: d1,
+              borderColor: '#0284c7',
+              backgroundColor: 'rgba(2, 132, 199, 0.08)',
+              fill: true,
+              tension: 0.3,
+            },
+            {
+              label: l2,
+              data: d2,
+              borderColor: '#ef4444',
+              borderDash: [5, 4],
+              fill: false,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { title: { display: true, text: "Minor Principal Stress σ'3 (MPa)", font: { size: 10 } } },
+            y: { title: { display: true, text: "Major Principal Stress σ'1 (MPa)", font: { size: 10 } }, beginAtZero: true }
+          }
+        }
+      });
+    }
+  }
+
+  document.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('input', calculate);
+  });
+
+  window.addEventListener('load', calculate);
+</script>
+
+</body>
+</html>

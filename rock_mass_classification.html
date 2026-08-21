@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock Mass Classification Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+        }
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+        input, select {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .hidden {
+            display: none !important;
+        }
+        button {
+            width: 100%;
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #eef7ff;
+            border-left: 5px solid #0066cc;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #004080;
+        }
+        .factors-row {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+            color: #444;
+        }
+        .note {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+        .formula-box {
+            text-align: center;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+        .input-error {
+            border: 2px solid #e74c3c !important;
+            background-color: #fdf2f2 !important;
+        }
+    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="legacy-top-bar">
+    <div class="legacy-actions">
+      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+    </div>
+  </div>
+    <h2>Rock Mass Classification Tool</h2>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label for="classMethod">Classification System</label>
+            <select id="classMethod" onchange="updateUI()">
+                <option value="rmr">Rock Mass Rating (RMR - Bieniawski 1989)</option>
+                <option value="q">Q-System (Barton et al. 1974)</option>
+                <option value="gsi">Geological Strength Index (GSI - Hoek 2013)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- RMR INPUTS -->
+    <div id="rmr-group">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="rmr-ucs">Uniaxial Compressive Strength (UCS)</label>
+                <select id="rmr-ucs">
+                    <option value="15">> 250 MPa (Exceptionally Strong)</option>
+                    <option value="12">100 - 250 MPa (Very Strong)</option>
+                    <option value="7">50 - 100 MPa (Strong)</option>
+                    <option value="4">25 - 50 MPa (Average)</option>
+                    <option value="2">5 - 25 MPa (Weak)</option>
+                    <option value="1">1 - 5 MPa (Very Weak)</option>
+                    <option value="0">< 1 MPa (Extremely Weak)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="rmr-rqd">Rock Quality Designation (RQD)</label>
+                <select id="rmr-rqd">
+                    <option value="20">90 - 100 % (Excellent)</option>
+                    <option value="17">75 - 90 % (Good)</option>
+                    <option value="13">50 - 75 % (Fair)</option>
+                    <option value="8">25 - 50 % (Poor)</option>
+                    <option value="3">< 25 % (Very Poor)</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="rmr-spacing">Spacing of Discontinuities</label>
+                <select id="rmr-spacing">
+                    <option value="20">> 2.0 m</option>
+                    <option value="15">0.6 - 2.0 m</option>
+                    <option value="10">0.2 - 0.6 m</option>
+                    <option value="8">0.06 - 0.2 m</option>
+                    <option value="5">< 0.06 m</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="rmr-condition">Condition of Discontinuities</label>
+                <select id="rmr-condition">
+                    <option value="30">Very rough, unweathered, tight (< 1mm)</option>
+                    <option value="25">Slightly rough, separation < 1mm, hard wall</option>
+                    <option value="20">Slightly rough, separation < 1mm, soft wall</option>
+                    <option value="10">Slickensided or gouge < 5mm or separation 1-5mm</option>
+                    <option value="0">Soft gouge > 5mm or separation > 5mm</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="rmr-gw">Groundwater Conditions</label>
+                <select id="rmr-gw">
+                    <option value="15">Completely dry</option>
+                    <option value="10">Damp</option>
+                    <option value="7">Wet</option>
+                    <option value="4">Dripping</option>
+                    <option value="0">Flowing</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Q-SYSTEM INPUTS -->
+    <div id="q-group" class="hidden">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="q-rqd">Rock Quality Designation (RQD %)</label>
+                <input type="number" id="q-rqd" min="0" max="100" placeholder="e.g., 75 (defaults to 10 if <10)">
+            </div>
+            <div class="form-group">
+                <label for="q-jn">Joint Set Number (Jn)</label>
+                <select id="q-jn">
+                    <option value="0.5">Massive, no or few joints (0.5)</option>
+                    <option value="2">One joint set (2.0)</option>
+                    <option value="3">One set plus random (3.0)</option>
+                    <option value="4">Two joint sets (4.0)</option>
+                    <option value="6">Two sets plus random (6.0)</option>
+                    <option value="9">Three joint sets (9.0)</option>
+                    <option value="12">Three sets plus random (12.0)</option>
+                    <option value="15">Four or more sets, heavily jointed (15.0)</option>
+                    <option value="20">Crushed rock, earthlike (20.0)</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="q-jr">Joint Roughness Number (Jr)</label>
+                <select id="q-jr">
+                    <option value="4">Discontinuous joints (4.0)</option>
+                    <option value="3">Rough or irregular, undulating (3.0)</option>
+                    <option value="2">Smooth, undulating (2.0)</option>
+                    <option value="1.5">Slickensided, undulating (1.5)</option>
+                    <option value="1.5">Rough or irregular, planar (1.5)</option>
+                    <option value="1">Smooth, planar (1.0)</option>
+                    <option value="0.5">Slickensided, planar (0.5)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="q-ja">Joint Alteration Number (Ja)</label>
+                <select id="q-ja">
+                    <option value="0.75">Tightly healed, hard, non-softening (0.75)</option>
+                    <option value="1">Unaltered joint walls, surface staining (1.0)</option>
+                    <option value="2">Slightly altered joint walls (2.0)</option>
+                    <option value="3">Silty or sandy coatings (3.0)</option>
+                    <option value="4">Clay coatings (4.0)</option>
+                    <option value="6">Sand/silt/clay filled, no wall contact (6.0)</option>
+                    <option value="8">Thick clay fillings (8.0)</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="q-jw">Joint Water Reduction Factor (Jw)</label>
+                <select id="q-jw">
+                    <option value="1">Dry excavations or minor inflow (1.0)</option>
+                    <option value="0.66">Medium inflow or pressure (0.66)</option>
+                    <option value="0.5">Large inflow or high pressure (0.5)</option>
+                    <option value="0.33">Exceptionally high inflow/pressure (0.33)</option>
+                    <option value="0.1">Exceptionally high inflow, un-decaying (0.1)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="q-srf">Stress Reduction Factor (SRF)</label>
+                <select id="q-srf">
+                    <option value="2.5">Low stress, near surface (2.5)</option>
+                    <option value="1">Medium stress, favorable (1.0)</option>
+                    <option value="0.5">High stress, tight structure (0.5)</option>
+                    <option value="2">Mild rock burst (2.0)</option>
+                    <option value="5">Heavy rock burst / Squeezing moderate (5.0)</option>
+                    <option value="10">Squeezing rock, heavy (10.0)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- GSI INPUTS -->
+    <div id="gsi-group" class="hidden">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="gsi-structure">Rock Mass Structure</label>
+                <select id="gsi-structure">
+                    <option value="0">Intact or Massive (A)</option>
+                    <option value="1">Blocky (B)</option>
+                    <option value="2">Very Blocky (C)</option>
+                    <option value="3">Blocky / Disturbed / Seamy (D)</option>
+                    <option value="4">Disintegrated (E)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="gsi-surface">Discontinuity Surface Conditions</label>
+                <select id="gsi-surface">
+                    <option value="0">Very Good (rough, unweathered)</option>
+                    <option value="1">Good (rough, slightly weathered)</option>
+                    <option value="2">Fair (smooth, moderately weathered)</option>
+                    <option value="3">Poor (slickensided, highly weathered)</option>
+                    <option value="4">Very Poor (soft gouge, sheared)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div style="text-align: left; margin-bottom: 1rem;">
+        <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="checkbox" id="toggleFormula" onchange="updateToggles()"> Show Formulas
+        </label>
+    </div>
+
+    <div class="formula-box" id="formula-container">
+        <!-- LaTeX formula injected here -->
+    </div>
+
+    <button onclick="calculateClassification()">Calculate Classification</button>
+
+    <div class="result-box hidden" id="resultBox">
+        <div id="resultLabel">Result</div>
+        <div class="result-value" id="resultValue">---</div>
+        <div class="factors-row">
+            <span id="resultInterpretation">Class: ---</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateToggles() {
+        document.getElementById('formula-container').classList.toggle('hidden', !document.getElementById('toggleFormula').checked);
+    }
+
+    function updateUI() {
+        const method = document.getElementById('classMethod').value;
+        
+        document.getElementById('rmr-group').classList.toggle('hidden', method !== 'rmr');
+        document.getElementById('q-group').classList.toggle('hidden', method !== 'q');
+        document.getElementById('gsi-group').classList.toggle('hidden', method !== 'gsi');
+        
+        let formula = "";
+        if (method === 'rmr') {
+            formula = "$$ RMR = R_{UCS} + R_{RQD} + R_{Spacing} + R_{Condition} + R_{Groundwater} $$";
+        } else if (method === 'q') {
+            formula = "$$ Q = \\left(\\frac{RQD}{J_n}\\right) \\times \\left(\\frac{J_r}{J_a}\\right) \\times \\left(\\frac{J_w}{SRF}\\right) $$";
+            formula += "<br><small><i>Block Size</i> &nbsp; × &nbsp; <i>Inter-block Shear Strength</i> &nbsp; × &nbsp; <i>Active Stress</i></small>";
+        } else if (method === 'gsi') {
+            formula = "<i>GSI is derived empirically from the descriptive chart cross-referencing Rock Mass Structure and Discontinuity Surface Condition (Hoek, 2013).</i>";
+        }
+        
+        const container = document.getElementById('formula-container');
+        container.innerHTML = formula;
+        
+        if (window.MathJax) {
+            MathJax.typesetPromise([container]).catch(err => console.error('MathJax typeset failed:', err));
+        }
+    }
+
+    function calculateClassification() {
+        document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+
+        const method = document.getElementById('classMethod').value;
+        document.getElementById('resultBox').classList.remove('hidden');
+
+        if (method === 'rmr') {
+            const ucs = parseFloat(document.getElementById('rmr-ucs').value);
+            const rqd = parseFloat(document.getElementById('rmr-rqd').value);
+            const space = parseFloat(document.getElementById('rmr-spacing').value);
+            const cond = parseFloat(document.getElementById('rmr-condition').value);
+            const gw = parseFloat(document.getElementById('rmr-gw').value);
+            
+            const rmr = ucs + rqd + space + cond + gw;
+            
+            let cls = "";
+            if (rmr > 80) cls = "Class I: Very Good Rock";
+            else if (rmr > 60) cls = "Class II: Good Rock";
+            else if (rmr > 40) cls = "Class III: Fair Rock";
+            else if (rmr > 20) cls = "Class IV: Poor Rock";
+            else cls = "Class V: Very Poor Rock";
+            
+            document.getElementById('resultLabel').innerText = "Rock Mass Rating (RMR89)";
+            document.getElementById('resultValue').innerText = rmr;
+            document.getElementById('resultInterpretation').innerText = cls;
+
+        } else if (method === 'q') {
+            let rqdInput = document.getElementById('q-rqd');
+            if (rqdInput.value.trim() === '') rqdInput.classList.add('input-error');
+            
+            let rqd = parseFloat(rqdInput.value) || 0;
+            rqd = Math.max(10, Math.min(100, rqd)); // Q calculation limits RQD minimum to 10
+            
+            const jn = parseFloat(document.getElementById('q-jn').value);
+            const jr = parseFloat(document.getElementById('q-jr').value);
+            const ja = parseFloat(document.getElementById('q-ja').value);
+            const jw = parseFloat(document.getElementById('q-jw').value);
+            const srf = parseFloat(document.getElementById('q-srf').value);
+            
+            const q = (rqd / jn) * (jr / ja) * (jw / srf);
+            
+            let cls = "";
+            if (q > 400) cls = "Exceptionally Good";
+            else if (q > 100) cls = "Extremely Good";
+            else if (q > 40) cls = "Very Good";
+            else if (q > 10) cls = "Good";
+            else if (q > 4) cls = "Fair";
+            else if (q > 1) cls = "Poor";
+            else if (q > 0.1) cls = "Very Poor";
+            else if (q > 0.01) cls = "Extremely Poor";
+            else cls = "Exceptionally Poor";
+            
+            document.getElementById('resultLabel').innerText = "Q-Value";
+            document.getElementById('resultValue').innerText = q.toFixed(3);
+            document.getElementById('resultInterpretation').innerText = "Rock Class: " + cls;
+
+        } else if (method === 'gsi') {
+            const row = parseInt(document.getElementById('gsi-structure').value);
+            const col = parseInt(document.getElementById('gsi-surface').value);
+            
+            // Pre-computed general ranges for the 5x5 chart
+            const gsiChart = [
+                ["85 - 100", "75 - 90", "65 - 80", "55 - 70", "45 - 60"],
+                ["75 - 90", "65 - 80", "55 - 70", "45 - 60", "35 - 50"],
+                ["65 - 80", "55 - 70", "45 - 60", "35 - 50", "25 - 40"],
+                ["55 - 70", "45 - 60", "35 - 50", "25 - 40", "15 - 30"],
+                ["45 - 60", "35 - 50", "25 - 40", "15 - 30", "5 - 20"]
+            ];
+            
+            const range = gsiChart[row][col];
+            
+            document.getElementById('resultLabel').innerText = "Geological Strength Index (GSI)";
+            document.getElementById('resultValue').innerText = range;
+            document.getElementById('resultInterpretation').innerText = "Visual Empirical Estimation";
+        }
+    }
+
+    updateToggles();
+    updateUI();
+
+    document.addEventListener('input', function(e) {
+        if (e.target.classList && e.target.classList.contains('input-error')) {
+            e.target.classList.remove('input-error');
+        }
+    });
+</script>
+
+</body>
+</html>

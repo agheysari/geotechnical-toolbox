@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Simplifier & Optimizer</title>
+
+    <!-- Leaflet for Map Visualization -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Turf.js for Geometry Processing -->
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+    
+    <!-- Parsers -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/togeojson/0.16.0/togeojson.min.js"></script>
+
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 800px; margin: 2rem auto; padding: 0 1rem; color: #333; line-height: 1.6; }
+        .container { background: #f9f9f9; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        #map { height: 400px; width: 100%; margin-bottom: 1rem; border-radius: 4px; border: 1px solid #ccc; }
+        .upload-area { border: 2px dashed #ccc; padding: 1rem; text-align: center; border-radius: 8px; background: #fff; margin-bottom: 1rem; }
+        .control-group { margin-bottom: 1rem; background: #fff; padding: 1rem; border: 1px solid #ccc; border-radius: 4px; }
+        .stats { display: flex; justify-content: space-between; font-weight: bold; background: #eef; padding: 10px; border-radius: 4px; margin-bottom: 1rem; }
+        button { background: #0066cc; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; width: 100%; margin-top: 1rem; transition: background 0.3s;}
+        button:disabled { background: #cccccc; cursor: not-allowed; }
+        button:hover:not(:disabled) { background: #0052a3; }
+        #log { margin-top: 1rem; background: #222; color: #0f0; padding: 1rem; border-radius: 4px; height: 100px; overflow-y: auto; font-family: monospace; font-size: 14px; }
+        input[type="range"] { width: 100%; margin-top: 0.5rem; }
+    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="legacy-top-bar">
+      <div></div>
+      <div class="legacy-actions">
+        <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+      </div>
+    </div>
+    <h1>📉 Geometry Simplifier & Optimizer</h1>
+    <p>Upload heavy spatial data, visually reduce the number of vertices, and download a lighter file.</p>
+
+    <div id="map"></div>
+
+    <div class="stats" id="statsBox" style="display: none;">
+        <div>🔴 Original Vertices: <span id="valOriginal">0</span></div>
+        <div>🔵 Optimized Vertices: <span id="valOptimized">0</span></div>
+        <div>📉 Reduction: <span id="valReduction">0</span>%</div>
+    </div>
+
+    <div class="upload-area">
+        <input type="file" id="fileInput" accept=".geojson,.json,.kml,.kmz,.gpx" style="font-size: 16px;">
+        <p><small><em>Supports GeoJSON, KML, KMZ, and GPX</em></small></p>
+    </div>
+
+    <div class="control-group">
+        <label for="toleranceSlider"><strong>Simplification Tolerance:</strong> <span id="tolDisplay">0.001</span> degrees</label>
+        <input type="range" id="toleranceSlider" min="0.0001" max="0.05" step="0.0001" value="0.001">
+        <small style="display:block; color:#666; margin-top:5px;">Higher tolerance means fewer vertices but less detail. Adjust the slider to see changes live.</small>
+    </div>
+
+    <button id="downloadBtn" disabled>Download Optimized GeoJSON</button>
+    <div id="log">Waiting for files...</div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const toleranceSlider = document.getElementById('toleranceSlider');
+    const tolDisplay = document.getElementById('tolDisplay');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const logDiv = document.getElementById('log');
+    const statsBox = document.getElementById('statsBox');
+
+    let uploadedGeoJSON = null;
+    let optimizedGeoJSON = null;
+    let originalLayer = null;
+    let optimizedLayer = null;
+    let originalFilename = "optimized_data";
+
+    // Initialize Map
+    const map = L.map('map').setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    function log(message) {
+        logDiv.innerHTML = `<div>${message}</div>` + logDiv.innerHTML;
+    }
+
+    function countVertices(geojson) {
+        let count = 0;
+        turf.coordEach(geojson, () => { count++; });
+        return count;
+    }
+
+    function applySimplification() {
+        if (!uploadedGeoJSON) return;
+        
+        const tolerance = parseFloat(toleranceSlider.value);
+        tolDisplay.textContent = tolerance.toFixed(4);
+
+        // Simplify using turf
+        optimizedGeoJSON = turf.simplify(uploadedGeoJSON, {
+            tolerance: tolerance,
+            highQuality: true,
+            mutate: false
+        });
+
+        // Update Map Layers
+        if (optimizedLayer) map.removeLayer(optimizedLayer);
+        
+        optimizedLayer = L.geoJSON(optimizedGeoJSON, {
+            style: { color: 'blue', weight: 4, opacity: 0.9 },
+            pointToLayer: (feat, latlng) => L.circleMarker(latlng, { radius: 4, color: 'blue' })
+        }).addTo(map);
+
+        // Update Stats
+        const origCount = countVertices(uploadedGeoJSON);
+        const optCount = countVertices(optimizedGeoJSON);
+        const reduction = origCount > 0 ? (100 - (optCount / origCount * 100)).toFixed(1) : 0;
+
+        document.getElementById('valOriginal').textContent = origCount.toLocaleString();
+        document.getElementById('valOptimized').textContent = optCount.toLocaleString();
+        document.getElementById('valReduction').textContent = reduction;
+        
+        downloadBtn.disabled = false;
+    }
+
+    toleranceSlider.addEventListener('input', () => {
+        tolDisplay.textContent = parseFloat(toleranceSlider.value).toFixed(4);
+    });
+    
+    toleranceSlider.addEventListener('change', applySimplification);
+
+    fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        originalFilename = file.name.replace(/\.[^/.]+$/, "");
+        const ext = file.name.toLowerCase().split('.').pop();
+        uploadedGeoJSON = null;
+        
+        log(`Reading ${file.name}...`);
+        downloadBtn.disabled = true;
+        statsBox.style.display = 'none';
+
+        try {
+            if (ext === 'kmz') {
+                const zip = await JSZip.loadAsync(file);
+                const kmlFiles = Object.keys(zip.files).filter(n => n.toLowerCase().endsWith('.kml'));
+                if (!kmlFiles.length) throw new Error("No KML in KMZ.");
+                const text = await zip.files[kmlFiles[0]].async("text");
+                uploadedGeoJSON = toGeoJSON.kml(new DOMParser().parseFromString(text, "text/xml"));
+            } else if (ext === 'kml') {
+                const text = await file.text();
+                uploadedGeoJSON = toGeoJSON.kml(new DOMParser().parseFromString(text, "text/xml"));
+            } else if (ext === 'gpx') {
+                const text = await file.text();
+                uploadedGeoJSON = toGeoJSON.gpx(new DOMParser().parseFromString(text, "text/xml"));
+            } else {
+                const text = await file.text();
+                uploadedGeoJSON = JSON.parse(text);
+            }
+
+            if (!uploadedGeoJSON || !uploadedGeoJSON.features) {
+                throw new Error("Invalid format.");
+            }
+
+            log(`✅ Successfully loaded ${uploadedGeoJSON.features.length} features.`);
+            
+            // Clear map
+            if (originalLayer) map.removeLayer(originalLayer);
+            if (optimizedLayer) map.removeLayer(optimizedLayer);
+
+            // Render Original (Red, semi-transparent)
+            originalLayer = L.geoJSON(uploadedGeoJSON, {
+                style: { color: 'red', weight: 6, opacity: 0.3 },
+                pointToLayer: (feat, latlng) => L.circleMarker(latlng, { radius: 6, color: 'red', opacity: 0.3 })
+            }).addTo(map);
+            
+            map.fitBounds(originalLayer.getBounds(), { padding: [20, 20] });
+
+            statsBox.style.display = 'flex';
+            applySimplification(); // Apply initial optimization
+
+        } catch (err) {
+            log(`❌ Error: ${err.message}`);
+        }
+    });
+
+    downloadBtn.addEventListener('click', () => {
+        if (!optimizedGeoJSON) return;
+        
+        try {
+            const outName = `${originalFilename}_simplified.geojson`;
+            const blob = new Blob([JSON.stringify(optimizedGeoJSON, null, 2)], { type: 'application/geo+json' });
+            
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = outName;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            log(`✅ Downloaded: ${outName}`);
+        } catch (e) {
+            log(`❌ Download failed: ${e.message}`);
+        }
+    });
+
+</script>
+
+</body>
+</html>

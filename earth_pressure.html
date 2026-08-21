@@ -1,0 +1,611 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earth Pressure Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+        }
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+        input, select {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .hidden {
+            display: none !important;
+        }
+        button {
+            width: 100%;
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #eef7ff;
+            border-left: 5px solid #0066cc;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #004080;
+        }
+        .factors-row {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+            color: #444;
+        }
+        .note {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+        .formula-box {
+            text-align: center;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+        .chart-container {
+            margin-top: 2rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .input-error {
+            border: 2px solid #e74c3c !important;
+            background-color: #fdf2f2 !important;
+        }
+        /* Unit Toggle Styles */
+        .unit-toggle-bar { display:flex; justify-content:flex-end; margin-bottom:1rem; }
+        .unit-toggle-btn { width:auto !important; padding:7px 16px; font-size:0.85rem;
+            border-radius:8px; background:#0066cc; color:white; border:none; cursor:pointer;
+            font-weight:600; transition:background 0.2s; }
+        .unit-toggle-btn:hover { background:#004fa3; }
+        .unit-toggle-btn.imperial { background:#7c3aed; }    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="legacy-top-bar">
+    <div class="legacy-actions">
+      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+    </div>
+  </div>
+    <h2>Lateral Earth Pressure Calculator</h2>
+
+    <div class="form-row" style="background: #e8f4fd; padding: 10px; border-radius: 6px; justify-content: flex-start; gap: 1.5rem; margin-bottom: 1.5rem;">
+        <label style="margin: 0; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="checkbox" id="toggleGW" onchange="updateToggles()"> Groundwater Effects
+        </label>
+        <label style="margin: 0; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="checkbox" id="toggleSurcharge" onchange="updateToggles()"> Surcharge Load
+        </label>
+    </div>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label for="method">Theory / Method</label>
+            <select id="method" onchange="updateUI()">
+                <option value="rankine">Rankine</option>
+                <option value="coulomb">Coulomb</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="state">Earth Pressure State</label>
+            <select id="state" onchange="updateUI()">
+                <option value="active">Active (Ka)</option>
+                <option value="passive">Passive (Kp)</option>
+                <option value="at_rest">At Rest (Ko)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="heightH">Wall Height (H) [<span data-unit="length">m</span>]</label>
+            <input type="number" id="heightH" step="any" placeholder="e.g., 5.0 m">
+        </div>
+        <div class="form-group">
+            <label for="gamma">Soil Unit Weight (γ) [<span data-unit="unitweight">kN/m³</span>]</label>
+            <input type="number" id="gamma" step="any" placeholder="e.g., 18 kN/m³">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="phi">Friction Angle (φ&deg;)</label>
+            <input type="number" id="phi" step="any" min="0" max="60" placeholder="e.g., 30">
+        </div>
+        <div class="form-group">
+            <label for="beta">Backfill Slope (β&deg;)</label>
+            <input type="number" id="beta" step="any" min="0" max="60" value="0">
+        </div>
+    </div>
+
+    <div class="form-row hidden" id="coulomb-group">
+        <div class="form-group">
+            <label for="theta">Wall Angle from Horizontal (θ&deg;)</label>
+            <input type="number" id="theta" step="any" min="10" max="170" placeholder="e.g., 90 (vertical)">
+        </div>
+        <div class="form-group">
+            <label for="delta">Wall Friction Angle (δ&deg;)</label>
+            <input type="number" id="delta" step="any" min="0" max="60" placeholder="e.g., 20">
+        </div>
+    </div>
+
+    <div class="form-row hidden" id="gw-row">
+        <div class="form-group">
+            <label for="waterTableDw">Depth to Water Table (D<sub>w</sub>)</label>
+            <input type="number" id="waterTableDw" step="any" placeholder="e.g., 2.0 m">
+        </div>
+        <div class="form-group">
+            <label for="gammaSat">Sat. Unit Weight (γ<sub>sat</sub>)</label>
+            <input type="number" id="gammaSat" step="any" placeholder="e.g., 20 kN/m³">
+        </div>
+        <div class="form-group">
+            <label for="gammaW">Unit Wt. Water (γ<sub>w</sub>)</label>
+            <input type="number" id="gammaW" step="any" value="9.81">
+        </div>
+    </div>
+
+    <div class="form-row hidden" id="surcharge-row">
+        <div class="form-group">
+            <label for="surchargeQ">Uniform Surcharge (q) [<span data-unit="pressure">kPa</span>]</label>
+            <input type="number" id="surchargeQ" step="any" placeholder="e.g., 10 kPa">
+        </div>
+    </div>
+
+    <div style="text-align: left; margin-bottom: 1rem;">
+        <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="checkbox" id="toggleFormula" onchange="updateToggles()"> Show Formulas
+        </label>
+    </div>
+
+    <div class="formula-box" id="formula-container">
+        <!-- LaTeX formula injected here -->
+    </div>
+
+    <button onclick="calculatePressure()">Calculate Earth Pressure</button>
+
+    <div class="result-box hidden" id="resultBox">
+        <div id="resultLabel">Total Lateral Force (P)</div>
+        <div class="result-value" id="resultForce" style="line-height: 1.2;">---</div>
+        <div class="factors-row">
+            <span id="calcK">K = ---</span>
+        </div>
+    </div>
+
+    <div class="chart-container hidden" id="chartContainer">
+        <canvas id="pressureChart"></canvas>
+    </div>
+    <div class="note">
+        * This tool assumes cohesionless soil (c' = 0). Water pressure and uniform surcharge are added to the effective earth pressure if present.
+    </div>
+</div>
+
+<script>
+    let pressureChart = null;
+
+    function updateToggles() {
+        document.getElementById('formula-container').classList.toggle('hidden', !document.getElementById('toggleFormula').checked);
+        document.getElementById('gw-row').classList.toggle('hidden', !document.getElementById('toggleGW').checked);
+        document.getElementById('surcharge-row').classList.toggle('hidden', !document.getElementById('toggleSurcharge').checked);
+    }
+
+    function updateUI() {
+        const method = document.getElementById('method').value;
+        const state = document.getElementById('state').value;
+        const useGW = document.getElementById('toggleGW').checked;
+        
+        document.getElementById('coulomb-group').classList.toggle('hidden', method !== 'coulomb' || state === 'at_rest');
+        
+        let formula = "";
+        if (state === 'at_rest') {
+            formula = "$$ K_o = (1 - \\sin\\phi)(1 + \\sin\\beta) $$";
+            formula += "<br>$$ P = \\frac{1}{2} \\gamma H^2 K_o $$";
+        } else if (method === 'rankine') {
+            if (state === 'active') {
+                formula = "$$ K_a = \\cos\\beta \\frac{\\cos\\beta - \\sqrt{\\cos^2\\beta - \\cos^2\\phi}}{\\cos\\beta + \\sqrt{\\cos^2\\beta - \\cos^2\\phi}} $$";
+            } else {
+                formula = "$$ K_p = \\cos\\beta \\frac{\\cos\\beta + \\sqrt{\\cos^2\\beta - \\cos^2\\phi}}{\\cos\\beta - \\sqrt{\\cos^2\\beta - \\cos^2\\phi}} $$";
+            }
+            formula += "<br>$$ P = \\frac{1}{2} \\gamma H^2 K $$";
+        } else {
+            if (state === 'active') {
+                formula = "$$ K_a = \\frac{\\sin^2(\\theta + \\phi)}{\\sin^2\\theta \\sin(\\theta - \\delta) \\left[1 + \\sqrt{\\frac{\\sin(\\phi + \\delta)\\sin(\\phi - \\beta)}{\\sin(\\theta - \\delta)\\sin(\\theta + \\beta)}}\\right]^2} $$";
+            } else {
+                formula = "$$ K_p = \\frac{\\sin^2(\\theta - \\phi)}{\\sin^2\\theta \\sin(\\theta + \\delta) \\left[1 - \\sqrt{\\frac{\\sin(\\phi + \\delta)\\sin(\\phi + \\beta)}{\\sin(\\theta + \\delta)\\sin(\\theta + \\beta)}}\\right]^2} $$";
+            }
+            formula += "<br>$$ P = \\frac{1}{2} \\gamma H^2 K $$";
+        }
+        
+        const container = document.getElementById('formula-container');
+        container.innerHTML = formula;
+        
+        if (window.MathJax) {
+            MathJax.typesetPromise([container]).catch(err => console.error('MathJax typeset failed:', err));
+        }
+    }
+
+    function calculatePressure() {
+        document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+
+        const method = document.getElementById('method').value;
+        const state = document.getElementById('state').value;
+        
+        const H = parseFloat(document.getElementById('heightH').value);
+        const gamma = parseFloat(document.getElementById('gamma').value);
+        const phi = parseFloat(document.getElementById('phi').value);
+        const beta = parseFloat(document.getElementById('beta').value) || 0;
+        const useGW = document.getElementById('toggleGW').checked;
+        const useSurcharge = document.getElementById('toggleSurcharge').checked;
+        const q = useSurcharge ? (parseFloat(document.getElementById('surchargeQ').value) || 0) : 0;
+
+        const reqIds = ['heightH', 'gamma', 'phi'];
+        if (method === 'coulomb' && state !== 'at_rest') {
+            reqIds.push('theta', 'delta');
+        }
+        if (useGW) {
+            reqIds.push('waterTableDw', 'gammaSat', 'gammaW');
+        }
+        if (useSurcharge) {
+            reqIds.push('surchargeQ');
+        }
+        
+        reqIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.value.trim() === '') el.classList.add('input-error');
+        });
+        
+        document.getElementById('resultBox').classList.remove('hidden');
+        document.getElementById('chartContainer').classList.add('hidden');
+
+        if (isNaN(H) || isNaN(gamma) || isNaN(phi)) {
+            document.getElementById('resultForce').innerHTML = "---";
+            document.getElementById('calcK').innerText = "K = ---";
+            return;
+        }
+
+        if (beta > phi) {
+            document.getElementById('resultForce').innerHTML = "Error: β > φ";
+            document.getElementById('calcK').innerText = "Slope cannot exceed friction angle.";
+            return;
+        }
+
+        const phiRad = phi * Math.PI / 180;
+        const betaRad = beta * Math.PI / 180;
+        let K = 0;
+
+        if (state === 'at_rest') {
+            K = (1 - Math.sin(phiRad)) * (1 + Math.sin(betaRad));
+        } else if (method === 'rankine') {
+            const cosBeta = Math.cos(betaRad);
+            const rootTerm = Math.sqrt(Math.pow(cosBeta, 2) - Math.pow(Math.cos(phiRad), 2));
+            K = state === 'active' ? cosBeta * ((cosBeta - rootTerm) / (cosBeta + rootTerm)) : cosBeta * ((cosBeta + rootTerm) / (cosBeta - rootTerm));
+        } else {
+            const theta = parseFloat(document.getElementById('theta').value) || 90;
+            const delta = parseFloat(document.getElementById('delta').value) || 0;
+            const thetaRad = theta * Math.PI / 180;
+            const deltaRad = delta * Math.PI / 180;
+            
+            if (state === 'active') {
+                const term = 1 + Math.sqrt((Math.sin(phiRad + deltaRad) * Math.sin(phiRad - betaRad)) / (Math.sin(thetaRad - deltaRad) * Math.sin(thetaRad + betaRad)));
+                K = Math.pow(Math.sin(thetaRad + phiRad), 2) / (Math.pow(Math.sin(thetaRad), 2) * Math.sin(thetaRad - deltaRad) * Math.pow(term, 2));
+            } else {
+                const term = 1 - Math.sqrt((Math.sin(phiRad + deltaRad) * Math.sin(phiRad + betaRad)) / (Math.sin(thetaRad + deltaRad) * Math.sin(thetaRad + betaRad)));
+                K = Math.pow(Math.sin(thetaRad - phiRad), 2) / (Math.pow(Math.sin(thetaRad), 2) * Math.sin(thetaRad + deltaRad) * Math.pow(term, 2));
+            }
+        }
+
+        let Dw = parseFloat(document.getElementById('waterTableDw').value);
+        let gammaSat = parseFloat(document.getElementById('gammaSat').value) || gamma;
+        let gammaW = parseFloat(document.getElementById('gammaW').value) || 9.81;
+        
+        let depths = [0];
+        let sig_v_eff = [0];
+        let pore_u = [0];
+        
+        if (!useGW || isNaN(Dw) || Dw >= H) {
+            depths.push(H);
+            sig_v_eff.push(gamma * H);
+            pore_u.push(0);
+        } else if (Dw <= 0) {
+            let gamma_sub = gammaSat - gammaW;
+            depths.push(H);
+            sig_v_eff.push(gamma_sub * H);
+            pore_u.push(gammaW * H);
+        } else {
+            depths.push(Dw);
+            sig_v_eff.push(gamma * Dw);
+            pore_u.push(0);
+            
+            let gamma_sub = gammaSat - gammaW;
+            depths.push(H);
+            sig_v_eff.push(gamma * Dw + gamma_sub * (H - Dw));
+            pore_u.push(gammaW * (H - Dw));
+        }
+        
+        let p_earth = sig_v_eff.map(sig => (sig + q) * K);
+        let p_water = pore_u;
+        let p_total = p_earth.map((pe, i) => pe + p_water[i]);
+
+        let P_earth = 0;
+        let P_water = 0;
+        for (let i = 1; i < depths.length; i++) {
+            let dz = depths[i] - depths[i-1];
+            P_earth += 0.5 * (p_earth[i-1] + p_earth[i]) * dz;
+            P_water += 0.5 * (p_water[i-1] + p_water[i]) * dz;
+        }
+        let P_tot = P_earth + P_water;
+        let P_surcharge = useSurcharge ? (q * K * H) : 0;
+        let P_soil = P_earth - P_surcharge;
+
+        const kLabel = state === 'active' ? 'Ka' : (state === 'passive' ? 'Kp' : 'Ko');
+        
+        let resultText = P_tot.toFixed(2) + " <span style='font-size: 1rem; font-weight: normal;'>(Force / unit length)</span>";
+        
+        let breakdown = [];
+        breakdown.push(`Soil: ${P_soil.toFixed(2)}`);
+        if (useGW && P_water > 0) breakdown.push(`Water: ${P_water.toFixed(2)}`);
+        if (useSurcharge && P_surcharge > 0) breakdown.push(`Surcharge: ${P_surcharge.toFixed(2)}`);
+        
+        if (breakdown.length > 1) {
+            resultText += `<br><small style="font-size: 0.95rem; font-weight: normal; color: #555;">(${breakdown.join(' | ')})</small>`;
+        }
+        
+        document.getElementById('resultForce').innerHTML = resultText;
+        document.getElementById('calcK').innerText = `${kLabel} = ${K.toFixed(4)}`;
+        
+        plotPressureChart(depths, p_earth, p_water, p_total);
+    }
+
+    function plotPressureChart(depths, p_earth, p_water, p_total) {
+        document.getElementById('chartContainer').classList.remove('hidden');
+        const ctx = document.getElementById('pressureChart').getContext('2d');
+
+        if (pressureChart) {
+            pressureChart.destroy();
+        }
+
+        let datasets = [
+            {
+                label: 'Effective Earth Pressure',
+                data: depths.map((d, i) => ({ x: p_earth[i], y: d })),
+                borderColor: '#8c564b',
+                backgroundColor: 'rgba(140, 86, 75, 0.2)',
+                borderWidth: 2,
+                showLine: true,
+                pointRadius: 3
+            }
+        ];
+
+        if (document.getElementById('toggleGW').checked && p_water[p_water.length - 1] > 0) {
+            datasets.push({
+                label: 'Pore Water Pressure',
+                data: depths.map((d, i) => ({ x: p_water[i], y: d })),
+                borderColor: '#1f77b4',
+                backgroundColor: 'rgba(31, 119, 180, 0.2)',
+                borderWidth: 2,
+                showLine: true,
+                borderDash: [5, 5],
+                pointRadius: 3
+            });
+            datasets.push({
+                label: 'Total Lateral Pressure',
+                data: depths.map((d, i) => ({ x: p_total[i], y: d })),
+                borderColor: '#d62728',
+                backgroundColor: 'rgba(214, 39, 40, 0.2)',
+                borderWidth: 3,
+                showLine: true,
+                pointRadius: 4
+            });
+        }
+
+        pressureChart = new Chart(ctx, {
+            type: 'scatter',
+            data: { datasets: datasets },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        type: 'linear',
+                        position: 'top',
+                        title: { display: true, text: 'Lateral Pressure (Force/Area)' },
+                        min: 0
+                    },
+                    y: {
+                        type: 'linear',
+                        title: { display: true, text: 'Depth (from top of wall)' },
+                        reverse: true,
+                        min: 0
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: { label: (context) => context.dataset.label + ': ' + context.parsed.x.toFixed(2) + ' at depth ' + context.parsed.y.toFixed(2) }
+                    }
+                }
+            }
+        });
+    }
+
+    updateToggles();
+    updateUI();
+
+    document.addEventListener('input', function(e) {
+        if (e.target.classList && e.target.classList.contains('input-error')) {
+            e.target.classList.remove('input-error');
+        }
+    });
+
+    // ── Unit System ────────────────────────────────────────────────────
+    const TO_IMP_EP = {length:3.28084,settlement:0.0393701,pressure:0.020885,unitweight:6.36587,force:0.224809,forcelength:0.0685218,cv:10.7639,pymodulus:0.003684};
+    const TO_MET_EP = Object.fromEntries(Object.entries(TO_IMP_EP).map(([k,v])=>[k,1/v]));
+    const LABELS_EP = {length:{metric:'m',imperial:'ft'},settlement:{metric:'mm',imperial:'in'},pressure:{metric:'kPa',imperial:'ksf'},unitweight:{metric:'kN/m³',imperial:'pcf'},force:{metric:'kN',imperial:'kip'},forcelength:{metric:'kN/m',imperial:'kip/ft'},cv:{metric:'m²/yr',imperial:'ft²/yr'},pymodulus:{metric:'kN/m³',imperial:'pci'}};
+    let unitSystem = 'metric';
+    function toDisp(v,qty){return unitSystem==='metric'?v:(TO_IMP_EP[qty]?v*TO_IMP_EP[qty]:v);}
+    function toMet(v,qty) {return unitSystem==='metric'?v:(TO_MET_EP[qty]?v*TO_MET_EP[qty]:v);}
+    function unitLbl(qty) {const e=LABELS_EP[qty];return e?(unitSystem==='metric'?e.metric:e.imperial):'';}
+    function toggleUnitSystem(){
+        const old=unitSystem;
+        unitSystem=unitSystem==='metric'?'imperial':'metric';
+        localStorage.setItem('geotools-units',unitSystem);
+        const btn=document.getElementById('unit-toggle-btn');
+        btn.textContent=unitSystem==='metric'?'🌐 Switch to Imperial (US)':'📏 Switch to Metric (SI)';
+        btn.classList.toggle('imperial',unitSystem==='imperial');
+        document.querySelectorAll('[data-unit]').forEach(el=>{el.textContent=unitLbl(el.dataset.unit);});
+        onUnitSwitch(old);
+    }
+    const UNIT_FIELDS=[
+        {id:'heightH',qty:'length'},{id:'gamma',qty:'unitweight'},
+        {id:'gammaSat',qty:'unitweight'},{id:'waterTableDw',qty:'length'},
+        {id:'surchargeQ',qty:'pressure'},
+    ];
+    function onUnitSwitch(old){
+        const f=unitSystem==='imperial'?TO_IMP_EP;
+        UNIT_FIELDS.forEach(({id,qty})=>{const el=document.getElementById(id);if(!el||el.value.trim()==='')return;const v=parseFloat(el.value);if(!isNaN(v)&&f[qty])el.value=parseFloat((v*f[qty]).toFixed(5));});
+    }
+    (function(){const s=localStorage.getItem('geotools-units');if(s==='imperial'){unitSystem='imperial';const btn=document.getElementById('unit-toggle-btn');if(btn){btn.textContent='📏 Switch to Metric (SI)';btn.classList.add('imperial');}document.querySelectorAll('[data-unit]').forEach(el=>{el.textContent=unitLbl(el.dataset.unit);});}})();
+    // ── End Unit System ────────────────────────────────────────────────
+</script>
+
+</body>
+</html>

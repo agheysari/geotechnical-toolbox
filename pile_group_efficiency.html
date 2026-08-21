@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pile Group Efficiency & Settlement Calculator - Geotechnical Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --surface: #ffffff;
+      --background: #f8fafc;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: var(--background); color: var(--text); line-height: 1.5; padding: 24px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    header { margin-bottom: 24px; }
+    h1 { font-size: 24px; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    p.subtitle { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
+    .layout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; }
+    @media (max-width: 900px) { .layout-grid { grid-template-columns: 1fr; } }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--card-shadow); }
+    .card-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+    input, select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; background: #fff; font-family: inherit; }
+    input:focus, select:focus { outline: none; border-color: var(--primary); ring: 2px var(--primary-light); }
+    .results-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+    @media (max-width: 600px) { .results-grid { grid-template-columns: 1fr 1fr; } }
+    .stat-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center; }
+    .stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+    .stat-val { font-size: 18px; font-weight: 800; color: var(--primary-dark); margin: 4px 0; }
+    .stat-sub { font-size: 10px; color: var(--text-muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 12px; }
+    th, td { padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; }
+    th { font-weight: 700; color: var(--text-muted); background: #f8fafc; }
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 999px; font-size: 10px; font-weight: 700; }
+    .badge-blue { background: #e0f2fe; color: #0369a1; }
+    .badge-green { background: #dcfce7; color: #15803d; }
+    .badge-amber { background: #fef3c7; color: #b45309; }
+    .chart-container { position: relative; height: 260px; width: 100%; margin-top: 16px; }
+    .visualizer-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .svg-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; align-items: center; }
+  
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="legacy-top-bar">
+      <div></div>
+      <div class="legacy-actions">
+        <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+      </div>
+    </div>
+    <h1>🏢 Pile Group Efficiency & Settlement Calculator</h1>
+    <p class="subtitle">Converse-Labarre & Sayed-Baker efficiency factors, block failure analysis in clay, and 2:1 equivalent raft immediate & 1D consolidation settlement.</p>
+  </header>
+
+  <div class="layout-grid">
+    <!-- Input Section -->
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="card">
+        <div class="card-title">1. Group Layout & Geometry</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Rows (m)</label>
+            <input type="number" id="in_rows" value="3" min="1" max="12" step="1">
+          </div>
+          <div class="form-group">
+            <label>Columns (n)</label>
+            <input type="number" id="in_cols" value="3" min="1" max="12" step="1">
+          </div>
+          <div class="form-group">
+            <label>Pile Diameter D (m)</label>
+            <input type="number" id="in_diameter" value="0.6" min="0.2" max="3.0" step="0.05">
+          </div>
+          <div class="form-group">
+            <label>Center-to-Center Spacing s (m)</label>
+            <input type="number" id="in_spacing" value="1.8" min="0.5" max="15.0" step="0.1">
+          </div>
+          <div class="form-group">
+            <label>Pile Length L (m)</label>
+            <input type="number" id="in_length" value="15.0" min="3.0" max="60.0" step="0.5">
+          </div>
+          <div class="form-group">
+            <label>Load Transfer Mode</label>
+            <select id="in_pileType">
+              <option value="friction">Friction (Raft @ 2/3 L)</option>
+              <option value="end_bearing">End Bearing (Raft @ L)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">2. Capacities & Applied Load</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Single Ult Capacity Qu (kN)</label>
+            <input type="number" id="in_qu" value="950" min="50" max="50000" step="50">
+          </div>
+          <div class="form-group">
+            <label>Total Group Load Qg (kN)</label>
+            <input type="number" id="in_qg" value="3200" min="50" max="500000" step="100">
+          </div>
+          <div class="form-group">
+            <label>Avg Shaft Adhesion cu (kPa)</label>
+            <input type="number" id="in_cuAvg" value="60" min="0" max="500" step="5">
+          </div>
+          <div class="form-group">
+            <label>Tip Undrained Strength cub (kPa)</label>
+            <input type="number" id="in_cuTip" value="90" min="0" max="1000" step="5">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">3. Compressibility & Settlement</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Soil Modulus Es (MPa)</label>
+            <input type="number" id="in_es" value="25" min="1" max="500" step="1">
+          </div>
+          <div class="form-group">
+            <label>Poisson's Ratio ν</label>
+            <input type="number" id="in_nu" value="0.3" min="0.1" max="0.5" step="0.05">
+          </div>
+          <div class="form-group">
+            <label>Compression Index Cc</label>
+            <input type="number" id="in_cc" value="0.28" min="0.01" max="1.5" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>Recompression Cr</label>
+            <input type="number" id="in_cr" value="0.045" min="0.001" max="0.3" step="0.005">
+          </div>
+          <div class="form-group">
+            <label>Initial Void Ratio e0</label>
+            <input type="number" id="in_e0" value="0.82" min="0.3" max="3.0" step="0.05">
+          </div>
+          <div class="form-group">
+            <label>Clay Thickness Hc (m)</label>
+            <input type="number" id="in_hclay" value="12.0" min="1" max="60" step="1">
+          </div>
+          <div class="form-group">
+            <label>Preconsolidation σ'p (kPa)</label>
+            <input type="number" id="in_pc" value="180" min="10" max="1500" step="10">
+          </div>
+          <div class="form-group">
+            <label>Overburden σ'v0 (kPa)</label>
+            <input type="number" id="in_p0" value="120" min="10" max="1500" step="10">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div class="card">
+        <div class="results-grid">
+          <div class="stat-box">
+            <div class="stat-label">Efficiency η</div>
+            <div class="stat-val" id="out_eta">78.5%</div>
+            <div class="stat-sub">Converse-Labarre</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Gov. Ult Capacity</div>
+            <div class="stat-val" id="out_qug">6,712 kN</div>
+            <div class="stat-sub" id="out_mode">Group Friction</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Factor of Safety</div>
+            <div class="stat-val" id="out_fs">2.10</div>
+            <div class="stat-sub">At applied Qg</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Total Settlement</div>
+            <div class="stat-val" id="out_stot" style="color: #b45309;">24.2 mm</div>
+            <div class="stat-sub" id="out_sbreak">Se: 4.8, Sc: 19.4 mm</div>
+          </div>
+        </div>
+
+        <!-- Plan & Elevation SVGs -->
+        <div class="visualizer-container">
+          <div class="svg-box">
+            <span style="font-size: 11px; font-weight: 700; margin-bottom: 8px;">Plan View</span>
+            <svg id="svg_plan" viewBox="0 0 200 180" style="width: 100%; height: 140px;"></svg>
+            <span id="txt_plan" style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Bg × Lg</span>
+          </div>
+          <div class="svg-box">
+            <span style="font-size: 11px; font-weight: 700; margin-bottom: 8px;">2:1 Stress Cone</span>
+            <svg id="svg_elevation" viewBox="0 0 200 180" style="width: 100%; height: 140px;"></svg>
+            <span id="txt_elev" style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Raft @ 2/3 L</span>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <table>
+          <thead>
+            <tr>
+              <th>Method / Check</th>
+              <th>Efficiency η</th>
+              <th>Group Ult Cap</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Converse-Labarre</td>
+              <td id="tb_cl_eta">78.5%</td>
+              <td id="tb_cl_q">6,712 kN</td>
+              <td><span class="badge badge-blue">Standard</span></td>
+            </tr>
+            <tr>
+              <td>Sayed & Baker (1992)</td>
+              <td id="tb_sb_eta">81.2%</td>
+              <td id="tb_sb_q">6,942 kN</td>
+              <td><span class="badge">Comparative</span></td>
+            </tr>
+            <tr>
+              <td>Block Failure (Skempton)</td>
+              <td id="tb_bf_eta">94.1%</td>
+              <td id="tb_bf_q">8,045 kN</td>
+              <td id="tb_bf_stat"><span class="badge badge-green">Adequate</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Stress Curve Chart -->
+        <div class="chart-container">
+          <canvas id="stressChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+  let currentUnitSystem = 'metric';
+  function setUnitSystem(system) {
+    currentUnitSystem = system;
+    const btnMetric = document.getElementById('btn_metric');
+    const btnImperial = document.getElementById('btn_imperial');
+    if (btnMetric && btnImperial) {
+      btnMetric.className = system === 'metric' ? 'unit-switcher-btn active' : 'unit-switcher-btn';
+      btnImperial.className = system === 'imperial' ? 'unit-switcher-btn active' : 'unit-switcher-btn';
+    }
+    if (typeof calculate === 'function') {
+      calculate();
+    } else if (typeof runCalc === 'function') {
+      runCalc();
+    }
+  }
+
+  let stressChart = null;
+
+  function calculate() {
+    const m = parseInt(document.getElementById('in_rows').value) || 1;
+    const n = parseInt(document.getElementById('in_cols').value) || 1;
+    const D = parseFloat(document.getElementById('in_diameter').value) || 0.6;
+    const s = parseFloat(document.getElementById('in_spacing').value) || 1.8;
+    const L = parseFloat(document.getElementById('in_length').value) || 15.0;
+    const pileType = document.getElementById('in_pileType').value;
+
+    const Qu = parseFloat(document.getElementById('in_qu').value) || 950;
+    const Qg = parseFloat(document.getElementById('in_qg').value) || 3200;
+    const cuAvg = parseFloat(document.getElementById('in_cuAvg').value) || 60;
+    const cuTip = parseFloat(document.getElementById('in_cuTip').value) || 90;
+
+    const Es = parseFloat(document.getElementById('in_es').value) || 25;
+    const nu = parseFloat(document.getElementById('in_nu').value) || 0.3;
+    const Cc = parseFloat(document.getElementById('in_cc').value) || 0.28;
+    const Cr = parseFloat(document.getElementById('in_cr').value) || 0.045;
+    const e0 = parseFloat(document.getElementById('in_e0').value) || 0.82;
+    const Hc = parseFloat(document.getElementById('in_hclay').value) || 12.0;
+    const Pc = parseFloat(document.getElementById('in_pc').value) || 180;
+    const P0 = parseFloat(document.getElementById('in_p0').value) || 120;
+
+    const numPiles = m * n;
+    const sOverD = s / D;
+    const Bg = (n - 1) * s + D;
+    const Lg = (m - 1) * s + D;
+
+    // 1. Converse-Labarre
+    const thetaDeg = Math.atan(D / s) * (180 / Math.PI);
+    const clTerm = m === 1 && n === 1 ? 0 : ((n - 1) * m + (m - 1) * n) / (90 * m * n);
+    const etaCL = Math.max(0.1, Math.min(1.0, 1 - thetaDeg * clTerm));
+
+    // 2. Sayed-Baker
+    let etaSB = 1.0;
+    if (m > 1 || n > 1) {
+      if (pileType === 'end_bearing') {
+        etaSB = sOverD >= 3 ? 1.0 : Math.max(0.75, 1 - 0.25 * (3 - sOverD) / 3);
+      } else {
+        const factor = (2 / Math.PI) * (((m - 1) + (n - 1)) / numPiles) * Math.atan(1 / sOverD);
+        const depthCorr = Math.min(1.15, 1 + 0.05 * Math.log10(Math.max(1, L / D)));
+        etaSB = Math.max(0.2, Math.min(1.0, 1 - factor * depthCorr));
+      }
+    }
+
+    // 3. Capacities
+    const sumQu = numPiles * Qu;
+    const groupFrictionQu = etaCL * sumQu;
+
+    const perimeter = 2 * (Bg + Lg);
+    const ncCalc = 5 * (1 + 0.2 * (Math.min(Bg, Lg) / Math.max(Bg, Lg))) * (1 + 0.2 * (L / Math.min(Bg, Lg)));
+    const Nc = Math.min(9.0, Math.max(5.0, ncCalc));
+    const blockQu = (perimeter * L * cuAvg) + (Bg * Lg * cuTip * Nc);
+
+    const govQu = Math.min(groupFrictionQu, blockQu);
+    const isBlock = blockQu < groupFrictionQu;
+    const fs = Qg > 0 ? (govQu / Qg) : 2.5;
+
+    // 4. Settlement
+    const Beq = Bg;
+    const Leq = Lg;
+    const EsKPa = Es * 1000;
+    const qRaft = Qg / (Beq * Leq);
+    const L_B = Leq / Beq;
+    const I_s = 0.88 + 0.12 * Math.log(Math.max(1, L_B));
+    const Se = (qRaft * Beq * (1 - nu * nu) / EsKPa) * I_s * 1000; // mm
+
+    const numSlices = 10;
+    const dz = Hc / numSlices;
+    let Sc_m = 0;
+    const labels = [];
+    const stressVals = [];
+
+    for (let i = 0; i < numSlices; i++) {
+      const zMid = (i + 0.5) * dz;
+      const Bz = Beq + zMid;
+      const Lz = Leq + zMid;
+      const dSigma = Qg / (Bz * Lz);
+
+      labels.push(zMid.toFixed(1) + 'm');
+      stressVals.push(dSigma.toFixed(1));
+
+      const sigmaV0 = P0 + zMid * 9.0;
+      const sigmaF = sigmaV0 + dSigma;
+      let dSc = 0;
+      if (sigmaF <= Pc) {
+        dSc = (Cr * dz / (1 + e0)) * Math.log10(sigmaF / sigmaV0);
+      } else if (sigmaV0 >= Pc) {
+        dSc = (Cc * dz / (1 + e0)) * Math.log10(sigmaF / sigmaV0);
+      } else {
+        dSc = (Cr * dz / (1 + e0)) * Math.log10(Pc / sigmaV0) + (Cc * dz / (1 + e0)) * Math.log10(sigmaF / Pc);
+      }
+      Sc_m += Math.max(0, dSc);
+    }
+    const Sc = Sc_m * 1000;
+    const Stot = Se + Sc;
+
+    // Update UI
+    document.getElementById('out_eta').innerText = (etaCL * 100).toFixed(1) + '%';
+    document.getElementById('out_qug').innerText = Math.round(govQu).toLocaleString() + ' kN';
+    document.getElementById('out_mode').innerText = isBlock ? 'Cohesive Block Failure' : 'Individual Group';
+    document.getElementById('out_fs').innerText = fs.toFixed(2);
+    document.getElementById('out_stot').innerText = Stot.toFixed(1) + ' mm';
+    document.getElementById('out_sbreak').innerText = `Se: ${Se.toFixed(1)}, Sc: ${Sc.toFixed(1)} mm`;
+
+    document.getElementById('tb_cl_eta').innerText = (etaCL * 100).toFixed(1) + '%';
+    document.getElementById('tb_cl_q').innerText = Math.round(groupFrictionQu).toLocaleString() + ' kN';
+    document.getElementById('tb_sb_eta').innerText = (etaSB * 100).toFixed(1) + '%';
+    document.getElementById('tb_sb_q').innerText = Math.round(etaSB * sumQu).toLocaleString() + ' kN';
+    document.getElementById('tb_bf_eta').innerText = ((blockQu / sumQu) * 100).toFixed(1) + '%';
+    document.getElementById('tb_bf_q').innerText = Math.round(blockQu).toLocaleString() + ' kN';
+    document.getElementById('tb_bf_stat').innerHTML = isBlock ? '<span class="badge badge-amber">Governs</span>' : '<span class="badge badge-green">Adequate</span>';
+
+    // Update Plan SVG
+    let svgPlan = `<rect x="20" y="20" width="160" height="140" rx="8" fill="rgba(2,132,199,0.08)" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="3 2"/>`;
+    for (let r = 0; r < m; r++) {
+      for (let c = 0; c < n; c++) {
+        const cx = n === 1 ? 100 : 35 + (c * 130) / (n - 1);
+        const cy = m === 1 ? 90 : 35 + (r * 110) / (m - 1);
+        svgPlan += `<circle cx="${cx}" cy="${cy}" r="7" fill="#0f172a" stroke="#0284c7" stroke-width="1.5"/><circle cx="${cx}" cy="${cy}" r="2" fill="#ffffff"/>`;
+      }
+    }
+    document.getElementById('svg_plan').innerHTML = svgPlan;
+    document.getElementById('txt_plan').innerText = `${Bg.toFixed(2)}m × ${Lg.toFixed(2)}m (${numPiles} piles)`;
+
+    // Update Elevation SVG
+    const eqDepth = pileType === 'friction' ? (2 / 3) * L : L;
+    const raftY = pileType === 'friction' ? 65 : 85;
+    let svgElev = `
+      <line x1="10" y1="20" x2="190" y2="20" stroke="#64748b" stroke-width="2"/>
+      <line x1="60" y1="20" x2="60" y2="85" stroke="#0f172a" stroke-width="4"/>
+      <line x1="100" y1="20" x2="100" y2="85" stroke="#0f172a" stroke-width="4"/>
+      <line x1="140" y1="20" x2="140" y2="85" stroke="#0f172a" stroke-width="4"/>
+      <line x1="50" y1="${raftY}" x2="150" y2="${raftY}" stroke="#ef4444" stroke-width="2" stroke-dasharray="3 2"/>
+      <polygon points="50,${raftY} 150,${raftY} 185,160 15,160" fill="rgba(239,68,68,0.12)" stroke="#ef4444" stroke-width="1"/>
+      <text x="100" y="125" text-anchor="middle" font-size="9" font-weight="bold" fill="#0284c7">2:1 Spread</text>
+    `;
+    document.getElementById('svg_elevation').innerHTML = svgElev;
+    document.getElementById('txt_elev').innerText = `Equiv. Raft @ ${eqDepth.toFixed(1)}m`;
+
+    // Update Chart
+    if (stressChart) {
+      stressChart.data.labels = labels;
+      stressChart.data.datasets[0].data = stressVals;
+      stressChart.update();
+    } else {
+      const ctx = document.getElementById('stressChart').getContext('2d');
+      stressChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Δσz Vertical Stress (kPa)',
+            data: stressVals,
+            borderColor: '#0284c7',
+            backgroundColor: 'rgba(2, 132, 199, 0.12)',
+            fill: true,
+            tension: 0.35,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { title: { display: true, text: 'Depth Below Raft (m)', font: { size: 10 } } },
+            y: { title: { display: true, text: 'Δσz (kPa)', font: { size: 10 } }, beginAtZero: true }
+          }
+        }
+      });
+    }
+  }
+
+  document.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('input', calculate);
+  });
+
+  window.addEventListener('load', calculate);
+</script>
+
+</body>
+</html>

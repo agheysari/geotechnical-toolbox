@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soil Phase Relationships & Weight-Volume Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 960px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+            line-height: 1.6;
+            background-color: #f4f6f8;
+        }
+        .container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-top: -10px;
+            margin-bottom: 1.5rem;
+        }
+        .tab-bar {
+            display: flex;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 1.5rem;
+            gap: 0.5rem;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            width: auto;
+            margin-top: 0;
+        }
+        .tab-btn:hover {
+            color: #0066cc;
+            background: none;
+        }
+        .tab-btn.active {
+            color: #0066cc;
+            border-bottom-color: #0066cc;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #34495e;
+            border-bottom: 2px solid #e1e4e8;
+            padding-bottom: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+        }
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+        input, select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            background: #fff;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 2px rgba(0,102,204,0.2);
+        }
+        .hint {
+            font-size: 0.8rem;
+            color: #718096;
+            margin-top: 0.25rem;
+        }
+        button.calc-btn {
+            width: 100%;
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: background 0.2s;
+        }
+        button.calc-btn:hover {
+            background: #0052a3;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+        .stat-box {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .stat-val {
+            font-size: 1.35rem;
+            font-weight: bold;
+            color: #0f766e;
+            margin-top: 0.25rem;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+        }
+        .diagram-container {
+            margin-top: 2rem;
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .formula-box {
+            margin-top: 2rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 1.25rem;
+        }
+        .formula-box h3 {
+            margin-top: 0;
+            color: #334155;
+            font-size: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        .tab-panel {
+            display: none;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="legacy-top-bar">
+    <div class="legacy-actions">
+      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+    </div>
+  </div>
+
+<div id="soil-phase-tool" class="container">
+    <h2>Soil Phase Relationships & Weight-Volume Calculator</h2>
+    <p class="subtitle">
+        Interconversion of Soil Index Properties & 3-Phase Weight-Volume Solver (ASTM D7263 / D2216 / D854)
+    </p>
+
+    <!-- Tabs -->
+    <div class="tab-bar">
+        <button type="button" class="tab-btn active" onclick="switchTab('properties')">1. Index Properties Solver</button>
+        <button type="button" class="tab-btn" onclick="switchTab('lab')">2. Laboratory Measurements</button>
+    </div>
+
+    <!-- Mode 1: Index Properties -->
+    <div id="panel-properties" class="tab-panel active">
+        <div class="section-title">Enter Known Index Properties (Any 3–4 parameters)</div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Moisture Content (w, %)</label>
+                <input type="number" id="p_w" value="20.8" step="0.1" min="0">
+                <span class="hint">Water content ratio (w = Ww / Ws)</span>
+            </div>
+            <div class="form-group">
+                <label>Specific Gravity (Gs)</label>
+                <input type="number" id="p_Gs" value="2.65" step="0.01" min="1.0">
+                <span class="hint">Solid grain specific gravity</span>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Void Ratio (e)</label>
+                <input type="number" id="p_e" placeholder="Auto / Enter value" step="0.01" min="0.01">
+                <span class="hint">e = Vv / Vs</span>
+            </div>
+            <div class="form-group">
+                <label>Degree of Saturation (Sr, %)</label>
+                <input type="number" id="p_Sr" value="100" step="1" min="0" max="100">
+                <span class="hint">Sr = Vw / Vv (100% = Saturated)</span>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Porosity (n, %)</label>
+                <input type="number" id="p_n" placeholder="Auto / Enter value" step="0.1" min="0" max="99.9">
+                <span class="hint">n = Vv / V = e / (1 + e)</span>
+            </div>
+            <div class="form-group">
+                <label>Bulk Unit Weight (γ, kN/m³)</label>
+                <input type="number" id="p_gamma" placeholder="Auto / Enter value" step="0.1" min="0">
+                <span class="hint">Total moist unit weight</span>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Dry Unit Weight (γd, kN/m³)</label>
+                <input type="number" id="p_gammaD" placeholder="Auto / Enter value" step="0.1" min="0">
+                <span class="hint">γd = Gs·γw / (1 + e)</span>
+            </div>
+            <div class="form-group">
+                <label>Saturated Unit Wt. (γsat, kN/m³)</label>
+                <input type="number" id="p_gammaSat" placeholder="Auto / Enter value" step="0.1" min="0">
+                <span class="hint">Unit weight when Sr = 100%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mode 2: Laboratory Measurements -->
+    <div id="panel-lab" class="tab-panel">
+        <div class="section-title">Direct Laboratory Specimen Measurements</div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Total Moist Mass (M, g)</label>
+                <input type="number" id="l_M" value="195.0" step="0.1" min="0">
+                <span class="hint">Initial sample mass before drying</span>
+            </div>
+            <div class="form-group">
+                <label>Oven-Dry Mass (Ms, g)</label>
+                <input type="number" id="l_Ms" value="160.0" step="0.1" min="0">
+                <span class="hint">Mass of soil solids after oven-drying</span>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Specimen Volume (V, cm³)</label>
+                <input type="number" id="l_V" value="100.0" step="0.1" min="0">
+                <span class="hint">Total volume of trimming cylinder</span>
+            </div>
+            <div class="form-group">
+                <label>Specific Gravity (Gs)</label>
+                <input type="number" id="l_Gs" value="2.70" step="0.01" min="1.0">
+                <span class="hint">Specific gravity of soil particles</span>
+            </div>
+        </div>
+    </div>
+
+    <button type="button" class="calc-btn" onclick="calculatePhase()">Solve Phase Relationships</button>
+
+    <!-- Results Section -->
+    <div id="results" style="display:none;">
+        <div class="section-title" style="margin-top: 2rem;">Solved Soil Phase & Index Properties</div>
+        
+        <div class="results-grid">
+            <div class="stat-box">
+                <div class="stat-label">Moisture Content (w)</div>
+                <div id="out_w" class="stat-val">0.0%</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Void Ratio (e)</div>
+                <div id="out_e" class="stat-val">0.000</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Porosity (n)</div>
+                <div id="out_n" class="stat-val">0.0%</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Degree of Saturation (Sr)</div>
+                <div id="out_Sr" class="stat-val">0.0%</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Specific Gravity (Gs)</div>
+                <div id="out_Gs" class="stat-val">0.00</div>
+            </div>
+        </div>
+
+        <div class="results-grid">
+            <div class="stat-box">
+                <div class="stat-label">Bulk Unit Wt. (γ)</div>
+                <div id="out_gamma" class="stat-val">0.00 kN/m³</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Dry Unit Wt. (γd)</div>
+                <div id="out_gammaD" class="stat-val">0.00 kN/m³</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Saturated Unit Wt. (γsat)</div>
+                <div id="out_gammaSat" class="stat-val">0.00 kN/m³</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Submerged Unit Wt. (γ')</div>
+                <div id="out_gammaSub" class="stat-val">0.00 kN/m³</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Bulk Density (ρ)</div>
+                <div id="out_rho" class="stat-val">0.00 g/cm³</div>
+            </div>
+        </div>
+
+        <!-- 3-Phase Soil Block Diagram -->
+        <div class="diagram-container">
+            <h3 style="margin-top:0; color:#334155;">3-Phase Soil Block Breakdown</h3>
+            <div id="svgContainer" style="display:flex; justify-content:center; overflow-x:auto;"></div>
+        </div>
+    </div>
+
+    <!-- Theory & Formulas -->
+    <div class="formula-box">
+        <h3>Fundamental Weight-Volume Equations</h3>
+        <p style="font-size: 0.9rem; color: #475569;">
+            <strong>Fundamental Phase Identity:</strong>
+            $$S_r \cdot e = w \cdot G_s$$
+        </p>
+        <p style="font-size: 0.9rem; color: #475569;">
+            <strong>Unit Weight Relations:</strong>
+            $$\gamma_d = \frac{G_s \cdot \gamma_w}{1 + e} = \frac{\gamma}{1 + w}, \quad \gamma = \frac{(G_s + S_r \cdot e) \cdot \gamma_w}{1 + e}, \quad \gamma_{sat} = \frac{(G_s + e) \cdot \gamma_w}{1 + e}$$
+        </p>
+        <p style="font-size: 0.9rem; color: #475569;">
+            <strong>Void Ratio and Porosity:</strong>
+            $$e = \frac{n}{1 - n}, \quad n = \frac{e}{1 + e}$$
+        </p>
+    </div>
+</div>
+
+<script>
+
+  let currentUnitSystem = 'metric';
+  function setUnitSystem(system) {
+    currentUnitSystem = system;
+    const btnMetric = document.getElementById('btn_metric');
+    const btnImperial = document.getElementById('btn_imperial');
+    if (btnMetric && btnImperial) {
+      btnMetric.className = system === 'metric' ? 'unit-switcher-btn active' : 'unit-switcher-btn';
+      btnImperial.className = system === 'imperial' ? 'unit-switcher-btn active' : 'unit-switcher-btn';
+    }
+    if (typeof calculate === 'function') {
+      calculate();
+    } else if (typeof runCalc === 'function') {
+      runCalc();
+    }
+  }
+
+let currentTab = 'properties';
+const GAMMA_W = 9.81;
+
+function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+
+    if (tab === 'properties') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('panel-properties').classList.add('active');
+    } else {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('panel-lab').classList.add('active');
+    }
+}
+
+function solvePhaseEngine(w_in, Gs_in, e_in, Sr_in, n_in, gamma_in, gammaD_in, gammaSat_in) {
+    let w = w_in !== undefined && !isNaN(w_in) ? w_in / 100 : undefined;
+    let Gs = Gs_in !== undefined && !isNaN(Gs_in) ? Gs_in : undefined;
+    let e = e_in !== undefined && !isNaN(e_in) ? e_in : undefined;
+    let Sr = Sr_in !== undefined && !isNaN(Sr_in) ? Sr_in / 100 : undefined;
+    let n = n_in !== undefined && !isNaN(n_in) ? n_in / 100 : undefined;
+    let gamma = gamma_in !== undefined && !isNaN(gamma_in) ? gamma_in : undefined;
+    let gamma_d = gammaD_in !== undefined && !isNaN(gammaD_in) ? gammaD_in : undefined;
+    let gamma_sat = gammaSat_in !== undefined && !isNaN(gammaSat_in) ? gammaSat_in : undefined;
+
+    for (let iter = 0; iter < 15; iter++) {
+        if (e !== undefined && n === undefined) n = e / (1 + e);
+        if (n !== undefined && e === undefined && n < 1.0) e = n / (1 - n);
+
+        if (gamma !== undefined && gamma_d !== undefined && w === undefined && gamma_d > 0) w = (gamma / gamma_d) - 1.0;
+        if (gamma !== undefined && w !== undefined && gamma_d === undefined) gamma_d = gamma / (1 + w);
+        if (gamma_d !== undefined && w !== undefined && gamma === undefined) gamma = gamma_d * (1 + w);
+
+        if (Gs !== undefined && e !== undefined && gamma_d === undefined) gamma_d = (Gs * GAMMA_W) / (1 + e);
+        if (gamma_d !== undefined && e !== undefined && Gs === undefined) Gs = (gamma_d * (1 + e)) / GAMMA_W;
+        if (gamma_d !== undefined && Gs !== undefined && e === undefined && gamma_d > 0) e = (Gs * GAMMA_W / gamma_d) - 1.0;
+
+        if (w !== undefined && Gs !== undefined && e !== undefined && Sr === undefined && e > 0) Sr = (w * Gs) / e;
+        if (Sr !== undefined && e !== undefined && Gs !== undefined && w === undefined && Gs > 0) w = (Sr * e) / Gs;
+        if (w !== undefined && Gs !== undefined && Sr !== undefined && e === undefined && Sr > 0) e = (w * Gs) / Sr;
+        if (Sr !== undefined && e !== undefined && w !== undefined && Gs === undefined && w > 0) Gs = (Sr * e) / w;
+
+        if (Gs !== undefined && e !== undefined && gamma_sat === undefined) gamma_sat = ((Gs + e) * GAMMA_W) / (1 + e);
+        if (gamma_sat !== undefined && e !== undefined && Gs === undefined) Gs = (gamma_sat * (1 + e) / GAMMA_W) - e;
+
+        if (gamma !== undefined && Gs !== undefined && e !== undefined && Sr === undefined && e > 0) {
+            Sr = ((gamma * (1 + e) / GAMMA_W) - Gs) / e;
+        }
+    }
+
+    if (w === undefined || e === undefined || Gs === undefined || Sr === undefined) {
+        if (w !== undefined && Gs !== undefined && e !== undefined) Sr = (w * Gs) / e;
+    }
+
+    if (w === undefined || e === undefined || Gs === undefined || Sr === undefined) {
+        throw new Error('Please enter at least 3 independent soil properties.');
+    }
+
+    w = Math.max(0, w);
+    e = Math.max(0.01, e);
+    Gs = Math.max(1.0, Gs);
+    Sr = Math.min(1.0, Math.max(0, Sr));
+
+    const gamma_d_res = (Gs * GAMMA_W) / (1 + e);
+    const gamma_res = gamma_d_res * (1 + w);
+    const gamma_sat_res = ((Gs + e) * GAMMA_W) / (1 + e);
+    const gamma_sub_res = gamma_sat_res - GAMMA_W;
+    const n_res = (e / (1 + e)) * 100;
+
+    const V = 1.0;
+    const Vs = 1.0 / (1 + e);
+    const Vv = e / (1 + e);
+    const Vw = Sr * Vv;
+    const Va = Math.max(0, Vv - Vw);
+
+    const Ws = gamma_d_res * V;
+    const Ww = w * Ws;
+    const Wa = 0.0;
+    const W = Ws + Ww;
+
+    return {
+        w_pct: w * 100,
+        e: e,
+        n_pct: n_res,
+        Sr_pct: Sr * 100,
+        Gs: Gs,
+        gamma: gamma_res,
+        gamma_d: gamma_d_res,
+        gamma_sat: gamma_sat_res,
+        gamma_sub: gamma_sub_res,
+        rho: gamma_res / GAMMA_W,
+        Vs: Vs,
+        Vw: Vw,
+        Va: Va,
+        Vv: Vv,
+        V: V,
+        Ws: Ws,
+        Ww: Ww,
+        Wa: Wa,
+        W: W,
+        pctSolid: (Vs / V) * 100,
+        pctWater: (Vw / V) * 100,
+        pctAir: (Va / V) * 100
+    };
+}
+
+function renderPhaseSVG(res) {
+    const width = 540, height = 320;
+    const blockX = 150, blockW = 240, blockTop = 40, blockH = 240;
+
+    const hAir = (res.pctAir / 100) * blockH;
+    const hWater = (res.pctWater / 100) * blockH;
+    const hSolid = (res.pctSolid / 100) * blockH;
+
+    const yAir = blockTop;
+    const yWater = yAir + hAir;
+    const ySolid = yWater + hWater;
+
+    let svg = `<svg viewBox="0 0 ${width} ${height}" style="max-width:100%; height:auto; font-family:sans-serif;">
+        <defs>
+            <linearGradient id="airG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#F1F5F9"/><stop offset="100%" stop-color="#E2E8F0"/></linearGradient>
+            <linearGradient id="waterG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60A5FA"/><stop offset="100%" stop-color="#3B82F6"/></linearGradient>
+            <linearGradient id="solidG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#D97706"/><stop offset="100%" stop-color="#B45309"/></linearGradient>
+        </defs>
+
+        <text x="70" y="24" text-anchor="middle" fill="#64748B" font-size="11" font-weight="bold">VOLUMES (V)</text>
+        <text x="270" y="24" text-anchor="middle" fill="#0F172A" font-size="12" font-weight="bold">SOIL ELEMENT</text>
+        <text x="470" y="24" text-anchor="middle" fill="#64748B" font-size="11" font-weight="bold">WEIGHTS (W)</text>`;
+
+    if (hAir > 0.5) {
+        svg += `<rect x="${blockX}" y="${yAir}" width="${blockW}" height="${hAir}" fill="url(#airG)" stroke="#94A3B8" stroke-width="1.5" rx="4"/>`;
+        if (hAir > 16) svg += `<text x="${blockX + blockW/2}" y="${yAir + hAir/2 + 4}" text-anchor="middle" fill="#475569" font-size="12" font-weight="bold">AIR (${res.pctAir.toFixed(1)}%)</text>`;
+        svg += `<text x="${blockX - 15}" y="${yAir + hAir/2 + 4}" text-anchor="end" fill="#64748B" font-size="10">Va = ${res.Va.toFixed(3)} m³</text>`;
+        svg += `<text x="${blockX + blockW + 15}" y="${yAir + hAir/2 + 4}" text-anchor="start" fill="#64748B" font-size="10">Wa = 0.00 kN</text>`;
+    }
+
+    if (hWater > 0.5) {
+        svg += `<rect x="${blockX}" y="${yWater}" width="${blockW}" height="${hWater}" fill="url(#waterG)" stroke="#2563EB" stroke-width="1.5"/>`;
+        if (hWater > 16) svg += `<text x="${blockX + blockW/2}" y="${yWater + hWater/2 + 4}" text-anchor="middle" fill="#FFFFFF" font-size="12" font-weight="bold">WATER (${res.pctWater.toFixed(1)}%)</text>`;
+        svg += `<text x="${blockX - 15}" y="${yWater + hWater/2 + 4}" text-anchor="end" fill="#2563EB" font-size="10" font-weight="bold">Vw = ${res.Vw.toFixed(3)} m³</text>`;
+        svg += `<text x="${blockX + blockW + 15}" y="${yWater + hWater/2 + 4}" text-anchor="start" fill="#2563EB" font-size="10" font-weight="bold">Ww = ${res.Ww.toFixed(2)} kN</text>`;
+    }
+
+    if (hSolid > 0.5) {
+        svg += `<rect x="${blockX}" y="${ySolid}" width="${blockW}" height="${hSolid}" fill="url(#solidG)" stroke="#92400E" stroke-width="1.5" rx="4"/>`;
+        if (hSolid > 16) svg += `<text x="${blockX + blockW/2}" y="${ySolid + hSolid/2 + 4}" text-anchor="middle" fill="#FFFFFF" font-size="12" font-weight="bold">SOLIDS (${res.pctSolid.toFixed(1)}%)</text>`;
+        svg += `<text x="${blockX - 15}" y="${ySolid + hSolid/2 + 4}" text-anchor="end" fill="#B45309" font-size="10" font-weight="bold">Vs = ${res.Vs.toFixed(3)} m³</text>`;
+        svg += `<text x="${blockX + blockW + 15}" y="${ySolid + hSolid/2 + 4}" text-anchor="start" fill="#B45309" font-size="10" font-weight="bold">Ws = ${res.Ws.toFixed(2)} kN</text>`;
+    }
+
+    svg += `<text x="70" y="${height - 10}" text-anchor="middle" fill="#0F172A" font-size="11" font-weight="bold">Total V = 1.00 m³</text>
+            <text x="470" y="${height - 10}" text-anchor="middle" fill="#0F172A" font-size="11" font-weight="bold">Total W = ${res.W.toFixed(2)} kN</text>
+    </svg>`;
+
+    return svg;
+}
+
+function calculatePhase() {
+    try {
+        let res;
+        if (currentTab === 'properties') {
+            const w = parseFloat(document.getElementById('p_w').value);
+            const Gs = parseFloat(document.getElementById('p_Gs').value);
+            const e = parseFloat(document.getElementById('p_e').value);
+            const Sr = parseFloat(document.getElementById('p_Sr').value);
+            const n = parseFloat(document.getElementById('p_n').value);
+            const gamma = parseFloat(document.getElementById('p_gamma').value);
+            const gammaD = parseFloat(document.getElementById('p_gammaD').value);
+            const gammaSat = parseFloat(document.getElementById('p_gammaSat').value);
+
+            res = solvePhaseEngine(w, Gs, e, Sr, n, gamma, gammaD, gammaSat);
+        } else {
+            const M = parseFloat(document.getElementById('l_M').value);
+            const Ms = parseFloat(document.getElementById('l_Ms').value);
+            const V = parseFloat(document.getElementById('l_V').value);
+            const Gs = parseFloat(document.getElementById('l_Gs').value);
+
+            if ([M, Ms, V, Gs].some(isNaN) || M <= 0 || Ms <= 0 || V <= 0 || Gs <= 0) {
+                alert('Please enter valid positive numbers for all laboratory fields.');
+                return;
+            }
+            if (Ms > M) {
+                alert('Dry mass (Ms) cannot exceed moist mass (M).');
+                return;
+            }
+
+            const w_dec = (M - Ms) / Ms;
+            const Vs = Ms / (Gs * 1.0);
+            const Vv = V - Vs;
+            const Vw = (M - Ms) / 1.0;
+            const e = Vv / Vs;
+            const Sr_dec = Math.min(1.0, Math.max(0, Vw / Vv));
+
+            res = solvePhaseEngine(w_dec * 100, Gs, e, Sr_dec * 100);
+        }
+
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('out_w').textContent = res.w_pct.toFixed(1) + '%';
+        document.getElementById('out_e').textContent = res.e.toFixed(3);
+        document.getElementById('out_n').textContent = res.n_pct.toFixed(1) + '%';
+        document.getElementById('out_Sr').textContent = res.Sr_pct.toFixed(1) + '%';
+        document.getElementById('out_Gs').textContent = res.Gs.toFixed(2);
+        document.getElementById('out_gamma').textContent = res.gamma.toFixed(2) + ' kN/m³';
+        document.getElementById('out_gammaD').textContent = res.gamma_d.toFixed(2) + ' kN/m³';
+        document.getElementById('out_gammaSat').textContent = res.gamma_sat.toFixed(2) + ' kN/m³';
+        document.getElementById('out_gammaSub').textContent = res.gamma_sub.toFixed(2) + ' kN/m³';
+        document.getElementById('out_rho').textContent = res.rho.toFixed(3) + ' g/cm³';
+
+        document.getElementById('svgContainer').innerHTML = renderPhaseSVG(res);
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    } catch (err) {
+        alert(err.message || 'Error solving phase relationships.');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    calculatePhase();
+});
+</script>
+
+</body>
+</html>

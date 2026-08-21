@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Stress Distribution Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+        }
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+        input, select {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .hidden {
+            display: none !important;
+        }
+        button {
+            width: 100%;
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #eef7ff;
+            border-left: 5px solid #0066cc;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #004080;
+        }
+        .note {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+        .formula-box {
+            text-align: center;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+        .input-error {
+            border: 2px solid #e74c3c !important;
+            background-color: #fdf2f2 !important;
+        }
+    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="legacy-top-bar">
+    <div class="legacy-actions">
+      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+    </div>
+  </div>
+    <h2>Simple Stress Distribution Calculator</h2>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label for="method">Calculation Method</label>
+            <select id="method" onchange="updateUI()">
+                <option value="boussinesq">Boussinesq</option>
+                <option value="westergaard">Westergaard</option>
+                <option value="approx21">2:1 Approximate Method</option>
+            </select>
+        </div>
+        <div class="form-group hidden" id="nu-group">
+            <label for="nu">Poisson's Ratio (ν)</label>
+            <input type="number" id="nu" step="0.05" min="0" max="0.5" placeholder="e.g., 0.3 (default 0.3)">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="loadType">Load Type</label>
+            <select id="loadType" onchange="updateUI()">
+                <option value="point">Point Load (P)</option>
+                <option value="line">Line Load (q)</option>
+                <option value="rect">Rectangular Area Load (q)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label id="loadValueLabel" for="loadValue">Load Value (P)</label>
+            <input type="number" id="loadValue" step="any" placeholder="e.g., 100 kN">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="depthZ">Depth from Surface (Z)</label>
+            <input type="number" id="depthZ" step="any" placeholder="e.g., 5.0 m">
+        </div>
+        <div class="form-group">
+            <label for="embedD">Embedment Depth (D)</label>
+            <input type="number" id="embedD" step="any" value="0">
+        </div>
+    </div>
+
+    <!-- Coordinate Offsets -->
+    <div class="form-row" id="coord-group">
+        <div class="form-group">
+            <label id="distXLabel" for="distX">Horizontal Dist. X (from load)</label>
+            <input type="number" id="distX" step="any" value="0" placeholder="e.g., 1.5 m">
+        </div>
+        <div class="form-group" id="distY-group">
+            <label id="distYLabel" for="distY">Horizontal Dist. Y (from load)</label>
+            <input type="number" id="distY" step="any" value="0" placeholder="e.g., 2.0 m">
+        </div>
+    </div>
+
+    <!-- Rectangular Dimensions -->
+    <div class="form-row hidden" id="rect-group">
+        <div class="form-group">
+            <label for="rectB">Width (B, along X)</label>
+            <input type="number" id="rectB" step="any" placeholder="e.g., 2.0 m">
+        </div>
+        <div class="form-group">
+            <label for="rectL">Length (L, along Y)</label>
+            <input type="number" id="rectL" step="any" placeholder="e.g., 3.0 m">
+        </div>
+    </div>
+
+    <div style="text-align: left; margin-bottom: 1rem;">
+        <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="checkbox" id="toggleFormula" onchange="updateToggles()"> Show Formulas
+        </label>
+    </div>
+
+    <div class="formula-box" id="formula-container"></div>
+
+    <button onclick="calculateStress()">Calculate Stress Increase (Δσz)</button>
+
+    <div class="result-box hidden" id="resultBox">
+        <div>Vertical Stress Increase (Δσ<sub>z</sub>)</div>
+        <div class="result-value" id="resultValue">0.00</div>
+        <div style="margin-top: 10px; color: #555;" id="resultDepth">at z = 0.00 units of length</div>
+    </div>
+    <div class="note">
+        * Ensure units are consistent (e.g., load in kN or lbs, dimensions in m or ft &rarr; stress in kPa or psf).<br>
+        * Effective depth calculation: z = Z - D. If Z ≤ D, the stress increase is considered 0.
+    </div>
+</div>
+
+<script>
+    function updateToggles() {
+        document.getElementById('formula-container').classList.toggle('hidden', !document.getElementById('toggleFormula').checked);
+    }
+
+    function updateUI() {
+        const method = document.getElementById('method').value;
+        const loadType = document.getElementById('loadType').value;
+        
+        document.getElementById('nu-group').classList.toggle('hidden', method !== 'westergaard');
+        
+        const rectGroup = document.getElementById('rect-group');
+        const coordGroup = document.getElementById('coord-group');
+        const distYGroup = document.getElementById('distY-group');
+        const loadValueLabel = document.getElementById('loadValueLabel');
+        const loadValueInput = document.getElementById('loadValue');
+        const distXLabel = document.getElementById('distXLabel');
+        const distYLabel = document.getElementById('distYLabel');
+
+        if (loadType === 'point') {
+            rectGroup.classList.add('hidden');
+            coordGroup.classList.remove('hidden');
+            distYGroup.classList.remove('hidden');
+            loadValueLabel.innerText = "Point Load (P)";
+            loadValueInput.placeholder = "e.g., 100 kN";
+            distXLabel.innerText = "Horizontal Dist. X (from load)";
+            distYLabel.innerText = "Horizontal Dist. Y (from load)";
+        } else if (loadType === 'line') {
+            rectGroup.classList.add('hidden');
+            coordGroup.classList.remove('hidden');
+            distYGroup.classList.add('hidden');
+            loadValueLabel.innerText = "Line Load (q/unit length)";
+            loadValueInput.placeholder = "e.g., 100 kN/m";
+            distXLabel.innerText = "Horizontal Dist. X (from line)";
+        } else if (loadType === 'rect') {
+            rectGroup.classList.remove('hidden');
+            coordGroup.classList.remove('hidden');
+            distYGroup.classList.remove('hidden');
+            loadValueLabel.innerText = "Area Load (q/unit area)";
+            loadValueInput.placeholder = "e.g., 100 kPa";
+            distXLabel.innerText = "Horizontal Dist. X (from center)";
+            distYLabel.innerText = "Horizontal Dist. Y (from center)";
+        }
+        
+        updateFormula(method, loadType);
+    }
+
+    function updateFormula(method, loadType) {
+        let formula = "";
+        if (method === 'boussinesq') {
+            if (loadType === 'point') formula = "$$\\Delta\\sigma_z = \\frac{3 P}{2 \\pi z^2} \\left[ \\frac{1}{1 + (r/z)^2} \\right]^{5/2}$$";
+            else if (loadType === 'line') formula = "$$\\Delta\\sigma_z = \\frac{2 q z^3}{\\pi (x^2 + z^2)^2}$$";
+            else if (loadType === 'rect') formula = "$$\\Delta\\sigma_z = \\frac{q}{4\\pi} \\left[ \\frac{2mn\\sqrt{m^2+n^2+1}}{m^2+n^2+1+m^2n^2}\\frac{m^2+n^2+2}{m^2+n^2+1} + \\arctan\\left(\\frac{2mn\\sqrt{m^2+n^2+1}}{m^2+n^2+1-m^2n^2}\\right) \\right]$$ <br><small>* Formula shown for corner of rectangle, where \\(m=B/z\\), \\(n=L/z\\)</small>";
+        } else if (method === 'westergaard') {
+            if (loadType === 'point') formula = "$$\\Delta\\sigma_z = \\frac{P}{2 \\pi z^2} \\sqrt{\\eta} \\left[ \\frac{1}{\\eta + (r/z)^2} \\right]^{3/2}$$ <br><small>where \\(\\eta = \\frac{1 - 2\\nu}{2 - 2\\nu}\\)</small>";
+            else if (loadType === 'line') formula = "$$\\Delta\\sigma_z = \\frac{q}{\\pi z} \\frac{\\sqrt{\\eta}}{\\eta + (x/z)^2}$$";
+            else if (loadType === 'rect') formula = "$$\\Delta\\sigma_z = \\frac{q}{2\\pi} \\arctan \\left( \\frac{1}{\\sqrt{\\eta(1/m^2 + 1/n^2) + \\eta^2/(m^2 n^2)}} \\right)$$ <br><small>* Formula shown for corner of rectangle, where \\(m=B/z\\), \\(n=L/z\\)</small>";
+        } else if (method === 'approx21') {
+            if (loadType === 'point') formula = "$$\\Delta\\sigma_z = \\frac{P}{z^2} \\quad \\text{for } |x|, |y| \\le z/2$$";
+            else if (loadType === 'line') formula = "$$\\Delta\\sigma_z = \\frac{q}{z} \\quad \\text{for } |x| \\le z/2$$";
+            else if (loadType === 'rect') formula = "$$\\Delta\\sigma_z = \\frac{q \\cdot B \\cdot L}{(B + z)(L + z)} \\quad \\text{for } |x| \\le \\frac{B+z}{2}, |y| \\le \\frac{L+z}{2}$$";
+        }
+        
+        const container = document.getElementById('formula-container');
+        container.innerHTML = formula;
+        
+        if (window.MathJax) {
+            MathJax.typesetPromise([container]).catch(err => console.error('MathJax typeset failed:', err));
+        }
+    }
+
+    function boussinesqRectCorner(q, B, L, z) {
+        const m = B / z, n = L / z, m2 = m * m, n2 = n * n;
+        const V = m2 + n2 + 1, V1 = m2 * n2;
+        const num = 2 * m * n * Math.sqrt(V), den1 = V + V1, den2 = V - V1;
+        
+        const term1 = (num / den1) * ((V + 1) / V);
+        let term2 = Math.atan(num / den2);
+        if (den2 < 0) term2 += Math.PI;
+        else if (den2 === 0) term2 = Math.PI / 2;
+        
+        return q * (1 / (4 * Math.PI)) * (term1 + term2);
+    }
+
+    function westergaardRectCorner(q, B, L, z, nu) {
+        if (B <= 1e-6 || L <= 1e-6) return 0;
+        const eta = (1 - 2 * nu) / (2 - 2 * nu);
+        const term = Math.sqrt(eta * (1/(B/z * B/z) + 1/(L/z * L/z)) + (eta*eta) / ((B/z * B/z) * (L/z * L/z)));
+        return q * (1 / (2 * Math.PI)) * Math.atan(1 / term);
+    }
+
+    function calculateStress() {
+        const method = document.getElementById('method').value;
+        const loadType = document.getElementById('loadType').value;
+        const Q = parseFloat(document.getElementById('loadValue').value) || 0;
+        const Z = parseFloat(document.getElementById('depthZ').value) || 0;
+        const D = parseFloat(document.getElementById('embedD').value) || 0;
+        const nu = parseFloat(document.getElementById('nu').value) || 0.3;
+        const X = parseFloat(document.getElementById('distX').value) || 0;
+        const Y = parseFloat(document.getElementById('distY').value) || 0;
+
+        let hasError = false;
+        const reqIds = ['loadValue', 'depthZ', 'embedD'];
+        if (loadType === 'point') reqIds.push('distX', 'distY');
+        else if (loadType === 'line') reqIds.push('distX');
+        else if (loadType === 'rect') reqIds.push('rectB', 'rectL', 'distX', 'distY');
+        
+        reqIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.value.trim() === '') {
+                el.classList.add('input-error');
+                hasError = true;
+            }
+        });
+        
+        if (hasError) return;
+        
+        document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+        document.getElementById('resultBox').classList.remove('hidden');
+
+        let z = Z - D;
+        if (z <= 0) {
+            document.getElementById('resultValue').innerText = "0.0000";
+            document.getElementById('resultDepth').innerText = `at z = ${z.toFixed(2)} units of length`;
+            return;
+        }
+
+        const eta = (1 - 2 * nu) / (2 - 2 * nu);
+        let pointStress = 0;
+
+        if (loadType === 'point') {
+            let r = Math.sqrt(X*X + Y*Y);
+            if (method === 'boussinesq') pointStress = (3 * Q / (2 * Math.PI * z * z)) * Math.pow(1 / (1 + (r/z)*(r/z)), 2.5);
+            else if (method === 'westergaard') pointStress = (Q / (2 * Math.PI * z * z)) * Math.sqrt(eta) * Math.pow(1 / (eta + (r/z)*(r/z)), 1.5);
+            else if (method === 'approx21') pointStress = (Math.abs(X) <= z/2 && Math.abs(Y) <= z/2) ? (Q / (z * z)) : 0;
+        } else if (loadType === 'line') {
+            if (method === 'boussinesq') pointStress = (2 * Q * Math.pow(z, 3)) / (Math.PI * Math.pow(X*X + z*z, 2));
+            else if (method === 'westergaard') pointStress = (Q / (Math.PI * z)) * (Math.sqrt(eta) / (eta + (X/z)*(X/z)));
+            else if (method === 'approx21') pointStress = (Math.abs(X) <= z/2) ? (Q / z) : 0;
+        } else if (loadType === 'rect') {
+            const B = parseFloat(document.getElementById('rectB').value) || 0;
+            const L = parseFloat(document.getElementById('rectL').value) || 0;
+            if (B > 0 && L > 0) {
+                if (method === 'approx21') {
+                    if (Math.abs(X) <= (B+z)/2 && Math.abs(Y) <= (L+z)/2) {
+                        pointStress = (Q * B * L) / ((B + z) * (L + z));
+                    } else {
+                        pointStress = 0;
+                    }
+                } else {
+                    const dx1 = B/2 + X, dx2 = B/2 - X;
+                    const dy1 = L/2 + Y, dy2 = L/2 - Y;
+                    const rects = [
+                        {w: Math.abs(dx1), l: Math.abs(dy1), sign: Math.sign(dx1)*Math.sign(dy1)},
+                        {w: Math.abs(dx2), l: Math.abs(dy1), sign: Math.sign(dx2)*Math.sign(dy1)},
+                        {w: Math.abs(dx1), l: Math.abs(dy2), sign: Math.sign(dx1)*Math.sign(dy2)},
+                        {w: Math.abs(dx2), l: Math.abs(dy2), sign: Math.sign(dx2)*Math.sign(dy2)}
+                    ];
+                    for (let r of rects) {
+                        if (r.w > 1e-6 && r.l > 1e-6 && r.sign !== 0) {
+                            let ds = (method === 'boussinesq') ? boussinesqRectCorner(Q, r.w, r.l, z) : westergaardRectCorner(Q, r.w, r.l, z, nu);
+                            pointStress += r.sign * ds;
+                        }
+                    }
+                }
+            }
+        }
+        
+        document.getElementById('resultValue').innerText = pointStress.toFixed(4);
+        document.getElementById('resultDepth').innerText = `at z = ${z.toFixed(2)} units of length`;
+    }
+
+    updateToggles();
+    updateUI();
+
+    document.addEventListener('input', function(e) {
+        if (e.target.classList && e.target.classList.contains('input-error')) {
+            e.target.classList.remove('input-error');
+        }
+    });
+</script>
+
+</body>
+</html>

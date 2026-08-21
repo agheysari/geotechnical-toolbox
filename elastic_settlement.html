@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elastic Settlement Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Unit Toggle Styles */
+        .unit-toggle-bar { display:flex; justify-content:flex-end; margin-bottom:1rem; }
+        .unit-toggle-btn { width:auto !important; padding:7px 16px; font-size:0.85rem;
+            border-radius:8px; background:#0066cc; color:white; border:none; cursor:pointer;
+            font-weight:600; transition:background 0.2s; }
+        .unit-toggle-btn:hover { background:#004fa3; }
+        .unit-toggle-btn.imperial { background:#7c3aed; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+        }
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+        input, select {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .hidden {
+            display: none !important;
+        }
+        button {
+            width: 100%;
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #eef7ff;
+            border-left: 5px solid #0066cc;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #004080;
+        }
+        .factors-row {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+            color: #444;
+        }
+        .note {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+        .formula-box {
+            text-align: center;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+        .chart-container {
+            margin-top: 2rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .input-error {
+            border: 2px solid #e74c3c !important;
+            background-color: #fdf2f2 !important;
+        }
+    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="legacy-top-bar">
+    <div class="legacy-actions">
+      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+    </div>
+  </div>
+    <h2>Elastic Settlement Calculator</h2>
+
+    <!-- Unit System Toggle -->
+    <div class="unit-toggle-bar">
+        <button type="button" id="unit-toggle-btn" class="unit-toggle-btn" onclick="toggleUnitSystem()">🌐 Switch to Imperial (US)</button>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="method">Calculation Method</label>
+            <select id="method" onchange="updateUI()">
+                <option value="elastic">Theory of Elasticity</option>
+                <option value="schmertmann">Schmertmann (1978)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="pressureQ">Applied Pressure (q) [<span data-unit="pressure">kPa</span>]</label>
+            <input type="number" id="pressureQ" step="any" placeholder="e.g., 150 kPa">
+        </div>
+        <div class="form-group">
+            <label for="modulusE">Soil Elastic Modulus (Es) [<span data-unit="pressure">kPa</span>]</label>
+            <input type="number" id="modulusE" step="any" placeholder="e.g., 30000 kPa">
+        </div>
+        <div class="form-group" id="poisson-group">
+            <label for="poissonNu">Poisson's Ratio (ν)</label>
+            <input type="number" id="poissonNu" step="0.05" min="0" max="0.5" placeholder="e.g., 0.3 (default 0.3)">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="shape">Foundation Shape</label>
+            <select id="shape" onchange="updateUI()">
+                <option value="rectangular">Rectangular / Square</option>
+                <option value="circular">Circular</option>
+            </select>
+        </div>
+        <div class="form-group" id="rigidity-group">
+            <label for="rigidity">Foundation Rigidity & Position</label>
+            <select id="rigidity">
+                <option value="flex-center">Flexible - Center</option>
+                <option value="flex-corner">Flexible - Corner</option>
+                <option value="flex-avg">Flexible - Average</option>
+                <option value="rigid">Rigid</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label id="labelB" for="widthB">Width (B) [<span data-unit="length">m</span>]</label>
+            <input type="number" id="widthB" step="any" placeholder="e.g., 2.0 m">
+        </div>
+        <div class="form-group" id="length-group">
+            <label for="lengthL">Length (L) [<span data-unit="length">m</span>]</label>
+            <input type="number" id="lengthL" step="any" placeholder="e.g., 3.0 m">
+        </div>
+        <div class="form-group">
+            <label for="embedD">Embedment Depth (D<sub>f</sub>) [<span data-unit="length">m</span>]</label>
+            <input type="number" id="embedD" step="any" placeholder="e.g., 1.0 m">
+        </div>
+    </div>
+
+    <div class="form-row hidden" id="schmertmann-group">
+        <div class="form-group">
+            <label for="gamma">Soil Unit Weight (γ) [<span data-unit="unitweight">kN/m³</span>]</label>
+            <input type="number" id="gamma" step="any" placeholder="e.g., 18 kN/m³">
+        </div>
+        <div class="form-group">
+            <label for="timeYears">Time, t (years)</label>
+            <input type="number" id="timeYears" step="any" value="0.1">
+        </div>
+    </div>
+
+    <div style="text-align: left; margin-bottom: 1rem;">
+        <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="checkbox" id="toggleFormula" onchange="updateToggles()"> Show Formulas
+        </label>
+    </div>
+
+    <div class="formula-box" id="formula-container">
+    </div>
+
+    <button onclick="calculateSettlement()">Calculate Elastic Settlement (Se)</button>
+
+    <div class="result-box hidden" id="resultBox">
+        <div>Elastic Settlement (S<sub>e</sub>)</div>
+        <div class="result-value" id="resultValue">0.000</div>
+        <div class="factors-row">
+            <span id="calcIs">I<sub>s</sub> = 0.00</span>
+            <span id="calcIf">I<sub>f</sub> = 0.00</span>
+        </div>
+    </div>
+    <div class="note">
+        * Assuming 'q' and 'E<sub>s</sub>' are entered in the same pressure units (e.g., kPa or psf), the resulting settlement will be in the same length unit as 'B'. 
+        <br><i>Note: The shape factor I<sub>s</sub> utilizes interpolated tables from standard literature (e.g., Harr, 1966; Bowles, 1988).</i>
+    </div>
+
+    <div class="chart-container hidden" id="chartContainer">
+        <canvas id="stressChart"></canvas>
+    </div>
+</div>
+
+<script>
+    let stressChart = null;
+
+    function updateToggles() {
+        document.getElementById('formula-container').classList.toggle('hidden', !document.getElementById('toggleFormula').checked);
+    }
+
+    function updateUI() {
+        const method = document.getElementById('method').value;
+        const shape = document.getElementById('shape').value;
+        const lengthGroup = document.getElementById('length-group');
+        const labelB = document.getElementById('labelB');
+
+        document.getElementById('schmertmann-group').classList.toggle('hidden', method !== 'schmertmann');
+        document.getElementById('poisson-group').classList.toggle('hidden', method === 'schmertmann');
+        document.getElementById('rigidity-group').classList.toggle('hidden', method === 'schmertmann');
+
+        if (shape === 'circular') {
+            lengthGroup.classList.add('hidden');
+            labelB.innerText = "Diameter (D or B)";
+        } else {
+            lengthGroup.classList.remove('hidden');
+            labelB.innerText = "Width (B)";
+        }
+        
+        let formula = "";
+        if (method === 'elastic') {
+            formula = `$$ S_e = q \\cdot B \\cdot \\frac{1 - \\nu^2}{E_s} \\cdot I_s \\cdot I_f $$
+            <small>where <b>q</b> = net applied pressure, <b>B</b> = width or diameter, <b>E<sub>s</sub></b> = elastic modulus,<br>
+            <b>I<sub>s</sub></b> = shape/rigidity factor, <b>I<sub>f</sub></b> = depth/embedment factor.</small>`;
+        } else {
+            formula = `$$ S = C_1 C_2 \\Delta q \\sum \\frac{I_z}{E_s} \\Delta z $$
+            <small>where <b>C<sub>1</sub></b> = Depth factor, <b>C<sub>2</sub></b> = Creep factor, <b>I<sub>z</sub></b> = Strain influence factor.<br>
+            <i>Calculated analytically for a single homogeneous layer.</i></small>`;
+        }
+        document.getElementById('formula-container').innerHTML = formula;
+        if (window.MathJax) MathJax.typesetPromise([document.getElementById('formula-container')]);
+    }
+
+    // Linear Interpolation helper
+    function interpolate(x, x_arr, y_arr) {
+        if (x <= x_arr[0]) return y_arr[0];
+        if (x >= x_arr[x_arr.length - 1]) return y_arr[y_arr.length - 1];
+        for (let i = 0; i < x_arr.length - 1; i++) {
+            if (x >= x_arr[i] && x <= x_arr[i+1]) {
+                const t = (x - x_arr[i]) / (x_arr[i+1] - x_arr[i]);
+                return y_arr[i] + t * (y_arr[i+1] - y_arr[i]);
+            }
+        }
+        return y_arr[y_arr.length - 1];
+    }
+
+    function calculateShapeFactor(shape, rigidity, B, L) {
+        if (shape === 'circular') {
+            switch (rigidity) {
+                case 'flex-center': return 1.00;
+                case 'flex-corner': return 0.64; // Edge for circular
+                case 'flex-avg': return 0.85;
+                case 'rigid': return 0.79;
+            }
+        } else {
+            // Rectangular shape interpolation
+            // Standard tables: L/B values
+            let m = Math.max(B, L) / Math.min(B, L);
+            if (isNaN(m) || !isFinite(m)) m = 1.0;
+            
+            const lb_vals = [1.0, 2.0, 5.0, 10.0, 100.0]; // Extrapolating 100 as strip
+            
+            let is_vals = [];
+            switch (rigidity) {
+                case 'flex-center':
+                    is_vals = [1.12, 1.53, 2.10, 2.53, 4.00];
+                    break;
+                case 'flex-corner':
+                    is_vals = [0.56, 0.76, 1.05, 1.26, 2.00];
+                    break;
+                case 'flex-avg':
+                    is_vals = [0.95, 1.30, 1.83, 2.25, 3.50];
+                    break;
+                case 'rigid':
+                    is_vals = [0.82, 1.12, 1.60, 2.10, 3.40];
+                    break;
+            }
+            
+            return interpolate(m, lb_vals, is_vals);
+        }
+        return 1.0;
+    }
+
+    function calculateDepthFactor(B, Df) {
+        if (Df <= 0 || B <= 0) return 1.0;
+        const db_ratio = Df / B;
+        
+        // Approximate Fox's embedment correction curve (for nu ~ 0.3 to 0.4)
+        const db_vals = [0.0, 0.2, 0.5, 1.0, 2.0, 5.0, 100.0];
+        const if_vals = [1.0, 0.95, 0.88, 0.81, 0.74, 0.70, 0.70];
+        
+        return interpolate(db_ratio, db_vals, if_vals);
+    }
+
+    function boussinesqRectCorner(q, B, L, z) {
+        if (z <= 0) return q / 4;
+        const m = B / z;
+        const n = L / z;
+        const m2 = m * m, n2 = n * n;
+        const V = m2 + n2 + 1;
+        const V1 = m2 * n2;
+        const num = 2 * m * n * Math.sqrt(V);
+        const den1 = V + V1;
+        const den2 = V - V1;
+        
+        const term1 = (num / den1) * ((V + 1) / V);
+        let term2 = Math.atan(num / den2);
+        if (den2 < 0) term2 += Math.PI;
+        else if (den2 === 0) term2 = Math.PI / 2;
+        
+        return q * (1 / (4 * Math.PI)) * (term1 + term2);
+    }
+
+    function boussinesqCircularCenter(q, B, z) {
+        if (z <= 0) return q;
+        const R = B / 2;
+        return q * (1 - 1 / Math.pow(1 + Math.pow(R / z, 2), 1.5));
+    }
+
+    function calculateSettlement() {
+        const q = parseFloat(document.getElementById('pressureQ').value) || 0;
+        const Es = parseFloat(document.getElementById('modulusE').value) || 0;
+        let nu = parseFloat(document.getElementById('poissonNu').value);
+        if (isNaN(nu)) nu = 0.3; // Default to 0.3 if empty
+        const method = document.getElementById('method').value;
+        const shape = document.getElementById('shape').value;
+        const rigidity = document.getElementById('rigidity').value;
+        const B = parseFloat(document.getElementById('widthB').value) || 0;
+        const L = parseFloat(document.getElementById('lengthL').value) || 0;
+        const Df = parseFloat(document.getElementById('embedD').value) || 0;
+        const gamma = parseFloat(document.getElementById('gamma').value) || 0;
+        const t_schm = parseFloat(document.getElementById('timeYears').value) || 0.1;
+
+        document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+
+        const reqIds = ['pressureQ', 'modulusE', 'widthB', 'embedD'];
+        if (shape !== 'circular') reqIds.push('lengthL');
+        if (method === 'schmertmann') reqIds.push('gamma', 'timeYears');
+        reqIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.value.trim() === '') {
+                el.classList.add('input-error');
+            }
+        });
+
+        document.getElementById('resultBox').classList.remove('hidden');
+        document.getElementById('chartContainer').classList.add('hidden');
+
+        if (Es === 0 || B === 0) {
+            document.getElementById('resultValue').innerText = "---";
+            document.getElementById('calcIs').innerHTML = `I<sub>s</sub> = ---`;
+            document.getElementById('calcIf').innerHTML = `I<sub>f</sub> = ---`;
+            return;
+        }
+
+        let effL = L;
+        if (shape === 'rectangular' && (effL <= 0 || isNaN(effL))) {
+            effL = B;
+        }
+
+        if (method === 'elastic') {
+            const Is = calculateShapeFactor(shape, rigidity, B, effL);
+            const If = calculateDepthFactor(B, Df);
+            const settlement = q * B * ((1 - Math.pow(nu, 2)) / Es) * Is * If;
+
+            document.getElementById('resultValue').innerText = settlement.toFixed(5) + " (units of B)";
+            document.getElementById('calcIs').innerHTML = `I<sub>s</sub> = ${Is.toFixed(3)}`;
+            document.getElementById('calcIf').innerHTML = `I<sub>f</sub> = ${If.toFixed(3)}`;
+            plotStressChart(q, B, effL, shape);
+        } else {
+            let LB = Math.max(1, effL / B);
+            let LBr = Math.min(LB, 10);
+            let f_lb = (LBr - 1) / 9.0;
+            let z_p = B/2 + f_lb * (B - B/2);
+            let z_end = 2*B + f_lb * (4*B - 2*B);
+            let Iz_0 = 0.1 + f_lb * (0.2 - 0.1);
+            
+            let sig_v0_df = gamma * Df;
+            let sig_vp = gamma * (Df + z_p);
+            
+            let dQ = q; 
+            let C1 = dQ > 0 ? 1 - 0.5 * (sig_v0_df / dQ) : 1;
+            if (C1 < 0.5) C1 = 0.5;
+            let C2 = 1 + 0.2 * Math.log10(t_schm / 0.1);
+            
+            let Iz_p = 0.5;
+            if (sig_vp > 0 && dQ > 0) Iz_p = 0.5 + 0.1 * Math.sqrt(dQ / sig_vp);
+            
+            let areaIz = 0.5 * (z_p * Iz_0 + z_end * Iz_p);
+            let settlement = C1 * C2 * dQ * (areaIz / Es);
+
+            document.getElementById('resultValue').innerText = settlement.toFixed(5) + " (units of B)";
+            document.getElementById('calcIs').innerHTML = `C<sub>1</sub> = ${C1.toFixed(3)}`;
+            document.getElementById('calcIf').innerHTML = `C<sub>2</sub> = ${C2.toFixed(3)}`;
+            plotSchmertmannChart(Iz_0, Iz_p, z_p, z_end);
+        }
+    }
+
+    function plotStressChart(q, B, L, shape) {
+        document.getElementById('chartContainer').classList.remove('hidden');
+        const ctx = document.getElementById('stressChart').getContext('2d');
+        
+        if (stressChart) {
+            stressChart.destroy();
+        }
+
+        let dataPoints = [];
+        let maxZ = 5 * B;
+        let dz = maxZ / 50;
+
+        for (let i = 0; i <= 50; i++) {
+            let z = i * dz;
+            let stress = 0;
+            if (z === 0) {
+                stress = q;
+            } else if (shape === 'circular') {
+                stress = boussinesqCircularCenter(q, B, z);
+            } else {
+                stress = 4 * boussinesqRectCorner(q, B/2, L/2, z);
+            }
+            dataPoints.push({ x: stress, y: z });
+        }
+
+        stressChart = new Chart(ctx, {
+            type: 'scatter',
+            data: { datasets: [{ label: 'Vertical Stress Increase under Center (Δσz)', data: dataPoints, borderColor: '#2ca02c', backgroundColor: 'rgba(44, 160, 44, 0.2)', borderWidth: 2, showLine: true, pointRadius: 0, fill: true }] },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { type: 'linear', position: 'top', title: { display: true, text: 'Stress Increase, Δσz' }, min: 0 },
+                    y: { type: 'linear', title: { display: true, text: 'Depth below footing, z' }, reverse: true, min: 0, max: maxZ }
+                },
+                plugins: { tooltip: { callbacks: { label: function(context) { return "Δσz: " + context.parsed.x.toFixed(2) + " at z: " + context.parsed.y.toFixed(2); } } } }
+            }
+        });
+    }
+
+    function plotSchmertmannChart(Iz_0, Iz_p, z_p, z_end) {
+        document.getElementById('chartContainer').classList.remove('hidden');
+        const ctx = document.getElementById('stressChart').getContext('2d');
+        if (stressChart) stressChart.destroy();
+
+        let dataPoints = [
+            { x: Iz_0, y: 0 },
+            { x: Iz_p, y: z_p },
+            { x: 0, y: z_end }
+        ];
+
+        stressChart = new Chart(ctx, {
+            type: 'scatter',
+            data: { datasets: [{ label: 'Strain Influence Factor (Iz)', data: dataPoints, borderColor: '#e74c3c', backgroundColor: 'rgba(231, 76, 60, 0.2)', borderWidth: 2, showLine: true, pointRadius: 4, fill: true }] },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { type: 'linear', position: 'top', title: { display: true, text: 'Strain Influence Factor, Iz' }, min: 0 },
+                    y: { type: 'linear', title: { display: true, text: 'Depth below footing, z' }, reverse: true, min: 0, max: z_end * 1.1 }
+                },
+                plugins: { tooltip: { callbacks: { label: function(context) { return "Iz: " + context.parsed.x.toFixed(3) + " at z: " + context.parsed.y.toFixed(2); } } } }
+            }
+        });
+    }
+
+    // Initialize
+    updateToggles();
+    updateUI();
+
+    document.addEventListener('input', function(e) {
+        if (e.target.classList && e.target.classList.contains('input-error')) {
+            e.target.classList.remove('input-error');
+        }
+    });
+
+    // ── Unit System ────────────────────────────────────────────────────
+    const TO_IMP_ES = { length:3.28084, settlement:0.0393701, pressure:0.020885, unitweight:6.36587 };
+    const TO_MET_ES = Object.fromEntries(Object.entries(TO_IMP_ES).map(([k,v])=>[k,1/v]));
+    const LABELS_ES = { length:{metric:'m',imperial:'ft'}, settlement:{metric:'mm',imperial:'in'},
+        pressure:{metric:'kPa',imperial:'ksf'}, unitweight:{metric:'kN/m³',imperial:'pcf'} };
+    let unitSystem = 'metric';
+
+    function toDispES(v, qty) { return unitSystem === 'metric' ? v : (TO_IMP_ES[qty] ? v * TO_IMP_ES[qty] : v); }
+    function toMetES(v, qty)  { return unitSystem === 'metric' ? v : (TO_MET_ES[qty] ? v * TO_MET_ES[qty] : v); }
+    function unitLabelES(qty) { const e = LABELS_ES[qty]; return e ? (unitSystem==='metric'?e.metric:e.imperial) : ''; }
+
+    function toggleUnitSystem() {
+        const oldSys = unitSystem;
+        unitSystem = unitSystem === 'metric' ? 'imperial' : 'metric';
+        localStorage.setItem('geotools-units', unitSystem);
+        const btn = document.getElementById('unit-toggle-btn');
+        btn.textContent = unitSystem === 'metric' ? '🌐 Switch to Imperial (US)' : '📏 Switch to Metric (SI)';
+        btn.classList.toggle('imperial', unitSystem === 'imperial');
+        document.querySelectorAll('[data-unit]').forEach(el => {
+            el.textContent = unitLabelES(el.dataset.unit);
+        });
+        onUnitSwitch(oldSys);
+    }
+
+    // Fields and their quantity types (for conversion on toggle)
+    const UNIT_FIELDS_ES = [
+        { id:'pressureQ', qty:'pressure' },
+        { id:'modulusE',  qty:'pressure' },
+        { id:'widthB',    qty:'length'   },
+        { id:'lengthL',   qty:'length'   },
+        { id:'embedD',    qty:'length'   },
+        { id:'gamma',     qty:'unitweight' },
+    ];
+
+    function onUnitSwitch(oldSys) {
+        // Convert existing input values when toggling
+        const factor = unitSystem === 'imperial' ? TO_IMP_ES : TO_MET_ES;
+        UNIT_FIELDS_ES.forEach(({ id, qty }) => {
+            const el = document.getElementById(id);
+            if (!el || el.value.trim() === '') return;
+            const val = parseFloat(el.value);
+            if (!isNaN(val) && factor[qty]) {
+                el.value = parseFloat((val * factor[qty]).toFixed(5));
+            }
+        });
+    }
+
+    // Restore unit preference on load
+    (function() {
+        const stored = localStorage.getItem('geotools-units');
+        if (stored === 'imperial') {
+            unitSystem = 'metric'; // will be toggled
+            // Just set UI without converting (page is blank on load)
+            unitSystem = 'imperial';
+            const btn = document.getElementById('unit-toggle-btn');
+            if (btn) { btn.textContent = '📏 Switch to Metric (SI)'; btn.classList.add('imperial'); }
+            document.querySelectorAll('[data-unit]').forEach(el => {
+                el.textContent = unitLabelES(el.dataset.unit);
+            });
+        }
+    })();
+    // ── End Unit System ────────────────────────────────────────────────
+</script>
+
+</body>
+</html>

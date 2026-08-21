@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terzaghi 1D Consolidation Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+        }
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+        input, select {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .hidden {
+            display: none !important;
+        }
+        button {
+            width: 100%;
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #eef7ff;
+            border-left: 5px solid #0066cc;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #004080;
+        }
+        .factors-row {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+            color: #444;
+        }
+        .note {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+        .formula-box {
+            text-align: center;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+        .chart-container {
+            margin-top: 2rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .input-error {
+            border: 2px solid #e74c3c !important;
+            background-color: #fdf2f2 !important;
+        }
+    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="legacy-top-bar">
+    <div class="legacy-actions">
+      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+    </div>
+  </div>
+    <h2>Terzaghi 1D Consolidation Analysis</h2>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label for="coefCv">Coefficient of Consolidation (c<sub>v</sub>)</label>
+            <input type="number" id="coefCv" step="any" placeholder="e.g., 1.5 (m²/year)">
+        </div>
+        <div class="form-group">
+            <label for="drainageHdr">Drainage Path Length (H<sub>dr</sub>)</label>
+            <input type="number" id="drainageHdr" step="any" placeholder="e.g., 2.0 m">
+        </div>
+        <div class="form-group">
+            <label for="drainageType">Drainage Condition</label>
+            <select id="drainageType">
+                <option value="double">Double Drainage</option>
+                <option value="single">Single Drainage</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="calcMode">Calculation Target</label>
+            <select id="calcMode" onchange="updateUI()">
+                <option value="time_from_u">Calculate Time from Target Consolidation (U%)</option>
+                <option value="u_from_time">Calculate Consolidation (U%) from Elapsed Time (t)</option>
+            </select>
+        </div>
+        <div class="form-group" id="u-group">
+            <label for="targetU">Target Degree of Consolidation (U %)</label>
+            <input type="number" id="targetU" step="any" min="0" max="99.99" placeholder="e.g., 90">
+        </div>
+        <div class="form-group hidden" id="time-group">
+            <label for="elapsedTime">Elapsed Time (t)</label>
+            <input type="number" id="elapsedTime" step="any" placeholder="e.g., 1.0 year">
+        </div>
+    </div>
+
+    <div style="text-align: left; margin-bottom: 1rem;">
+        <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="checkbox" id="toggleFormula" onchange="updateToggles()"> Show Formulas
+        </label>
+    </div>
+
+    <div class="formula-box" id="formula-container">
+        <!-- LaTeX formula injected here -->
+    </div>
+
+    <button onclick="calculateAndPlot()">Calculate & Plot Isochrones</button>
+
+    <div class="result-box hidden" id="resultBox">
+        <div id="resultLabel">Result</div>
+        <div class="result-value" id="resultValue">---</div>
+        <div class="factors-row">
+            <span id="calcTv">T<sub>v</sub> = ---</span>
+        </div>
+    </div>
+
+    <div class="chart-container hidden" id="chartContainer">
+        <canvas id="isochroneChart"></canvas>
+    </div>
+    
+    <div class="note">
+        * A double-drained layer ranges from z/H<sub>dr</sub> = 0 to 2. A single-drained layer ranges from 0 to 1.
+    </div>
+</div>
+
+<script>
+    let chartInstance = null;
+
+    function updateToggles() {
+        document.getElementById('formula-container').classList.toggle('hidden', !document.getElementById('toggleFormula').checked);
+    }
+
+    function updateUI() {
+        const mode = document.getElementById('calcMode').value;
+        const uGroup = document.getElementById('u-group');
+        const timeGroup = document.getElementById('time-group');
+
+        if (mode === 'time_from_u') {
+            uGroup.classList.remove('hidden');
+            timeGroup.classList.add('hidden');
+        } else {
+            uGroup.classList.add('hidden');
+            timeGroup.classList.remove('hidden');
+        }
+        
+        updateFormula();
+    }
+
+    function updateFormula() {
+        const formula = `$$ T_v = \\frac{c_v \\cdot t}{H_{dr}^2} $$
+        <small>where <b>T<sub>v</sub></b> = Time Factor, <b>c<sub>v</sub></b> = Coefficient of Consolidation, <b>t</b> = Time, <b>H<sub>dr</sub></b> = Max Drainage Path</small>`;
+        
+        const container = document.getElementById('formula-container');
+        container.innerHTML = formula;
+        
+        if (window.MathJax) {
+            MathJax.typesetPromise([container]).catch(function (err) {
+                console.error('MathJax typeset failed:', err);
+            });
+        }
+    }
+
+    // Core Equations
+    function tvFromU(uPercent) {
+        if (uPercent <= 60.0) {
+            return (Math.PI / 4.0) * Math.pow(uPercent / 100.0, 2);
+        } else {
+            return 1.781 - 0.933 * Math.log10(100.0 - uPercent);
+        }
+    }
+
+    function uFromTv(tv) {
+        if (tv <= 0.2827) {
+            return 100.0 * Math.sqrt((4.0 * tv) / Math.PI);
+        } else {
+            return 100.0 - Math.pow(10.0, (1.781 - tv) / 0.933);
+        }
+    }
+
+    function calculateIsochronePoints(tv, drainage, zSteps = 100, mTerms = 100) {
+        let points = [];
+        const zMax = drainage === 'single' ? 1.0 : 2.0;
+        const dz = zMax / zSteps;
+        for (let i = 0; i <= zSteps; i++) {
+            let zNorm = i * dz;
+            let uRatio = 0;
+            for (let m = 0; m < mTerms; m++) {
+                let M = (Math.PI / 2.0) * (2 * m + 1);
+                let term = (2.0 / M) * Math.sin(M * zNorm) * Math.exp(-Math.pow(M, 2) * tv);
+                uRatio += term;
+            }
+            points.push({ x: uRatio, y: zNorm });
+        }
+        return points;
+    }
+
+    function calculateAndPlot() {
+        const cv = parseFloat(document.getElementById('coefCv').value);
+        const hdr = parseFloat(document.getElementById('drainageHdr').value);
+        const mode = document.getElementById('calcMode').value;
+        
+        const resultBox = document.getElementById('resultBox');
+        const chartBox = document.getElementById('chartContainer');
+        
+        resultBox.classList.remove('hidden');
+
+        document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+        
+        const reqIds = ['coefCv', 'drainageHdr'];
+        if (mode === 'time_from_u') reqIds.push('targetU');
+        else reqIds.push('elapsedTime');
+        reqIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.value.trim() === '') {
+                el.classList.add('input-error');
+            }
+        });
+
+        if (isNaN(cv) || isNaN(hdr) || cv <= 0 || hdr <= 0) {
+            document.getElementById('resultValue').innerText = "---";
+            document.getElementById('resultLabel').innerText = "Invalid inputs for cv or Hdr";
+            document.getElementById('calcTv').innerText = `Tv = ---`;
+            chartBox.classList.add('hidden');
+            return;
+        }
+
+        let tv = 0;
+        let resultText = "";
+        let labelText = "";
+
+        if (mode === 'time_from_u') {
+            const u = parseFloat(document.getElementById('targetU').value);
+            if (isNaN(u) || u < 0 || u >= 100) {
+                document.getElementById('resultValue').innerText = "---";
+                document.getElementById('resultLabel').innerText = "Invalid U% (Must be 0-99.99)";
+                return;
+            }
+            tv = tvFromU(u);
+            const t = (tv * Math.pow(hdr, 2)) / cv;
+            labelText = `Required Time (t) to reach ${u}%`;
+            resultText = t.toFixed(4) + " (time units)";
+        } else {
+            const t = parseFloat(document.getElementById('elapsedTime').value);
+            if (isNaN(t) || t < 0) {
+                document.getElementById('resultValue').innerText = "---";
+                document.getElementById('resultLabel').innerText = "Invalid Elapsed Time";
+                return;
+            }
+            tv = (cv * t) / Math.pow(hdr, 2);
+            const u = uFromTv(tv);
+            labelText = `Degree of Consolidation (U%) at t=${t}`;
+            resultText = u.toFixed(2) + " %";
+        }
+
+        document.getElementById('resultLabel').innerText = labelText;
+        document.getElementById('resultValue').innerText = resultText;
+        document.getElementById('calcTv').innerText = `Tv = ${tv.toFixed(4)}`;
+        
+        plotIsochrones(tv);
+    }
+
+    function plotIsochrones(targetTv) {
+        document.getElementById('chartContainer').classList.remove('hidden');
+        const ctx = document.getElementById('isochroneChart').getContext('2d');
+        const drainage = document.getElementById('drainageType').value;
+        const zMax = drainage === 'single' ? 1.0 : 2.0;
+
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
+
+        const standardTvs = [0.05, 0.1, 0.2, 0.4, 0.8];
+        const lineColors = ['#ff7f0e', '#2ca02c', '#9467bd', '#8c564b', '#e377c2'];
+        const lineDashes = [[4, 4], [8, 4], [12, 4], [16, 4], [20, 4]];
+        let datasets = [];
+
+        // Add standard reference lines
+        standardTvs.forEach((tv, idx) => {
+            datasets.push({
+                label: `Tv = ${tv}`,
+                data: calculateIsochronePoints(tv, drainage),
+                borderColor: lineColors[idx],
+                borderWidth: 2,
+                borderDash: lineDashes[idx],
+                showLine: true,
+                pointRadius: 0,
+                fill: false
+            });
+        });
+
+        // Add the calculated target Tv line prominently
+        datasets.push({
+            label: `Target Tv = ${targetTv.toFixed(3)}`,
+            data: calculateIsochronePoints(targetTv, drainage),
+            borderColor: '#0066cc',
+            borderWidth: 3,
+            showLine: true,
+            pointRadius: 0,
+            fill: false
+        });
+
+        chartInstance = new Chart(ctx, {
+            type: 'scatter',
+            data: { datasets: datasets },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { title: { display: true, text: 'Excess Pore Pressure Ratio (u_e / u_0)' }, min: 0, max: 1.05 },
+                    y: { title: { display: true, text: 'Normalized Depth (z / H_dr)' }, reverse: true, min: 0, max: zMax }
+                },
+                plugins: { legend: { position: 'right' } }
+            }
+        });
+    }
+
+    // Initialize
+    updateToggles();
+    updateUI();
+
+    document.addEventListener('input', function(e) {
+        if (e.target.classList && e.target.classList.contains('input-error')) {
+            e.target.classList.remove('input-error');
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proctor Compaction Curve Analyzer</title>
+    
+    <!-- Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Regression.js for 2nd-degree polynomial curve fitting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/regression/2.0.1/regression.min.js"></script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: #f0f2f5;
+            color: #333;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 { margin-top: 0; }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 1rem;
+        }
+        .button-group {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        label { font-weight: bold; margin-bottom: 0.5rem; }
+        textarea {
+            width: 100%;
+            height: 140px;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: monospace;
+            box-sizing: border-box;
+        }
+        input[type="number"] {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+        }
+        button:hover { background: #005bb5; }
+        .btn-clear { background: #cc0000; }
+        .btn-clear:hover { background: #a30000; }
+        .results {
+            background: #e6f2ff;
+            padding: 1rem;
+            border-radius: 4px;
+            border-left: 4px solid #0066cc;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.2rem;
+        }
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+            .button-group { flex-direction: column; gap: 1rem; }
+        }
+    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="legacy-top-bar">
+      <div></div>
+      <div class="legacy-actions">
+        <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+      </div>
+    </div>
+    <h1>📈 Proctor Compaction Curve Analyzer</h1>
+    <p>Input your laboratory moisture-density data points below. The tool will fit a quadratic curve to determine the <strong>Optimum Moisture Content (OMC)</strong> and <strong>Maximum Dry Density (MDD)</strong>, and plot the Zero Air Voids (ZAV) line.</p>
+
+    <div class="grid">
+        <div>
+            <div class="input-group">
+                <label for="gsInput">Specific Gravity (G<sub>s</sub>)</label>
+                <input type="number" step="0.01" id="gsInput" value="2.65" />
+            </div>
+            <div class="input-group">
+                <label for="gwInput">Water Density (same units as dry density, e.g. 9.81 kN/m³, 62.4 pcf, 1.0 g/cm³)</label>
+                <input type="number" step="0.01" id="gwInput" value="9.81" />
+            </div>
+        </div>
+        <div>
+            <div class="input-group">
+                <label for="dataInput">Moisture (%) & Dry Density Data (comma or space separated, one data point per line)</label>
+                <textarea id="dataInput" placeholder="e.g.&#10;8.5, 18.2&#10;10.2, 19.5&#10;12.1, 20.3&#10;14.0, 19.8&#10;15.5, 18.9"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="button-group">
+        <button onclick="analyzeProctor()">Analyze & Plot</button>
+        <button onclick="clearData()" class="btn-clear">Clear Data</button>
+    </div>
+
+    <div class="results" id="resultsBox" style="display: none;">
+        <div><strong>OMC:</strong> <span id="omcResult">-</span> %</div>
+        <div><strong>MDD:</strong> <span id="mddResult">-</span></div>
+    </div>
+
+    <div class="chart-wrapper">
+        <canvas id="compactionChart"></canvas>
+    </div>
+</div>
+
+<script>
+
+  let currentUnitSystem = 'metric';
+  function setUnitSystem(system) {
+    currentUnitSystem = system;
+    const btnMetric = document.getElementById('btn_metric');
+    const btnImperial = document.getElementById('btn_imperial');
+    if (btnMetric && btnImperial) {
+      btnMetric.className = system === 'metric' ? 'unit-switcher-btn active' : 'unit-switcher-btn';
+      btnImperial.className = system === 'imperial' ? 'unit-switcher-btn active' : 'unit-switcher-btn';
+    }
+    if (typeof calculate === 'function') {
+      calculate();
+    } else if (typeof runCalc === 'function') {
+      runCalc();
+    }
+  }
+
+    let chartInstance = null;
+
+    function clearData() {
+        document.getElementById('dataInput').value = '';
+        document.getElementById('resultsBox').style.display = 'none';
+        if (chartInstance) {
+            chartInstance.destroy();
+            chartInstance = null;
+        }
+    }
+
+    function analyzeProctor() {
+        const text = document.getElementById('dataInput').value.trim();
+        const gs = parseFloat(document.getElementById('gsInput').value) || 2.65;
+        const gw = parseFloat(document.getElementById('gwInput').value) || 9.81;
+
+        // Parse input points
+        const rawPoints = [];
+        const lines = text.split('\n');
+        lines.forEach(line => {
+            const parts = line.trim().split(/[\s,]+/);
+            if (parts.length >= 2) {
+                const x = parseFloat(parts[0]);
+                const y = parseFloat(parts[1]);
+                if (!isNaN(x) && !isNaN(y)) rawPoints.push([x, y]);
+            }
+        });
+
+        if (rawPoints.length < 3) {
+            alert("Please provide at least 3 valid data points to fit a curve.");
+            return;
+        }
+        
+        rawPoints.sort((a, b) => a[0] - b[0]);
+        
+        // Fit 2nd degree polynomial (ax^2 + bx + c)
+        const result = regression.polynomial(rawPoints, { order: 2, precision: 10 });
+        const a = result.equation[0];
+        const b = result.equation[1];
+        const c = result.equation[2];
+
+        if (a >= 0) {
+            alert("Warning: The fitted curve is not a downward-opening parabola. Check your data.");
+        }
+
+        // Calculate OMC and MDD mathematically (vertex of parabola)
+        const omc = -b / (2 * a);
+        const mdd = a * Math.pow(omc, 2) + b * omc + c;
+
+        // Display Results
+        document.getElementById('resultsBox').style.display = 'flex';
+        document.getElementById('omcResult').innerText = omc.toFixed(2);
+        document.getElementById('mddResult').innerText = mdd.toFixed(2);
+
+        // Prepare datasets for chart
+        const scatterData = rawPoints.map(p => ({ x: p[0], y: p[1] }));
+        const mddData = [{ x: omc, y: mdd }];
+        
+        const minX = rawPoints[0][0] - 2;
+        const maxX = rawPoints[rawPoints.length - 1][0] + 3;
+        
+        const curveData = [];
+        const zavData = [];
+        
+        for (let x = minX; x <= maxX; x += 0.2) {
+            // Fitted Curve y
+            curveData.push({ x: x, y: a * x * x + b * x + c });
+            
+            // ZAV Curve y = (Gs * Gw) / (1 + w * Gs)
+            const wDecimal = x / 100.0;
+            const yZav = (gs * gw) / (1 + wDecimal * gs);
+            zavData.push({ x: x, y: yZav });
+        }
+
+        // Plot Chart
+        const ctx = document.getElementById('compactionChart').getContext('2d');
+        if (chartInstance) chartInstance.destroy();
+
+        chartInstance = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    {
+                        label: 'Data Points',
+                        data: scatterData,
+                        backgroundColor: '#333',
+                        borderColor: '#333',
+                        pointRadius: 6
+                    },
+                    {
+                        label: 'OMC / MDD Peak',
+                        data: mddData,
+                        backgroundColor: '#ff3300',
+                        borderColor: '#ff3300',
+                        pointStyle: 'triangle',
+                        pointRadius: 10,
+                        pointHoverRadius: 12
+                    },
+                    {
+                        label: 'Fitted Compaction Curve',
+                        data: curveData,
+                        type: 'line',
+                        borderColor: '#0066cc',
+                        borderWidth: 2,
+                        fill: false,
+                        pointRadius: 0,
+                        tension: 0.4
+                    },
+                    {
+                        label: `Zero Air Voids (Gs=${gs})`,
+                        data: zavData,
+                        type: 'line',
+                        borderColor: '#009933',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Moisture Content (%)', font: { weight: 'bold' } }
+                    },
+                    y: {
+                        title: { display: true, text: 'Dry Density', font: { weight: 'bold' } }
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

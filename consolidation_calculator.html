@@ -1,0 +1,707 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1D Consolidation Settlement Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+        }
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+        input, select {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .hidden {
+            display: none !important;
+        }
+        button {
+            width: 100%;
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #0052a3;
+        }
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #eef7ff;
+            border-left: 5px solid #0066cc;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #004080;
+        }
+        .factors-row {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+            color: #444;
+        }
+        .note {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
+        .formula-box {
+            text-align: center;
+            margin: 1.5rem 0;
+            overflow-x: auto;
+        }
+        .chart-container {
+            margin-top: 2rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .input-error {
+            border: 2px solid #e74c3c !important;
+            background-color: #fdf2f2 !important;
+        }
+        /* Unit Toggle Styles */
+        .unit-toggle-bar { display:flex; justify-content:flex-end; margin-bottom:1rem; }
+        .unit-toggle-btn { width:auto !important; padding:7px 16px; font-size:0.85rem;
+            border-radius:8px; background:#0066cc; color:white; border:none; cursor:pointer;
+            font-weight:600; transition:background 0.2s; }
+        .unit-toggle-btn:hover { background:#004fa3; }
+        .unit-toggle-btn.imperial { background:#7c3aed; }    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="legacy-top-bar">
+    <div class="legacy-actions">
+      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+    </div>
+  </div>
+    <h2>1D Consolidation Settlement Calculator</h2>
+    
+    <div class="form-row" style="background: #e8f4fd; padding: 10px; border-radius: 6px; justify-content: flex-start; gap: 1.5rem; margin-bottom: 1.5rem;">
+        <label style="margin: 0; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="checkbox" id="toggleOC" onchange="updateUI()"> Overconsolidated Soil (OC)
+        </label>
+        <label style="margin: 0; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="checkbox" id="toggleTime" onchange="updateUI()"> Calculate Time of Settlement
+        </label>
+        <label style="margin: 0; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="checkbox" id="toggleSecondary" onchange="updateUI()"> Secondary Compression
+        </label>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="thicknessH">Layer Thickness (H<sub>0</sub>)</label>
+            <input type="number" id="thicknessH" step="any" placeholder="e.g., 5.0 m">
+        </div>
+        <div class="form-group">
+            <label for="voidRatioE0">Initial Void Ratio (e<sub>0</sub>)</label>
+            <input type="number" id="voidRatioE0" step="any" placeholder="e.g., 0.85">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="stress0">Initial Effective Stress (σ'<sub>0</sub>)</label>
+            <input type="number" id="stress0" step="any" placeholder="e.g., 100 kPa">
+        </div>
+        <div class="form-group">
+            <label for="stressDelta">Stress Increase (Δσ')</label>
+            <input type="number" id="stressDelta" step="any" placeholder="e.g., 50 kPa">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="indexCc">Compression Index (C<sub>c</sub>)</label>
+            <input type="number" id="indexCc" step="any" placeholder="e.g., 0.32">
+        </div>
+        <div class="form-group" id="cr-group">
+            <label for="indexCr">Recompression Index (C<sub>r</sub> or C<sub>s</sub>)</label>
+            <input type="number" id="indexCr" step="any" placeholder="e.g., 0.05">
+        </div>
+        <div class="form-group" id="sp-group">
+            <label for="stressP">Preconsolidation Pressure (σ'<sub>p</sub>)</label>
+            <input type="number" id="stressP" step="any" placeholder="e.g., 120 kPa">
+        </div>
+    </div>
+
+    <div class="form-row hidden" id="time-calc-group">
+        <div class="form-group">
+            <label for="coefCv">Coefficient of Consolidation (c<sub>v</sub>) [<span data-unit="cv">m²/yr</span>]</label>
+            <input type="number" id="coefCv" step="any" placeholder="e.g., 1.5 (m²/year)">
+        </div>
+        <div class="form-group">
+            <label for="drainageType">Drainage Condition</label>
+            <select id="drainageType">
+                <option value="double">Double Drainage</option>
+                <option value="single">Single Drainage</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="targetU">Target Consolidation (U %)</label>
+            <input type="number" id="targetU" step="any" min="0" max="99.99" value="90">
+        </div>
+    </div>
+
+    <div class="form-row hidden" id="secondary-calc-group">
+        <div class="form-group">
+            <label for="indexCa">Secondary Compression Index (C<sub>α</sub>)</label>
+            <input type="number" id="indexCa" step="any" placeholder="e.g., 0.02">
+        </div>
+        <div class="form-group">
+            <label for="timeP">Time to End of Primary (t<sub>p</sub>)</label>
+            <input type="number" id="timeP" step="any" placeholder="e.g., 5.0 (years)">
+        </div>
+        <div class="form-group">
+            <label for="timeLife">Design Life / Total Time (t)</label>
+            <input type="number" id="timeLife" step="any" placeholder="e.g., 50.0 (years)">
+        </div>
+    </div>
+
+    <div style="text-align: left; margin-bottom: 1rem;">
+        <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+            <input type="checkbox" id="toggleFormula" onchange="updateToggles()"> Show Formulas
+        </label>
+    </div>
+
+    <div class="formula-box" id="formula-container">
+        <!-- LaTeX formula injected here -->
+    </div>
+
+    <button onclick="calculateSettlement()">Calculate Primary Consolidation (Sc)</button>
+
+    <div class="result-box hidden" id="resultBox">
+        <div>Primary Consolidation Settlement (S<sub>c</sub>)</div>
+        <div class="result-value" id="resultValue">---</div>
+        <div class="factors-row">
+            <span id="calcCase">State: ---</span>
+        </div>
+        <div id="timeResultGroup" class="hidden" style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 15px;">
+            <div style="font-size: 1.1rem;">Time to reach <span id="resTargetU">90</span>% Settlement (t)</div>
+            <div class="result-value" id="resultTime">---</div>
+            <div class="factors-row">
+                <span id="calcTv">T<sub>v</sub> = ---</span>
+                <span id="calcSu">Settlement at t = ---</span>
+            </div>
+        </div>
+        <div id="secondaryResultGroup" class="hidden" style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 15px;">
+            <div style="font-size: 1.1rem;">Secondary Settlement (S<sub>s</sub>)</div>
+            <div class="result-value" id="resultSecondary">---</div>
+            <div style="font-size: 1.1rem; margin-top: 10px;">Total Settlement (S<sub>c</sub> + S<sub>s</sub>)</div>
+            <div class="result-value" id="resultTotal" style="color: #d35400;">---</div>
+        </div>
+    </div>
+    <div class="note">
+        * The resulting settlement S<sub>c</sub> will be output in the same length unit used for the Layer Thickness (H<sub>0</sub>). All stresses must be in consistent units.
+    </div>
+
+    <div class="chart-container hidden" id="chartContainer">
+        <canvas id="settlementChart"></canvas>
+    </div>
+
+    <div class="chart-container hidden" id="isochroneChartContainer">
+        <canvas id="isochroneChart"></canvas>
+    </div>
+</div>
+
+<script>
+    let settlementChart = null;
+    let isochroneChart = null;
+
+    function updateToggles() {
+        document.getElementById('formula-container').classList.toggle('hidden', !document.getElementById('toggleFormula').checked);
+    }
+
+    function updateUI() {
+        const isOC = document.getElementById('toggleOC').checked;
+        const calcTime = document.getElementById('toggleTime').checked;
+        const calcSecondary = document.getElementById('toggleSecondary').checked;
+        const crGroup = document.getElementById('cr-group');
+        const spGroup = document.getElementById('sp-group');
+        const timeCalcGroup = document.getElementById('time-calc-group');
+        const secondaryCalcGroup = document.getElementById('secondary-calc-group');
+
+        if (!isOC) {
+            crGroup.classList.add('hidden');
+            spGroup.classList.add('hidden');
+        } else {
+            crGroup.classList.remove('hidden');
+            spGroup.classList.remove('hidden');
+        }
+
+        if (!calcTime) {
+            timeCalcGroup.classList.add('hidden');
+        } else {
+            timeCalcGroup.classList.remove('hidden');
+        }
+
+        if (!calcSecondary) {
+            secondaryCalcGroup.classList.add('hidden');
+        } else {
+            secondaryCalcGroup.classList.remove('hidden');
+        }
+        
+        updateFormula(isOC ? 'oc' : 'nc');
+    }
+
+    function updateFormula(state) {
+        let formula = "";
+        if (state === 'nc') {
+            formula = "<b>Primary Consolidation Settlement:</b><br> $$ S_c = \\frac{C_c H_0}{1 + e_0} \\log_{10}\\left(\\frac{\\sigma'_0 + \\Delta\\sigma'}{\\sigma'_0}\\right) $$ <br><small>Normally Consolidated (σ'<sub>0</sub> ≈ σ'<sub>p</sub>)</small>";
+        } else {
+            formula = "<b>Primary Consolidation Settlement:</b><br> If \\(\\sigma'_0 + \\Delta\\sigma' \\le \\sigma'_p\\): <br> $$ S_c = \\frac{C_r H_0}{1 + e_0} \\log_{10}\\left(\\frac{\\sigma'_0 + \\Delta\\sigma'}{\\sigma'_0}\\right) $$ <br> If \\(\\sigma'_0 + \\Delta\\sigma' > \\sigma'_p\\): <br> $$ S_c = \\frac{C_r H_0}{1 + e_0} \\log_{10}\\left(\\frac{\\sigma'_p}{\\sigma'_0}\\right) + \\frac{C_c H_0}{1 + e_0} \\log_{10}\\left(\\frac{\\sigma'_0 + \\Delta\\sigma'}{\\sigma'_p}\\right) $$";
+        }
+        
+        const calcSecondary = document.getElementById('toggleSecondary').checked;
+        if (calcSecondary) {
+            formula += "<br><br><b>Secondary Compression:</b><br> $$ S_s = \\frac{C_\\alpha H_0}{1 + e_0} \\log_{10}\\left(\\frac{t}{t_p}\\right) $$";
+        }
+        
+        if (document.getElementById('toggleTime').checked) {
+            formula += "<br><br><b>Time of Settlement:</b><br> $$ T_v = \\frac{c_v \\cdot t}{H_{dr}^2} $$";
+        }
+
+        const container = document.getElementById('formula-container');
+        container.innerHTML = formula;
+        
+        if (window.MathJax) {
+            MathJax.typesetPromise([container]).catch(function (err) {
+                console.error('MathJax typeset failed:', err);
+            });
+        }
+    }
+
+    function tvFromU(uPercent) {
+        if (uPercent <= 60.0) {
+            return (Math.PI / 4.0) * Math.pow(uPercent / 100.0, 2);
+        } else {
+            return 1.781 - 0.933 * Math.log10(100.0 - uPercent);
+        }
+    }
+
+    function calculateIsochronePoints(tv, drainage, zSteps = 100, mTerms = 100) {
+        let points = [];
+        const zMax = drainage === 'single' ? 1.0 : 2.0;
+        const dz = zMax / zSteps;
+        for (let i = 0; i <= zSteps; i++) {
+            let zNorm = i * dz;
+            let uRatio = 0;
+            for (let m = 0; m < mTerms; m++) {
+                let M = (Math.PI / 2.0) * (2 * m + 1);
+                let term = (2.0 / M) * Math.sin(M * zNorm) * Math.exp(-Math.pow(M, 2) * tv);
+                uRatio += term;
+            }
+            points.push({ x: uRatio, y: zNorm });
+        }
+        return points;
+    }
+
+    function plotIsochrones(targetTv, drainage) {
+        document.getElementById('isochroneChartContainer').classList.remove('hidden');
+        const ctx = document.getElementById('isochroneChart').getContext('2d');
+        const zMax = drainage === 'single' ? 1.0 : 2.0;
+
+        if (isochroneChart) {
+            isochroneChart.destroy();
+        }
+
+        const standardTvs = [0.05, 0.1, 0.2, 0.4, 0.8];
+        const lineColors = ['#ff7f0e', '#2ca02c', '#9467bd', '#8c564b', '#e377c2'];
+        const lineDashes = [[4, 4], [8, 4], [12, 4], [16, 4], [20, 4]];
+        let datasets = [];
+
+        standardTvs.forEach((tv, idx) => {
+            datasets.push({ label: `Tv = ${tv}`, data: calculateIsochronePoints(tv, drainage), borderColor: lineColors[idx], borderWidth: 2, borderDash: lineDashes[idx], showLine: true, pointRadius: 0, fill: false });
+        });
+
+        datasets.push({ label: `Target Tv = ${targetTv.toFixed(3)}`, data: calculateIsochronePoints(targetTv, drainage), borderColor: '#0066cc', borderWidth: 3, showLine: true, pointRadius: 0, fill: false });
+
+        isochroneChart = new Chart(ctx, {
+            type: 'scatter',
+            data: { datasets: datasets },
+            options: {
+                responsive: true,
+                scales: { x: { title: { display: true, text: 'Excess Pore Pressure Ratio (u_e / u_0)' }, min: 0, max: 1.05 }, y: { title: { display: true, text: 'Normalized Depth (z / H_dr)' }, reverse: true, min: 0, max: zMax } },
+                plugins: { legend: { position: 'right' }, title: { display: true, text: 'Consolidation Isochrones' } }
+            }
+        });
+    }
+
+    function calculateSettlement() {
+        document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+
+        const isOC = document.getElementById('toggleOC').checked;
+        const calcTime = document.getElementById('toggleTime').checked;
+        const calcSecondary = document.getElementById('toggleSecondary').checked;
+        const state = isOC ? 'oc' : 'nc';
+        const H = parseFloat(document.getElementById('thicknessH').value);
+        const e0 = parseFloat(document.getElementById('voidRatioE0').value);
+        const sig0 = parseFloat(document.getElementById('stress0').value);
+        const dSig = parseFloat(document.getElementById('stressDelta').value);
+        const Cc = parseFloat(document.getElementById('indexCc').value);
+        
+        const reqIds = ['thicknessH', 'voidRatioE0', 'stress0', 'stressDelta', 'indexCc'];
+        if (state === 'oc') reqIds.push('indexCr', 'stressP');
+        if (calcTime) reqIds.push('coefCv', 'targetU');
+        if (calcSecondary) reqIds.push('indexCa', 'timeP', 'timeLife');
+        reqIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.value.trim() === '') {
+                el.classList.add('input-error');
+            }
+        });
+
+        document.getElementById('resultBox').classList.remove('hidden');
+        document.getElementById('chartContainer').classList.add('hidden');
+        document.getElementById('isochroneChartContainer').classList.add('hidden');
+        const timeResultGroup = document.getElementById('timeResultGroup');
+        timeResultGroup.classList.add('hidden');
+        const secondaryResultGroup = document.getElementById('secondaryResultGroup');
+        secondaryResultGroup.classList.add('hidden');
+        
+        // Validate common inputs
+        if (isNaN(H) || isNaN(e0) || isNaN(sig0) || isNaN(dSig) || isNaN(Cc) || sig0 <= 0 || H <= 0) {
+            document.getElementById('resultValue').innerText = "---";
+            document.getElementById('calcCase').innerText = "State: Invalid Input (Check stresses & thickness)";
+            return;
+        }
+        
+        let Cr = 0;
+        let sigP = sig0;
+
+        if (state === 'oc') {
+            Cr = parseFloat(document.getElementById('indexCr').value);
+            sigP = parseFloat(document.getElementById('stressP').value);
+            
+            if (isNaN(Cr) || isNaN(sigP)) {
+                document.getElementById('resultValue').innerText = "---";
+                document.getElementById('calcCase').innerText = "State: Missing Cr or σ'p";
+                return;
+            }
+            if (sigP < sig0) sigP = sig0; 
+        }
+
+        function getSettlement(deltaStress) {
+            if (deltaStress <= 0) return 0;
+            const finalStress = sig0 + deltaStress;
+            let val = 0;
+            if (state === 'nc') {
+                val = (Cc * H / (1 + e0)) * Math.log10(finalStress / sig0);
+            } else {
+                if (finalStress <= sigP) {
+                    val = (Cr * H / (1 + e0)) * Math.log10(finalStress / sig0);
+                } else {
+                    let term1 = 0;
+                    if (sigP > sig0) {
+                        term1 = (Cr * H / (1 + e0)) * Math.log10(sigP / sig0);
+                    }
+                    const term2 = (Cc * H / (1 + e0)) * Math.log10(finalStress / sigP);
+                    val = term1 + term2;
+                }
+            }
+            return val < 0 ? 0 : val;
+        }
+        
+        let Sc = getSettlement(dSig);
+        let caseMsg = "";
+        const finalStress = sig0 + dSig;
+
+        if (state === 'nc') {
+            caseMsg = "State: Normally Consolidated (NC)";
+        } else {
+            if (finalStress <= sigP) caseMsg = "State: Overconsolidated (Final Stress ≤ σ'p)";
+            else caseMsg = "State: Overconsolidated (Final Stress > σ'p)";
+        }
+
+        document.getElementById('resultValue').innerText = Sc.toFixed(5) + " (units of H)";
+        document.getElementById('calcCase').innerText = caseMsg;
+
+        if (calcTime) {
+            timeResultGroup.classList.remove('hidden');
+            const cv = parseFloat(document.getElementById('coefCv').value);
+            const drainage = document.getElementById('drainageType').value;
+            const hdr = drainage === 'double' ? H / 2.0 : H;
+            const u = parseFloat(document.getElementById('targetU').value);
+
+            if (isNaN(cv) || isNaN(u) || cv <= 0 || u < 0 || u >= 100) {
+                document.getElementById('resTargetU').innerText = isNaN(u) ? "---" : u;
+                document.getElementById('resultTime').innerText = "---";
+                document.getElementById('calcTv').innerText = "Invalid Time Inputs";
+                document.getElementById('calcSu').innerText = "";
+            } else {
+                const tv = tvFromU(u);
+                const t = (tv * Math.pow(hdr, 2)) / cv;
+                const settlementAtT = Sc * (u / 100.0);
+
+                document.getElementById('resTargetU').innerText = u;
+                document.getElementById('resultTime').innerText = t.toFixed(4) + " (time units)";
+                document.getElementById('calcTv').innerText = `Tv = ${tv.toFixed(4)} (Hdr = ${hdr.toFixed(2)} m)`;
+                document.getElementById('calcSu').innerText = `Settlement at ${u}% = ${settlementAtT.toFixed(5)}`;
+                
+                plotIsochrones(tv, drainage);
+            }
+        }
+
+        if (calcSecondary) {
+            secondaryResultGroup.classList.remove('hidden');
+            const Ca = parseFloat(document.getElementById('indexCa').value);
+            const tp = parseFloat(document.getElementById('timeP').value);
+            const tLife = parseFloat(document.getElementById('timeLife').value);
+
+            if (isNaN(Ca) || isNaN(tp) || isNaN(tLife) || tp <= 0 || tLife <= 0) {
+                document.getElementById('resultSecondary').innerText = "Invalid Time Inputs";
+                document.getElementById('resultTotal').innerText = "---";
+            } else {
+                let Ss = 0;
+                if (tLife > tp) {
+                    Ss = (Ca * H / (1 + e0)) * Math.log10(tLife / tp);
+                }
+                const Stotal = Sc + Ss;
+                document.getElementById('resultSecondary').innerText = Ss.toFixed(5) + " (units of H)";
+                document.getElementById('resultTotal').innerText = Stotal.toFixed(5) + " (units of H)";
+            }
+        }
+
+        let maxPlot = Math.max(dSig * 1.5, (sigP - sig0) * 1.5, 100);
+        if (maxPlot <= 0) maxPlot = 100;
+        plotSettlementChart(dSig, Sc, maxPlot, getSettlement);
+    }
+
+    function plotSettlementChart(dSigTarget, targetSettlement, maxPlot, calcFunc) {
+        document.getElementById('chartContainer').classList.remove('hidden');
+        const ctx = document.getElementById('settlementChart').getContext('2d');
+        
+        if (settlementChart) settlementChart.destroy();
+
+        let dataPoints = [];
+        for (let i = 0; i <= 100; i++) {
+            let x = (i / 100) * maxPlot;
+            dataPoints.push({ x: x, y: calcFunc(x) });
+        }
+
+        settlementChart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    {
+                        label: 'Settlement Curve',
+                        data: dataPoints,
+                        borderColor: '#0066cc',
+                        backgroundColor: 'rgba(0, 102, 204, 0.1)',
+                        borderWidth: 2,
+                        showLine: true,
+                        pointRadius: 0,
+                        fill: true
+                    },
+                    {
+                        label: 'Target Settlement',
+                        data: [{ x: dSigTarget, y: targetSettlement }],
+                        backgroundColor: '#e74c3c',
+                        borderColor: '#c0392b',
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { type: 'linear', position: 'top', title: { display: true, text: "Applied Stress Increase, Δσ'" }, min: 0 },
+                    y: { type: 'linear', title: { display: true, text: "Primary Settlement (Sc)" }, reverse: true, min: 0 }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) { return "Δσ': " + context.parsed.x.toFixed(2) + ", Sc: " + context.parsed.y.toFixed(4); }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Safe initial load format
+    document.addEventListener('DOMContentLoaded', function() {
+        updateToggles();
+        updateUI();
+        
+        document.addEventListener('input', function(e) {
+            if (e.target.classList && e.target.classList.contains('input-error')) {
+                e.target.classList.remove('input-error');
+            }
+        });
+        
+        // Setup MathJax reload in case of late inject
+        setTimeout(() => {
+            const isOC = document.getElementById('toggleOC').checked;
+            updateFormula(isOC ? 'oc' : 'nc');
+        }, 500);
+    });
+
+    // ── Unit System ────────────────────────────────────────────────────
+    const TO_IMP_CC = {length:3.28084,settlement:0.0393701,pressure:0.020885,unitweight:6.36587,force:0.224809,forcelength:0.0685218,cv:10.7639,pymodulus:0.003684};
+    const TO_MET_CC = Object.fromEntries(Object.entries(TO_IMP_CC).map(([k,v])=>[k,1/v]));
+    const LABELS_CC = {length:{metric:'m',imperial:'ft'},settlement:{metric:'mm',imperial:'in'},pressure:{metric:'kPa',imperial:'ksf'},unitweight:{metric:'kN/m³',imperial:'pcf'},force:{metric:'kN',imperial:'kip'},forcelength:{metric:'kN/m',imperial:'kip/ft'},cv:{metric:'m²/yr',imperial:'ft²/yr'},pymodulus:{metric:'kN/m³',imperial:'pci'}};
+    let unitSystem = 'metric';
+    function toDisp(v,qty){return unitSystem==='metric'?v:(TO_IMP_CC[qty]?v*TO_IMP_CC[qty]:v);}
+    function toMet(v,qty) {return unitSystem==='metric'?v:(TO_MET_CC[qty]?v*TO_MET_CC[qty]:v);}
+    function unitLbl(qty) {const e=LABELS_CC[qty];return e?(unitSystem==='metric'?e.metric:e.imperial):'';}
+    function toggleUnitSystem(){
+        const old=unitSystem;
+        unitSystem=unitSystem==='metric'?'imperial':'metric';
+        localStorage.setItem('geotools-units',unitSystem);
+        const btn=document.getElementById('unit-toggle-btn');
+        btn.textContent=unitSystem==='metric'?'🌐 Switch to Imperial (US)':'📏 Switch to Metric (SI)';
+        btn.classList.toggle('imperial',unitSystem==='imperial');
+        document.querySelectorAll('[data-unit]').forEach(el=>{el.textContent=unitLbl(el.dataset.unit);});
+        onUnitSwitch(old);
+    }
+    const UNIT_FIELDS=[
+        {id:'thicknessH',qty:'length'},{id:'stress0',qty:'pressure'},
+        {id:'stressDelta',qty:'pressure'},{id:'stressP',qty:'pressure'},{id:'coefCv',qty:'cv'},
+    ];
+    function onUnitSwitch(old){
+        const f=unitSystem==='imperial'?TO_IMP_CC;
+        UNIT_FIELDS.forEach(({id,qty})=>{const el=document.getElementById(id);if(!el||el.value.trim()==='')return;const v=parseFloat(el.value);if(!isNaN(v)&&f[qty])el.value=parseFloat((v*f[qty]).toFixed(5));});
+    }
+    (function(){const s=localStorage.getItem('geotools-units');if(s==='imperial'){unitSystem='imperial';const btn=document.getElementById('unit-toggle-btn');if(btn){btn.textContent='📏 Switch to Metric (SI)';btn.classList.add('imperial');}document.querySelectorAll('[data-unit]').forEach(el=>{el.textContent=unitLbl(el.dataset.unit);});}})();
+    // ── End Unit System ────────────────────────────────────────────────
+</script>
+
+</body>
+</html>

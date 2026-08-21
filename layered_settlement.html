@@ -1,0 +1,566 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Layer Settlement Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 { text-align: center; margin-top: 0; color: #2c3e50; }
+        .panel {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #e1e4e8;
+            margin-bottom: 1.5rem;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label { font-weight: 600; margin-bottom: 0.3rem; font-size: 0.9rem; color: #4a5568; }
+        .form-group input, .form-group select {
+            padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem;
+        }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+        th, td { border: 1px solid #e2e8f0; padding: 0.5rem; text-align: center; }
+        th { background-color: #f1f5f9; font-weight: 600; font-size: 0.85rem; }
+        td input, td select { width: 100%; box-sizing: border-box; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+        .btn { 
+            background: #0066cc; color: #fff; border: none; padding: 10px 18px; 
+            border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: #0052a3; }
+        .btn-danger { background: #cc0000; padding: 6px 12px; }
+        .btn-danger:hover { background: #a30000; }
+        .btn-success { background: #28a745; font-size: 16px; width: 100%; padding: 12px; margin-top: 1rem; }
+        .btn-success:hover { background: #218838; }
+        
+        #resultsArea {
+            margin-top: 2rem; padding: 1.5rem; background: #e8f4fd;
+            border-radius: 8px; border: 1px solid #b8daff; display: none;
+        }
+        .summary-box {
+            text-align: center; margin-bottom: 1.5rem; background: #fff;
+            padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .summary-value { font-size: 2rem; font-weight: bold; color: #0066cc; }
+        .result-table th { background-color: #cfe2ff; }
+        #plotArea { width: 100%; height: 500px; margin-top: 2rem; background: #fff; border-radius: 4px; }
+        .hidden { display: none !important; }
+        .input-error { border: 2px solid #e74c3c !important; background-color: #fdf2f2 !important; }
+        /* Unit Toggle Styles */
+        .unit-toggle-bar { display:flex; justify-content:flex-end; margin-bottom:1rem; }
+        .unit-toggle-btn { width:auto !important; padding:7px 16px; font-size:0.85rem;
+            border-radius:8px; background:#0066cc; color:white; border:none; cursor:pointer;
+            font-weight:600; transition:background 0.2s; }
+        .unit-toggle-btn:hover { background:#004fa3; }
+        .unit-toggle-btn.imperial { background:#7c3aed; }    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="legacy-top-bar">
+    <div class="legacy-actions">
+      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+    </div>
+  </div>
+    <h2>Multi-Layer Static Settlement Analysis</h2>
+    <p>Calculates the 1D elastic and primary consolidation settlement for layered soil profiles using Boussinesq stress distribution under the center of a foundation.</p>
+
+    <div class="panel">
+        <div class="section-title">Foundation & Groundwater Parameters</div>
+        <div class="grid-container">
+            <div class="form-group">
+                <label>Net Applied Pressure, q (kPa)</label>
+                <input type="number" id="loadQ" placeholder="e.g., 150" step="any">
+            </div>
+            <div class="form-group">
+                <label>Foundation Shape</label>
+                <select id="shape" onchange="updateShape()">
+                    <option value="rectangular">Rectangular / Square</option>
+                    <option value="circular">Circular</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label id="labelB">Width / Diameter, B (m)</label>
+                <input type="number" id="dimB" placeholder="e.g., 2.0" step="any">
+            </div>
+            <div class="form-group" id="groupL">
+                <label>Length, L (m)</label>
+                <input type="number" id="dimL" placeholder="e.g., 3.0" step="any">
+            </div>
+            <div class="form-group">
+                <label>Embedment Depth, D<sub>f</sub> (m)</label>
+                <input type="number" id="embedD" value="0" step="any">
+            </div>
+            <div class="form-group">
+                <label>Groundwater Depth, D<sub>w</sub> (m)</label>
+                <input type="number" id="gwDepth" placeholder="e.g., 2.0" step="any">
+            </div>
+            <div class="form-group">
+                <label>Unit Wt. Water, &gamma;<sub>w</sub> (kN/m³)</label>
+                <input type="number" id="gwGamma" value="9.81" step="any">
+            </div>
+            <div class="form-group">
+                <label>Time, t (yrs) <small>for Schmertmann</small></label>
+                <input type="number" id="timeYears" value="0.1" step="any">
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title">Soil Stratigraphy</div>
+    <div style="overflow-x: auto;">
+        <table id="layersTable">
+            <thead>
+                <tr>
+                    <th title="Depth to top of layer">Top (m)</th>
+                    <th title="Depth to bottom of layer">Bot (m)</th>
+                    <th>Type</th>
+                    <th title="Total Unit Weight">&gamma; (kN/m³)</th>
+                    <th title="1D Constrained Modulus or Elastic Modulus">E<sub>s</sub> (kPa)</th>
+                    <th title="Initial Void Ratio">e<sub>0</sub></th>
+                    <th title="Compression Index">C<sub>c</sub></th>
+                    <th title="Recompression Index">C<sub>r</sub></th>
+                    <th title="Overconsolidation Ratio">OCR</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="layersBody"></tbody>
+        </table>
+    </div>
+    <button class="btn" onclick="addLayerRow()">+ Add Soil Layer</button>
+
+    <button class="btn btn-success" onclick="calculateSettlement()">Calculate Total Settlement</button>
+
+    <div id="resultsArea">
+        <div class="summary-box">
+            <div style="font-size: 1.1rem; color: #555; font-weight: 600;">Total Estimated Settlement</div>
+            <div class="summary-value" id="resTotal">0.00 mm</div>
+        </div>
+        
+        <h4>Layer Breakdown</h4>
+        <table class="result-table">
+            <thead>
+                <tr>
+                    <th>Layer Depth (m)</th>
+                    <th>Material</th>
+                    <th>Avg &sigma;'<sub>v0</sub> (kPa)</th>
+                    <th>Avg &Delta;&sigma;<sub>z</sub> (kPa)</th>
+                    <th>Settlement (mm)</th>
+                </tr>
+            </thead>
+            <tbody id="resTableBody"></tbody>
+        </table>
+        
+        <div id="plotArea"></div>
+    </div>
+</div>
+
+<script>
+    function updateShape() {
+        const shape = document.getElementById("shape").value;
+        if (shape === "circular") {
+            document.getElementById("groupL").classList.add("hidden");
+            document.getElementById("labelB").innerText = "Diameter, D (m)";
+        } else {
+            document.getElementById("groupL").classList.remove("hidden");
+            document.getElementById("labelB").innerText = "Width, B (m)";
+        }
+    }
+
+    function addLayerRow(top='', bot='', type='sand') {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td><input type="number" class="l-top" value="${top}" step="any"></td>
+            <td><input type="number" class="l-bot" value="${bot}" step="any"></td>
+            <td>
+                <select class="l-type" onchange="toggleLayerInputs(this)">
+                    <option value="sand" ${type==='sand'?'selected':''}>Sand (Elastic)</option>
+                    <option value="schmertmann" ${type==='schmertmann'?'selected':''}>Sand (Schmertmann)</option>
+                    <option value="clay" ${type==='clay'?'selected':''}>Clay (Consol.)</option>
+                </select>
+            </td>
+            <td><input type="number" class="l-gamma" step="any"></td>
+            <td><input type="number" class="l-es" step="any" placeholder="e.g. 30000"></td>
+            <td><input type="number" class="l-e0" step="any" disabled></td>
+            <td><input type="number" class="l-cc" step="any" disabled></td>
+            <td><input type="number" class="l-cr" step="any" disabled></td>
+            <td><input type="number" class="l-ocr" step="any" value="1.0" disabled></td>
+            <td><button class="btn btn-danger" onclick="this.closest('tr').remove()">X</button></td>
+        `;
+        document.getElementById("layersBody").appendChild(tr);
+        toggleLayerInputs(tr.querySelector(".l-type"));
+    }
+
+    function toggleLayerInputs(selectEl) {
+        const tr = selectEl.closest("tr");
+        const isSand = selectEl.value === 'sand' || selectEl.value === 'schmertmann';
+        tr.querySelector(".l-es").disabled = !isSand;
+        tr.querySelector(".l-e0").disabled = isSand;
+        tr.querySelector(".l-cc").disabled = isSand;
+        tr.querySelector(".l-cr").disabled = isSand;
+        tr.querySelector(".l-ocr").disabled = isSand;
+        if (isSand) {
+            tr.querySelector(".l-e0").value = '';
+            tr.querySelector(".l-cc").value = '';
+            tr.querySelector(".l-cr").value = '';
+        } else {
+            tr.querySelector(".l-es").value = '';
+        }
+    }
+
+    // Boussinesq Math
+    function boussinesqRectCorner(q, B, L, z) {
+        if (z <= 0) return q / 4;
+        const m = B / z, n = L / z, m2 = m * m, n2 = n * n;
+        const V = m2 + n2 + 1, V1 = m2 * n2;
+        const num = 2 * m * n * Math.sqrt(V), den1 = V + V1, den2 = V - V1;
+        const term1 = (num / den1) * ((V + 1) / V);
+        let term2 = Math.atan(num / den2);
+        if (den2 < 0) term2 += Math.PI;
+        else if (den2 === 0) term2 = Math.PI / 2;
+        return q * (1 / (4 * Math.PI)) * (term1 + term2);
+    }
+
+    function getStressInc(q, shape, B, L, z) {
+        if (z <= 0) return q;
+        if (shape === 'circular') {
+            const R = B / 2;
+            return q * (1 - 1 / Math.pow(1 + Math.pow(R / z, 2), 1.5));
+        } else {
+            return 4 * boussinesqRectCorner(q, B/2, L/2, z);
+        }
+    }
+
+    function getEffectiveStress(layers, depth, gwDepth, gwGamma) {
+        let stress = 0.0, currentZ = 0.0;
+        for (let layer of layers) {
+            if (currentZ >= depth) break;
+            let layerBot = Math.min(layer.bot, depth);
+            if (layerBot <= currentZ) continue;
+            
+            let dz = layerBot - currentZ;
+            if (currentZ >= gwDepth) {
+                stress += (layer.gamma - gwGamma) * dz;
+            } else if (layerBot > gwDepth) {
+                let dzDry = gwDepth - currentZ;
+                let dzWet = layerBot - gwDepth;
+                stress += layer.gamma * dzDry + (layer.gamma - gwGamma) * dzWet;
+            } else {
+                stress += layer.gamma * dz;
+            }
+            currentZ = layerBot;
+        }
+        return stress;
+    }
+
+    function calculateSettlement() {
+        document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+        let hasError = false;
+
+        const q = parseFloat(document.getElementById("loadQ").value);
+        const shape = document.getElementById("shape").value;
+        const B = parseFloat(document.getElementById("dimB").value);
+        const L = shape === 'rectangular' ? parseFloat(document.getElementById("dimL").value) : B;
+        const Df = parseFloat(document.getElementById("embedD").value) || 0;
+        const gwDepth = parseFloat(document.getElementById("gwDepth").value) || 999;
+        const gwGamma = parseFloat(document.getElementById("gwGamma").value) || 9.81;
+
+        ['loadQ', 'dimB'].forEach(id => {
+            const el = document.getElementById(id);
+            if (isNaN(parseFloat(el.value))) { el.classList.add('input-error'); hasError = true; }
+        });
+        if (shape === 'rectangular' && isNaN(L)) {
+            document.getElementById("dimL").classList.add('input-error'); hasError = true;
+        }
+
+        let layers = [];
+        document.querySelectorAll("#layersBody tr").forEach(tr => {
+            let top = parseFloat(tr.querySelector(".l-top").value);
+            let bot = parseFloat(tr.querySelector(".l-bot").value);
+            let gamma = parseFloat(tr.querySelector(".l-gamma").value);
+            let type = tr.querySelector(".l-type").value;
+            
+            if (isNaN(top) || isNaN(bot) || isNaN(gamma)) {
+                tr.querySelectorAll("input").forEach(i => i.classList.add('input-error'));
+                hasError = true; return;
+            }
+
+            let lData = { top, bot, type, gamma };
+            if (type === 'sand' || type === 'schmertmann') {
+                lData.Es = parseFloat(tr.querySelector(".l-es").value);
+                if (isNaN(lData.Es)) { tr.querySelector(".l-es").classList.add('input-error'); hasError = true; }
+            } else {
+                lData.e0 = parseFloat(tr.querySelector(".l-e0").value);
+                lData.Cc = parseFloat(tr.querySelector(".l-cc").value);
+                lData.Cr = parseFloat(tr.querySelector(".l-cr").value);
+                lData.ocr = parseFloat(tr.querySelector(".l-ocr").value) || 1.0;
+                if (isNaN(lData.e0) || isNaN(lData.Cc) || isNaN(lData.Cr)) {
+                    tr.querySelectorAll("input:not(:disabled)").forEach(i => i.classList.add('input-error'));
+                    hasError = true;
+                }
+            }
+            layers.push(lData);
+        });
+
+        if (hasError || layers.length === 0) return;
+        layers.sort((a, b) => a.top - b.top);
+
+        const t_schm = parseFloat(document.getElementById("timeYears").value) || 0.1;
+        let L_eff = shape === 'rectangular' ? L : B;
+        let LB = Math.max(1, L_eff / B);
+        let LBr = Math.min(LB, 10);
+        let f_lb = (LBr - 1) / 9.0;
+        let z_p = B/2 + f_lb * (B - B/2);
+        let z_end = 2*B + f_lb * (4*B - 2*B);
+        let Iz_0 = 0.1 + f_lb * (0.2 - 0.1);
+
+        let sig_v0_df = getEffectiveStress(layers, Df, gwDepth, gwGamma);
+        let sig_vp = getEffectiveStress(layers, Df + z_p, gwDepth, gwGamma);
+        
+        let dQ = q; 
+        let C1 = dQ > 0 ? 1 - 0.5 * (sig_v0_df / dQ) : 1;
+        if (C1 < 0.5) C1 = 0.5;
+        let C2 = 1 + 0.2 * Math.log10(t_schm / 0.1);
+        
+        let Iz_p = 0.5;
+        if (sig_vp > 0 && dQ > 0) Iz_p = 0.5 + 0.1 * Math.sqrt(dQ / sig_vp);
+
+        let totalSettlement = 0;
+        let breakdownHtml = "";
+        let plotDepths = [0];
+        let plotSettlements = [0];
+        let cumS = 0;
+
+        layers.forEach((layer, idx) => {
+            let layerSettlementMeters = 0;
+            let sumSig0 = 0, sumDsig = 0, count = 0;
+            
+            // Subdivide layer for accurate log integration and stress decay
+            let thickness = layer.bot - layer.top;
+            let numSubs = Math.max(1, Math.ceil(thickness / 0.5));
+            let dz = thickness / numSubs;
+
+            for (let i = 0; i < numSubs; i++) {
+                let zSub = layer.top + (i + 0.5) * dz;
+                let sig0 = getEffectiveStress(layers, zSub, gwDepth, gwGamma);
+                let zBouss = zSub - Df;
+                
+                let dsig = 0;
+                if (zBouss > 0) dsig = getStressInc(q, shape, B, L, zBouss);
+                else if (zSub >= Df) dsig = q; // Directly at bearing level
+
+                sumSig0 += sig0; sumDsig += dsig; count++;
+
+                if (zSub >= Df && dsig > 0) {
+                    let S_sub = 0;
+                    if (layer.type === 'sand') {
+                        S_sub = dz * (dsig / layer.Es);
+                    } else if (layer.type === 'schmertmann') {
+                        let Iz = 0;
+                        if (zBouss >= 0 && zBouss <= z_end) {
+                            if (zBouss <= z_p) Iz = Iz_0 + (zBouss / z_p) * (Iz_p - Iz_0);
+                            else Iz = Iz_p - ((zBouss - z_p) / (z_end - z_p)) * Iz_p;
+                        }
+                        S_sub = C1 * C2 * dQ * (Iz / layer.Es) * dz;
+                    } else {
+                        let sigP = sig0 * layer.ocr;
+                        let sigF = sig0 + dsig;
+                        if (sig0 >= sigP) {
+                            S_sub = (layer.Cc * dz / (1 + layer.e0)) * Math.log10(sigF / sig0);
+                        } else if (sigF <= sigP) {
+                            S_sub = (layer.Cr * dz / (1 + layer.e0)) * Math.log10(sigF / sig0);
+                        } else {
+                            S_sub = (layer.Cr * dz / (1 + layer.e0)) * Math.log10(sigP / sig0) + 
+                                    (layer.Cc * dz / (1 + layer.e0)) * Math.log10(sigF / sigP);
+                        }
+                    }
+                    layerSettlementMeters += S_sub;
+                }
+                cumS += (layerSettlementMeters * 1000 - (plotSettlements[plotSettlements.length-1] || 0)); 
+                // Re-sync cumulative array at bottom of sublayer
+                plotDepths.push(layer.top + (i + 1) * dz);
+                plotSettlements.push(cumS);
+            }
+
+            let layerSettlementMM = layerSettlementMeters * 1000;
+            totalSettlement += layerSettlementMM;
+            
+            let avgSig0 = count > 0 ? sumSig0 / count : 0;
+            let avgDsig = count > 0 ? sumDsig / count : 0;
+
+            breakdownHtml += `
+                <tr>
+                    <td>${layer.top.toFixed(1)} - ${layer.bot.toFixed(1)}</td>
+                    <td>${layer.type.toUpperCase()}</td>
+                    <td>${avgSig0.toFixed(1)}</td>
+                    <td>${avgDsig.toFixed(1)}</td>
+                    <td style="font-weight: bold;">${layerSettlementMM.toFixed(2)}</td>
+                </tr>
+            `;
+        });
+
+        document.getElementById("resTotal").innerText = totalSettlement.toFixed(2) + " mm";
+        document.getElementById("resTableBody").innerHTML = breakdownHtml;
+        document.getElementById("resultsArea").style.display = "block";
+
+        // Plotly Chart
+        const trace = {
+            x: plotSettlements,
+            y: plotDepths,
+            mode: 'lines',
+            line: { color: '#e74c3c', width: 3 },
+            fill: 'tozerox',
+            fillcolor: 'rgba(231, 76, 60, 0.2)'
+        };
+        const layout = {
+            title: 'Cumulative Settlement Profile',
+            xaxis: { title: 'Cumulative Settlement (mm)', side: 'top' },
+            yaxis: { title: 'Depth (m)', autorange: 'reversed' },
+            margin: { t: 60, b: 40, l: 60, r: 40 }
+        };
+        Plotly.newPlot('plotArea', [trace], layout, {responsive: true});
+    }
+
+    // Init
+    addLayerRow(0, 2, 'sand');
+    addLayerRow(2, 6, 'clay');
+
+    // ── Unit System ────────────────────────────────────────────────────
+    const TO_IMP_LS = {length:3.28084,settlement:0.0393701,pressure:0.020885,unitweight:6.36587,force:0.224809,forcelength:0.0685218,cv:10.7639,pymodulus:0.003684};
+    const TO_MET_LS = Object.fromEntries(Object.entries(TO_IMP_LS).map(([k,v])=>[k,1/v]));
+    const LABELS_LS = {length:{metric:'m',imperial:'ft'},settlement:{metric:'mm',imperial:'in'},pressure:{metric:'kPa',imperial:'ksf'},unitweight:{metric:'kN/m³',imperial:'pcf'},force:{metric:'kN',imperial:'kip'},forcelength:{metric:'kN/m',imperial:'kip/ft'},cv:{metric:'m²/yr',imperial:'ft²/yr'},pymodulus:{metric:'kN/m³',imperial:'pci'}};
+    let unitSystem = 'metric';
+    function toDisp(v,qty){return unitSystem==='metric'?v:(TO_IMP_LS[qty]?v*TO_IMP_LS[qty]:v);}
+    function toMet(v,qty) {return unitSystem==='metric'?v:(TO_MET_LS[qty]?v*TO_MET_LS[qty]:v);}
+    function unitLbl(qty) {const e=LABELS_LS[qty];return e?(unitSystem==='metric'?e.metric:e.imperial):'';}
+    function toggleUnitSystem(){
+        const old=unitSystem;
+        unitSystem=unitSystem==='metric'?'imperial':'metric';
+        localStorage.setItem('geotools-units',unitSystem);
+        const btn=document.getElementById('unit-toggle-btn');
+        btn.textContent=unitSystem==='metric'?'🌐 Switch to Imperial (US)':'📏 Switch to Metric (SI)';
+        btn.classList.toggle('imperial',unitSystem==='imperial');
+        document.querySelectorAll('[data-unit]').forEach(el=>{el.textContent=unitLbl(el.dataset.unit);});
+        onUnitSwitch(old);
+    }
+    const UNIT_FIELDS=[
+        {id:'loadQ',qty:'pressure'},{id:'dimB',qty:'length'},{id:'dimL',qty:'length'},
+        {id:'embedD',qty:'length'},{id:'gwDepth',qty:'length'},
+    ];
+    function onUnitSwitch(old){
+        const f=unitSystem==='imperial'?TO_IMP_LS;
+        UNIT_FIELDS.forEach(({id,qty})=>{const el=document.getElementById(id);if(!el||el.value.trim()==='')return;const v=parseFloat(el.value);if(!isNaN(v)&&f[qty])el.value=parseFloat((v*f[qty]).toFixed(5));});
+    }
+    (function(){const s=localStorage.getItem('geotools-units');if(s==='imperial'){unitSystem='imperial';const btn=document.getElementById('unit-toggle-btn');if(btn){btn.textContent='📏 Switch to Metric (SI)';btn.classList.add('imperial');}document.querySelectorAll('[data-unit]').forEach(el=>{el.textContent=unitLbl(el.dataset.unit);});}})();
+    // ── End Unit System ────────────────────────────────────────────────
+</script>
+
+</body>
+</html>

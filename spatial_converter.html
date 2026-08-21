@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Spatial & GIS Converter</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/togeojson/0.16.0/togeojson.min.js"></script>
+    <style>
+        #universal-converter-tool.container {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            color: #333;
+            line-height: 1.6;
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        #universal-converter-tool .upload-area {
+            border: 2px dashed #ccc;
+            padding: 1.5rem;
+            text-align: center;
+            border-radius: 8px;
+            background: #fff;
+            margin-bottom: 1rem;
+        }
+        #universal-converter-tool button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        #universal-converter-tool button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        #universal-converter-tool button:hover:not(:disabled) {
+            background: #0052a3;
+        }
+        #universal-converter-tool #log {
+            margin-top: 1.5rem;
+            background: #222;
+            color: #0f0;
+            padding: 1rem;
+            border-radius: 4px;
+            height: 180px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 14px;
+            text-align: left;
+        }
+        #universal-converter-tool .grid-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        #universal-converter-tool fieldset {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 1rem;
+            background: #fff;
+            text-align: left;
+        }
+        #universal-converter-tool legend {
+            font-weight: bold;
+            background: #f9f9f9;
+            padding: 0 5px;
+        }
+        #universal-converter-tool label {
+            display: block;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            text-align: left;
+        }
+        @media (max-width: 600px) {
+            #universal-converter-tool .grid-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div id="universal-converter-tool" class="container">
+    <div class="legacy-top-bar">
+      <div></div>
+      <div class="legacy-actions">
+        <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+      </div>
+    </div>
+    <h1>🔄 Universal Spatial Converter</h1>
+    <p>Convert and filter mapping data seamlessly entirely within your browser.</p>
+
+    <div class="upload-area">
+        <input type="file" id="fileInput" accept=".geojson,.json,.kml,.kmz,.gpx" style="font-size: 16px;">
+        <p style="margin-top: 0.5rem; color: #666;"><small><em>Supports GeoJSON, KML, KMZ, and GPX</em></small></p>
+    </div>
+
+    <div class="grid-options">
+        <fieldset>
+            <legend>Filter Geometry</legend>
+            <label><input type="checkbox" id="chkPoints" checked> 📍 Include Points (Waypoints)</label>
+            <label><input type="checkbox" id="chkLines" checked> 📈 Include Lines (Tracks/Paths)</label>
+            <label><input type="checkbox" id="chkPolygons" checked> 🔲 Include Polygons</label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Output Format</legend>
+            <label><input type="radio" name="outFormat" value="geojson" checked> GeoJSON (.geojson)</label>
+            <label><input type="radio" name="outFormat" value="kml"> KML (.kml)</label>
+            <label><input type="radio" name="outFormat" value="kmz"> KMZ (Zipped KML)</label>
+            <label><input type="radio" name="outFormat" value="gpx"> GPX (.gpx)</label>
+            <label><input type="radio" name="outFormat" value="csv"> CSV (.csv)</label>
+        </fieldset>
+    </div>
+
+    <button id="processBtn">Convert & Download</button>
+    <div id="log">Waiting for files...</div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const processBtn = document.getElementById('processBtn');
+    const logDiv = document.getElementById('log');
+    let uploadedGeoJSON = null;
+    let originalName = "export";
+    const chkPoints = document.getElementById('chkPoints');
+    const chkLines = document.getElementById('chkLines');
+    const chkPolygons = document.getElementById('chkPolygons');
+
+    function log(msg) {
+        logDiv.innerHTML += `<div>${msg}</div>`;
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function escapeXML(str) {
+        if (str === null || str === undefined) return '';
+        return String(str).replace(/&/g, '&amp;')
+                          .replace(/</g, '&lt;')
+                          .replace(/>/g, '&gt;')
+                          .replace(/"/g, '&quot;')
+                          .replace(/'/g, '&apos;');
+    }
+
+    function buildKML(features, title) {
+        let kml = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n  <name>${escapeXML(title)}</name>\n`;
+        for (const feature of features) {
+            const name = escapeXML(feature.properties?.name || 'Feature');
+            const geom = feature.geometry;
+            if (!geom || !geom.coordinates) continue;
+            
+            kml += `  <Placemark>\n    <name>${name}</name>\n`;
+            if (geom.type === 'Point') {
+                kml += `    <Point><coordinates>${geom.coordinates.join(',')}</coordinates></Point>\n`;
+            } else if (geom.type === 'LineString') {
+                const coords = geom.coordinates.map(c => c.join(',')).join(' ');
+                kml += `    <LineString><coordinates>${coords}</coordinates></LineString>\n`;
+            } else if (geom.type === 'Polygon') {
+                const coords = geom.coordinates[0].map(c => c.join(',')).join(' ');
+                kml += `    <Polygon><outerBoundaryIs><LinearRing><coordinates>${coords}</coordinates></LinearRing></outerBoundaryIs></Polygon>\n`;
+            }
+            kml += `  </Placemark>\n`;
+        }
+        return kml + `</Document>\n</kml>`;
+    }
+
+    function buildGPX(features) {
+        let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="UniversalConverter" xmlns="http://www.topografix.com/GPX/1/1">\n`;
+        let discarded = 0;
+        for (const feature of features) {
+            const name = escapeXML(feature.properties?.name || 'Feature');
+            const geom = feature.geometry;
+            if (!geom || !geom.coordinates) continue;
+
+            if (geom.type === 'Point') {
+                const eleTag = geom.coordinates.length > 2 ? `<ele>${geom.coordinates[2]}</ele>` : '';
+                gpx += `  <wpt lat="${geom.coordinates[1]}" lon="${geom.coordinates[0]}"><name>${name}</name>${eleTag}</wpt>\n`;
+            } else if (geom.type === 'LineString') {
+                gpx += `  <trk>\n    <name>${name}</name>\n    <trkseg>\n`;
+                for (const c of geom.coordinates) {
+                    const eleTag = c.length > 2 ? `<ele>${c[2]}</ele>` : '';
+                    gpx += `      <trkpt lat="${c[1]}" lon="${c[0]}">${eleTag}</trkpt>\n`;
+                }
+                gpx += `    </trkseg>\n  </trk>\n`;
+            } else if (geom.type === 'Polygon') {
+                discarded++;
+            }
+        }
+        if (discarded > 0) log(`[Warning] Discarded ${discarded} Polygon(s) as GPX lacks standard support.`);
+        return gpx + `</gpx>`;
+    }
+
+    function buildCSV(features) {
+        let csv = "name,latitude,longitude,geometry_wkt\n";
+        for (const feature of features) {
+            const geom = feature.geometry;
+            if (!geom || !geom.type) continue;
+            const name = feature.properties?.name || 'Feature';
+            const safeName = `"${String(name).replace(/"/g, '""')}"`;
+            let lat = '';
+            let lon = '';
+            let wkt = '';
+            if (geom.type === 'Point') {
+                lon = geom.coordinates[0];
+                lat = geom.coordinates[1];
+                wkt = `POINT(${lon} ${lat})`;
+            } else if (geom.type === 'LineString') {
+                const pts = geom.coordinates.map(c => `${c[0]} ${c[1]}`).join(', ');
+                wkt = `LINESTRING(${pts})`;
+            } else if (geom.type === 'Polygon') {
+                const rings = geom.coordinates.map(ring => {
+                    return '(' + ring.map(c => `${c[0]} ${c[1]}`).join(', ') + ')';
+                }).join(', ');
+                wkt = `POLYGON(${rings})`;
+            }
+            csv += `${safeName},${lat},${lon},"${wkt}"\n`;
+        }
+        return csv;
+    }
+
+    fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        uploadedGeoJSON = null;
+        originalName = file.name.replace(/\.[^/.]+$/, "");
+        const ext = file.name.toLowerCase().split('.').pop();
+        
+        log(`Loading ${file.name}...`);
+        try {
+            if (ext === 'kmz') {
+                const zip = await JSZip.loadAsync(file);
+                const kmlFiles = Object.keys(zip.files).filter(name => name.toLowerCase().endsWith('.kml'));
+                if (kmlFiles.length === 0) throw new Error("No KML file inside KMZ.");
+                const kmlText = await zip.files[kmlFiles[0]].async("text");
+                uploadedGeoJSON = toGeoJSON.kml(new DOMParser().parseFromString(kmlText, "text/xml"));
+            } else if (ext === 'kml') {
+                const text = await file.text();
+                uploadedGeoJSON = toGeoJSON.kml(new DOMParser().parseFromString(text, "text/xml"));
+            } else if (ext === 'gpx') {
+                const text = await file.text();
+                uploadedGeoJSON = toGeoJSON.gpx(new DOMParser().parseFromString(text, "text/xml"));
+            } else {
+                const text = await file.text();
+                uploadedGeoJSON = JSON.parse(text);
+            }
+            
+            if (!uploadedGeoJSON || !uploadedGeoJSON.features) {
+                throw new Error("Failed to parse valid features.");
+            }
+            log(`✅ Successfully loaded ${uploadedGeoJSON.features.length} features.`);
+        } catch (err) {
+            log(`❌ Error loading file: ${err.message}`);
+        }
+    });
+
+    processBtn.addEventListener('click', async () => {
+        if (!uploadedGeoJSON) {
+            alert("Please upload a valid file first.");
+            return;
+        }
+        processBtn.disabled = true;
+        
+        try {
+            const allowedTypes = [];
+            if (document.getElementById('chkPoints').checked) allowedTypes.push('Point');
+            if (document.getElementById('chkLines').checked) allowedTypes.push('LineString');
+            if (document.getElementById('chkPolygons').checked) allowedTypes.push('Polygon');
+
+            log(`Filtering geometries (${allowedTypes.join(', ')})...`);
+            const filteredFeatures = uploadedGeoJSON.features.filter(f => 
+                f.geometry && allowedTypes.includes(f.geometry.type)
+            );
+            
+            log(`Kept ${filteredFeatures.length} out of ${uploadedGeoJSON.features.length} features.`);
+
+            if (filteredFeatures.length === 0) {
+                log("❌ Nothing to export after filtering.");
+                processBtn.disabled = false;
+                return;
+            }
+
+            const format = document.querySelector('input[name="outFormat"]:checked').value;
+            const outName = `${originalName}_converted.${format}`;
+            
+            log(`Generating ${format.toUpperCase()} export...`);
+            
+            let blob;
+            if (format === 'geojson') {
+                const data = JSON.stringify({ type: "FeatureCollection", features: filteredFeatures }, null, 2);
+                blob = new Blob([data], { type: 'application/geo+json' });
+            } else if (format === 'kml') {
+                const data = buildKML(filteredFeatures, outName);
+                blob = new Blob([data], { type: 'application/vnd.google-earth.kml+xml' });
+            } else if (format === 'gpx') {
+                const data = buildGPX(filteredFeatures);
+                blob = new Blob([data], { type: 'application/gpx+xml' });
+            } else if (format === 'csv') {
+                const data = buildCSV(filteredFeatures);
+                blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+            } else if (format === 'kmz') {
+                const kmlString = buildKML(filteredFeatures, 'doc.kml');
+                const zip = new JSZip();
+                zip.file("doc.kml", kmlString);
+                blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });
+            }
+
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = outName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            log("✅ Download triggered successfully!");
+        } catch (err) {
+            log(`❌ Export error: ${err.message}`);
+        }
+        
+        processBtn.disabled = false;
+    });
+</script>
+
+</body>
+</html>

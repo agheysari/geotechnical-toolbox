@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liquefaction Potential Analyzer (Idriss & Boulanger 2008)</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+            line-height: 1.6;
+            background-color: #f4f6f8;
+        }
+        .container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-top: -10px;
+            margin-bottom: 1.5rem;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #34495e;
+            border-bottom: 2px solid #e1e4e8;
+            padding-bottom: 0.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+        }
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+        input, select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            background: #fff;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 2px rgba(0,102,204,0.2);
+        }
+        .hint {
+            font-size: 0.8rem;
+            color: #718096;
+            margin-top: 0.25rem;
+        }
+        button.calc-btn {
+            width: 100%;
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: background 0.2s;
+        }
+        button.calc-btn:hover {
+            background: #0052a3;
+        }
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: #fef9e7;
+            border-left: 5px solid #f1c40f;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .result-box.danger {
+            background: #fdf2f2;
+            border-left-color: #e74c3c;
+        }
+        .result-box.success {
+            background: #eafaf1;
+            border-left-color: #2ecc71;
+        }
+        .result-value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+        .danger .result-value { color: #c0392b; }
+        .success .result-value { color: #27ae60; }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+        .stat-box {
+            background: #fff;
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+        .stat-val {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #0f766e;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        .formula-box {
+            margin-top: 2rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 1.25rem;
+        }
+        .formula-box h3 {
+            margin-top: 0;
+            color: #334155;
+            font-size: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        .input-error {
+            border: 2px solid #e74c3c !important;
+            background-color: #fdf2f2 !important;
+        }
+    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="legacy-top-bar">
+    <div class="legacy-actions">
+      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+    </div>
+  </div>
+
+<div id="liquefaction-tool" class="container">
+    <h2>Liquefaction Potential Analyzer</h2>
+    <p class="subtitle">
+        Idriss & Boulanger (2008) Simplified SPT Methodology
+    </p>
+
+    <div class="section-title">1. Seismic Parameters</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Earthquake Magnitude (Mw)</label>
+            <input type="number" id="mw" value="7.5" step="0.1" min="5.0" max="9.0">
+            <span class="hint">Design earthquake moment magnitude</span>
+        </div>
+        <div class="form-group">
+            <label>Peak Ground Acceleration (PGA, g)</label>
+            <input type="number" id="pga" value="0.40" step="0.01" min="0.01">
+            <span class="hint">Geometric mean peak horizontal ground accel.</span>
+        </div>
+    </div>
+
+    <div class="section-title">2. Site & Soil Conditions</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Sample Depth (z, m)</label>
+            <input type="number" id="depthZ" value="4.0" step="0.5" min="0.1">
+            <span class="hint">Depth of SPT test / soil layer</span>
+        </div>
+        <div class="form-group">
+            <label>Groundwater Depth (Dw, m)</label>
+            <input type="number" id="waterTableDw" value="1.5" step="0.5" min="0">
+            <span class="hint">Static ground water table depth</span>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Total Unit Weight (γ, kN/m³)</label>
+            <input type="number" id="gamma" value="18.5" step="0.5" min="10" max="25">
+            <span class="hint">Total moist/saturated unit weight</span>
+        </div>
+        <div class="form-group">
+            <label>Fines Content (FC, %)</label>
+            <input type="number" id="fc" value="5.0" step="1" min="0" max="100">
+            <span class="hint">Percent passing #200 sieve (&lt; 0.075 mm)</span>
+        </div>
+    </div>
+
+    <div class="section-title">3. SPT Field Data & Corrections</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Measured SPT Blow Count (Nm)</label>
+            <input type="number" id="sptN" value="8" step="1" min="1">
+            <span class="hint">Field measured raw blow count</span>
+        </div>
+        <div class="form-group">
+            <label>Energy Ratio (ER, %)</label>
+            <input type="number" id="er" value="60" step="5" min="30" max="100">
+            <span class="hint">Hammer efficiency (typical: Safety=60%, Auto=80%)</span>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label>Borehole Diameter Corr. (Cb)</label>
+            <input type="number" id="cb" value="1.00" step="0.05" min="0.8" max="1.2">
+            <span class="hint">1.0 for 65-115 mm, 1.05 for 150 mm, 1.15 for 200 mm</span>
+        </div>
+        <div class="form-group">
+            <label>Rod Length Corr. (Cr)</label>
+            <input type="number" id="cr" value="0.75" step="0.05" min="0.5" max="1.0">
+            <span class="hint">0.75 (&lt;4m), 0.85 (4-6m), 0.95 (6-10m), 1.0 (&gt;10m)</span>
+        </div>
+        <div class="form-group">
+            <label>Sampler Liner Corr. (Cs)</label>
+            <input type="number" id="cs" value="1.00" step="0.05" min="1.0" max="1.3">
+            <span class="hint">1.0 with standard liner, 1.1-1.3 without liner</span>
+        </div>
+    </div>
+
+    <button type="button" class="calc-btn" onclick="calculateLiquefaction()">Calculate Liquefaction</button>
+
+    <!-- Results Section -->
+    <div id="results" style="display:none;">
+        <div id="fsBox" class="result-box">
+            <div style="font-size: 1.1rem; color: #34495e; font-weight: 600;">Factor of Safety Against Liquefaction (FS)</div>
+            <div id="outFS" class="result-value">0.00</div>
+            <div id="outMessage" style="font-weight: 700; font-size: 1.1rem;"></div>
+        </div>
+
+        <div class="results-grid">
+            <div class="stat-box">
+                <div class="stat-label">Cyclic Stress Ratio (CSR)</div>
+                <div id="outCSR" class="stat-val">0.000</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Cyclic Resistance Ratio (CRR)</div>
+                <div id="outCRR" class="stat-val">0.000</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Clean-Sand Blow Count (N₁,₆₀,cs)</div>
+                <div id="outN160cs" class="stat-val">0.0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Effective Overburden (σ'vo, kPa)</div>
+                <div id="outSigma" class="stat-val">0.0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theory & Formulas Box -->
+    <div class="formula-box">
+        <h3>Idriss & Boulanger (2008) Governing Equations</h3>
+        <p style="font-size: 0.9rem; color: #475569;">
+            <strong>Cyclic Stress Ratio (CSR):</strong>
+            $$CSR = 0.65 \cdot \left(\frac{PGA}{g}\right) \cdot \left(\frac{\sigma_{vo}}{\sigma'_{vo}}\right) \cdot r_d$$
+            $$\text{where } r_d = \exp\left(\alpha(z) + \beta(z) \cdot M_w\right)$$
+        </p>
+        <p style="font-size: 0.9rem; color: #475569;">
+            <strong>Overburden & Fines Corrected SPT Blow Count:</strong>
+            $$(N_1)_{60} = N_m \cdot C_N \cdot \left(\frac{ER}{60}\right) \cdot C_B \cdot C_R \cdot C_S, \quad (N_1)_{60,cs} = (N_1)_{60} + \Delta (N_1)_{60}$$
+        </p>
+        <p style="font-size: 0.9rem; color: #475569;">
+            <strong>Factor of Safety (FS):</strong>
+            $$FS_{liq} = \left(\frac{CRR_{7.5}}{CSR}\right) \cdot MSF \cdot K_\sigma$$
+        </p>
+    </div>
+</div>
+
+<script>
+
+  let currentUnitSystem = 'metric';
+  function setUnitSystem(system) {
+    currentUnitSystem = system;
+    const btnMetric = document.getElementById('btn_metric');
+    const btnImperial = document.getElementById('btn_imperial');
+    if (btnMetric && btnImperial) {
+      btnMetric.className = system === 'metric' ? 'unit-switcher-btn active' : 'unit-switcher-btn';
+      btnImperial.className = system === 'imperial' ? 'unit-switcher-btn active' : 'unit-switcher-btn';
+    }
+    if (typeof calculate === 'function') {
+      calculate();
+    } else if (typeof runCalc === 'function') {
+      runCalc();
+    }
+  }
+
+function calculateLiquefaction() {
+    const Mw = parseFloat(document.getElementById('mw').value);
+    const pga = parseFloat(document.getElementById('pga').value);
+    const z = parseFloat(document.getElementById('depthZ').value);
+    const Dw = parseFloat(document.getElementById('waterTableDw').value);
+    const gamma = parseFloat(document.getElementById('gamma').value);
+    const FC = parseFloat(document.getElementById('fc').value);
+    const Nm = parseFloat(document.getElementById('sptN').value);
+    const ER = parseFloat(document.getElementById('er').value);
+    const CB = parseFloat(document.getElementById('cb').value);
+    const CR = parseFloat(document.getElementById('cr').value);
+    const CS = parseFloat(document.getElementById('cs').value);
+
+    if ([Mw, pga, z, Dw, gamma, FC, Nm, ER, CB, CR, CS].some(isNaN) || z <= 0 || gamma <= 0 || Nm <= 0) {
+        alert('Please fill out all fields with valid positive numerical values.');
+        return;
+    }
+
+    const gammaW = 9.81;
+    const Pa = 100; // Atmospheric pressure in kPa
+
+    // Stresses
+    const sigmaV = gamma * z;
+    const u = Math.max(0, z - Dw) * gammaW;
+    const sigmaVPrime = Math.max(0.1, sigmaV - u);
+
+    // CSR & Shear Stress Reduction (rd)
+    const alpha = -1.012 - 1.126 * Math.sin(z / 11.73 + 5.133);
+    const beta = 0.106 + 0.118 * Math.sin(z / 11.28 + 5.142);
+    const rd = Math.exp(alpha + beta * Mw);
+    const csr = 0.65 * pga * (sigmaV / sigmaVPrime) * rd;
+
+    // N1,60 Iterative Overburden Correction (Cn)
+    const n60 = Nm * (ER / 60) * CB * CR * CS;
+    let cn = 1.0;
+    let n160 = n60;
+    for (let i = 0; i < 5; i++) {
+        const m = Math.min(1.0, 0.784 - 0.0768 * Math.sqrt(Math.max(0, n160)));
+        cn = Math.min(1.7, Math.pow(Pa / sigmaVPrime, m));
+        n160 = n60 * cn;
+    }
+
+    // Fines Content Adjustment
+    const fcTerm = Math.max(0, FC);
+    let deltaN160 = 0;
+    if (fcTerm > 0) {
+        deltaN160 = Math.exp(1.63 + 9.7 / (fcTerm + 0.01) - Math.pow(15.7 / (fcTerm + 0.01), 2));
+    }
+    const n160cs = n160 + deltaN160;
+
+    // CRR for Mw = 7.5 and sigma' = 1 atm
+    const n160csCapped = Math.min(37.5, Math.max(0, n160cs));
+    let crr75 = 0;
+    if (n160csCapped >= 37.5) {
+        crr75 = 2.0;
+    } else {
+        crr75 = Math.exp(
+            (n160csCapped / 14.1) +
+            Math.pow(n160csCapped / 126, 2) -
+            Math.pow(n160csCapped / 23.6, 3) +
+            Math.pow(n160csCapped / 25.4, 4) - 2.8
+        );
+    }
+
+    // Magnitude Scaling Factor (MSF)
+    let msf = 6.9 * Math.exp(-Mw / 4) - 0.058;
+    msf = Math.min(1.8, msf);
+
+    // Overburden Correction Factor (Ksigma)
+    let cSigma = 1 / (18.9 - 2.55 * Math.sqrt(Math.max(0, n160)));
+    cSigma = Math.min(0.3, Math.max(0, cSigma));
+    let ksigma = 1 - cSigma * Math.log(sigmaVPrime / Pa);
+    ksigma = Math.min(1.1, Math.max(0.2, ksigma));
+
+    const crr = crr75 * msf * ksigma;
+    const fs = csr > 0 ? crr / csr : 99.9;
+
+    // Output Display
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('outFS').textContent = fs.toFixed(2);
+    document.getElementById('outCSR').textContent = csr.toFixed(3);
+    document.getElementById('outCRR').textContent = crr.toFixed(3);
+    document.getElementById('outN160cs').textContent = n160cs.toFixed(1);
+    document.getElementById('outSigma').textContent = sigmaVPrime.toFixed(1);
+
+    const fsBox = document.getElementById('fsBox');
+    const outMsg = document.getElementById('outMessage');
+    const outFS = document.getElementById('outFS');
+
+    fsBox.className = 'result-box';
+    outFS.style.color = '';
+
+    if (fs < 1.0) {
+        fsBox.classList.add('danger');
+        outFS.style.color = '#c0392b';
+        outMsg.textContent = 'Liquefaction Likely (FS < 1.0)';
+        outMsg.style.color = '#c0392b';
+    } else if (fs < 1.2) {
+        fsBox.style.background = '#fef9e7';
+        fsBox.style.borderLeftColor = '#f1c40f';
+        outFS.style.color = '#d97706';
+        outMsg.textContent = 'Marginal / High Risk Zone (1.0 ≤ FS < 1.2)';
+        outMsg.style.color = '#b45309';
+    } else {
+        fsBox.classList.add('success');
+        outFS.style.color = '#059669';
+        outMsg.textContent = 'Liquefaction Unlikely (FS ≥ 1.2)';
+        outMsg.style.color = '#047857';
+    }
+
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    calculateLiquefaction();
+});
+</script>
+
+</body>
+</html>

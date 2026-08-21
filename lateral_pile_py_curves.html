@@ -1,0 +1,460 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Static P-y Curve Generator</title>
+
+    <!-- Plotly.js for charts -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .panel {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-bottom: 1rem;
+        }
+    .form-row {
+        display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+    @media (max-width: 768px) {
+        .form-row {
+            flex-direction: column;
+        }
+    }
+    .form-group {
+        flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+    .form-group label {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        font-size: 0.9rem;
+        }
+    .form-group input, .form-group select {
+        padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        font-size: 1rem;
+        box-sizing: border-box;
+        }
+        .btn { background: #0066cc; color: #fff; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .btn:hover { background: #0052a3; }
+        #plotArea {
+            width: 100%;
+            height: 600px;
+            margin-top: 2rem;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+        }
+        #log {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 4px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            display: none;
+        }
+        #log.error {
+            background: #ffebee;
+            color: #c62828;
+            display: block;
+        }
+        .help-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.2rem;
+        }
+        .input-error {
+            border: 2px solid #e74c3c !important;
+            background-color: #fdf2f2 !important;
+        }
+        /* Unit Toggle Styles */
+        .unit-toggle-bar { display:flex; justify-content:flex-end; margin-bottom:1rem; }
+        .unit-toggle-btn { width:auto !important; padding:7px 16px; font-size:0.85rem;
+            border-radius:8px; background:#0066cc; color:white; border:none; cursor:pointer;
+            font-weight:600; transition:background 0.2s; }
+        .unit-toggle-btn:hover { background:#004fa3; }
+        .unit-toggle-btn.imperial { background:#7c3aed; }    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="legacy-top-bar">
+      <div></div>
+      <div class="legacy-actions">
+        <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+      </div>
+    </div>
+    <h1>🌉 Static P-y Curve Generator</h1>
+
+    <div class="panel">
+        <div class="form-row">
+            <div class="form-group">
+                <label>Soil Type Method</label>
+                <select id="soilType">
+                    <option value="clay">Soft Clay (Matlock, 1970)</option>
+                    <option value="sand">Sand (API RP 2A)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Pile Diameter, D (m)</label>
+                <input type="number" id="pileD" step="0.1" placeholder="e.g., 1.0 m">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Depths to Plot, x (m)</label>
+                <input type="text" id="depths" placeholder="e.g., 1.0, 3.0, 5.0">
+                <div class="help-text">Comma-separated list of depths below ground surface.</div>
+            </div>
+            <div class="form-group">
+                <label>Max Deflection to Plot, y_max (mm)</label>
+                <input type="number" id="yMax" step="5" placeholder="e.g., 50 mm">
+            </div>
+        </div>
+
+        <hr style="border:0; border-top:1px solid #eee; margin:1.5rem 0;">
+
+        <!-- Clay Inputs -->
+        <div id="clayInputs">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Undrained Shear Strength, c_u (kPa)</label>
+                    <input type="number" id="cu" step="5" placeholder="e.g., 40 kPa">
+                </div>
+                <div class="form-group">
+                    <label>Effective Unit Weight, γ' (kN/m³)</label>
+                    <input type="number" id="gammaClay" step="0.5" placeholder="e.g., 8.0 kN/m³">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Strain at 50% Stress, ε_50</label>
+                    <input type="number" id="e50" step="0.005" placeholder="e.g., 0.01">
+                    <div class="help-text">Typically 0.005 to 0.02 for soft clays.</div>
+                </div>
+                <div class="form-group">
+                    <label>Empirical Constant, J</label>
+                    <input type="number" id="jConst" step="0.1" placeholder="e.g., 0.5">
+                    <div class="help-text">Typically 0.5 for soft Gulf of Mexico clays.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sand Inputs -->
+        <div id="sandInputs" style="display: none;">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Friction Angle, φ' (degrees)</label>
+                    <input type="number" id="phi" step="1" min="20" max="45" placeholder="e.g., 30&deg;">
+                </div>
+                <div class="form-group">
+                    <label>Effective Unit Weight, γ' (kN/m³)</label>
+                    <input type="number" id="gammaSand" step="0.5" placeholder="e.g., 10.0 kN/m³">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Initial Subgrade Modulus, k (kN/m³)</label>
+                    <input type="number" id="kSand" step="1000" placeholder="e.g., 16000 kN/m³">
+                    <div class="help-text">Also expressed in kN/m² / m. Varies with density.</div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 1rem;">
+            <button class="btn" id="plotBtn">Generate P-y Curves</button>
+        </div>
+    </div>
+
+    <div id="log"></div>
+    <div id="plotArea"></div>
+</div>
+
+<script>
+    const soilTypeSelect = document.getElementById('soilType');
+    const clayInputs = document.getElementById('clayInputs');
+    const sandInputs = document.getElementById('sandInputs');
+    const plotBtn = document.getElementById('plotBtn');
+    const logDiv = document.getElementById('log');
+    const plotArea = document.getElementById('plotArea');
+
+    const colors = [
+        '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', 
+        '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+    ];
+
+    // Toggle inputs based on soil type
+    soilTypeSelect.addEventListener('change', (e) => {
+        if (e.target.value === 'clay') {
+            clayInputs.style.display = 'block';
+            sandInputs.style.display = 'none';
+        } else {
+            clayInputs.style.display = 'none';
+            sandInputs.style.display = 'block';
+        }
+    });
+
+    function showMsg(msg, isError = false) {
+        logDiv.style.display = 'block';
+        logDiv.className = isError ? 'error' : '';
+        logDiv.textContent = msg;
+    }
+
+    // Linear interpolation utility
+    function interp(val, xArr, yArr) {
+        if (val <= xArr[0]) return yArr[0];
+        if (val >= xArr[xArr.length-1]) return yArr[yArr.length-1];
+        for (let i = 0; i < xArr.length - 1; i++) {
+            if (val >= xArr[i] && val <= xArr[i+1]) {
+                return yArr[i] + (yArr[i+1] - yArr[i]) * (val - xArr[i]) / (xArr[i+1] - xArr[i]);
+            }
+        }
+        return 0;
+    }
+
+    plotBtn.addEventListener('click', () => {
+        try {
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+            let hasError = false;
+            const soilMode = soilTypeSelect.value;
+            
+            const reqIds = ['pileD', 'depths', 'yMax'];
+            if (soilMode === 'clay') {
+                reqIds.push('cu', 'gammaClay', 'e50', 'jConst');
+            } else {
+                reqIds.push('phi', 'gammaSand', 'kSand');
+            }
+            
+            reqIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.value.trim() === '') {
+                    el.classList.add('input-error');
+                    hasError = true;
+                }
+            });
+            
+            if (hasError) throw new Error("Please fill in all highlighted fields.");
+
+            const D = parseFloat(document.getElementById('pileD').value);
+            const yMaxMeters = parseFloat(document.getElementById('yMax').value) / 1000.0;
+            const depthsStr = document.getElementById('depths').value;
+            
+            if (isNaN(D) || D <= 0) throw new Error("Pile diameter must be a positive number.");
+            if (isNaN(yMaxMeters) || yMaxMeters <= 0) throw new Error("Max deflection must be a positive number.");
+            
+            const depths = depthsStr.split(',').map(d => parseFloat(d.trim())).filter(d => !isNaN(d));
+            if (depths.length === 0) throw new Error("Please enter at least one valid depth.");
+
+            let traces = [];
+            let steps = 150;
+
+            depths.forEach((x, index) => {
+                let y_arr = [];
+                let p_arr = [];
+
+                if (soilMode === 'clay') {
+                    const cu = parseFloat(document.getElementById('cu').value);
+                    const gamma = parseFloat(document.getElementById('gammaClay').value);
+                    const e50 = parseFloat(document.getElementById('e50').value);
+                    const J = parseFloat(document.getElementById('jConst').value);
+
+                    let pu = Math.min(3.0 + (gamma * x / cu) + (J * x / D), 9.0) * cu * D;
+                    let yc = 2.5 * e50 * D;
+
+                    for(let i=0; i<=steps; i++) {
+                        let y = (i / steps) * yMaxMeters;
+                        let p = (y <= 8 * yc) ? 0.5 * pu * Math.pow(y / yc, 1.0/3.0) : pu;
+                        y_arr.push(y * 1000); // convert to mm
+                        p_arr.push(p);
+                    }
+                } else {
+                    const phi = parseFloat(document.getElementById('phi').value);
+                    const gamma = parseFloat(document.getElementById('gammaSand').value);
+                    const k = parseFloat(document.getElementById('kSand').value);
+
+                    // API RP 2A Sand coefficients approximated
+                    const phis = [25, 30, 35, 40];
+                    const c1s = [1.5, 2.0, 3.0, 5.0];
+                    const c2s = [2.0, 2.5, 3.0, 4.0];
+                    const c3s = [30, 50, 80, 130];
+
+                    let C1 = interp(phi, phis, c1s);
+                    let C2 = interp(phi, phis, c2s);
+                    let C3 = interp(phi, phis, c3s);
+
+                    let pus = (C1 * x + C2 * D) * gamma * x;
+                    let pud = C3 * D * gamma * x;
+                    let pu = Math.min(pus, pud);
+                    let A = 0.9; // Static loading coefficient
+
+                    for(let i=0; i<=steps; i++) {
+                        let y = (i / steps) * yMaxMeters;
+                        let p = A * pu * Math.tanh((k * x * y) / (A * pu));
+                        if (pu === 0) p = 0; // handle surface (x=0) case
+                        y_arr.push(y * 1000); // convert to mm
+                        p_arr.push(p);
+                    }
+                }
+
+                traces.push({
+                    x: y_arr, y: p_arr, type: 'scatter', mode: 'lines',
+                    line: { color: colors[index % colors.length], width: 3 },
+                    name: `Depth = ${x} m`,
+                    hovertemplate: '<b>y:</b> %{x:.1f} mm<br><b>p:</b> %{y:.1f} kN/m<extra></extra>'
+                });
+            });
+
+            Plotly.newPlot(plotArea, traces, {
+                title: `Static P-y Curves (${soilMode === 'clay' ? 'Soft Clay' : 'Sand'})`,
+                xaxis: { title: 'Lateral Deflection, y (mm)', gridcolor: '#e5e5e5', zeroline: false },
+                yaxis: { title: 'Soil Resistance, p (kN/m)', gridcolor: '#e5e5e5', zeroline: false },
+                plot_bgcolor: '#fff', paper_bgcolor: '#fff', margin: { t: 60, b: 60, l: 60, r: 40 },
+                legend: { x: 0.8, y: 0.1, bgcolor: 'rgba(255,255,255,0.8)' }
+            }, {responsive: true});
+
+            logDiv.style.display = 'none';
+        } catch (err) {
+            showMsg(`Error: ${err.message}`, true);
+        }
+    });
+
+    document.addEventListener('input', function(e) {
+        if (e.target.classList && e.target.classList.contains('input-error')) {
+            e.target.classList.remove('input-error');
+        }
+    });
+
+    // ── Unit System ────────────────────────────────────────────────────
+    const TO_IMP_LP = {length:3.28084,settlement:0.0393701,pressure:0.020885,unitweight:6.36587,force:0.224809,forcelength:0.0685218,cv:10.7639,pymodulus:0.003684};
+    const TO_MET_LP = Object.fromEntries(Object.entries(TO_IMP_LP).map(([k,v])=>[k,1/v]));
+    const LABELS_LP = {length:{metric:'m',imperial:'ft'},settlement:{metric:'mm',imperial:'in'},pressure:{metric:'kPa',imperial:'ksf'},unitweight:{metric:'kN/m³',imperial:'pcf'},force:{metric:'kN',imperial:'kip'},forcelength:{metric:'kN/m',imperial:'kip/ft'},cv:{metric:'m²/yr',imperial:'ft²/yr'},pymodulus:{metric:'kN/m³',imperial:'pci'}};
+    let unitSystem = 'metric';
+    function toDisp(v,qty){return unitSystem==='metric'?v:(TO_IMP_LP[qty]?v*TO_IMP_LP[qty]:v);}
+    function toMet(v,qty) {return unitSystem==='metric'?v:(TO_MET_LP[qty]?v*TO_MET_LP[qty]:v);}
+    function unitLbl(qty) {const e=LABELS_LP[qty];return e?(unitSystem==='metric'?e.metric:e.imperial):'';}
+    function toggleUnitSystem(){
+        const old=unitSystem;
+        unitSystem=unitSystem==='metric'?'imperial':'metric';
+        localStorage.setItem('geotools-units',unitSystem);
+        const btn=document.getElementById('unit-toggle-btn');
+        btn.textContent=unitSystem==='metric'?'🌐 Switch to Imperial (US)':'📏 Switch to Metric (SI)';
+        btn.classList.toggle('imperial',unitSystem==='imperial');
+        document.querySelectorAll('[data-unit]').forEach(el=>{el.textContent=unitLbl(el.dataset.unit);});
+        onUnitSwitch(old);
+    }
+    const UNIT_FIELDS=[
+        {id:'pileD',qty:'length'},{id:'cu',qty:'pressure'},
+        {id:'gammaClay',qty:'unitweight'},{id:'gammaSand',qty:'unitweight'},
+        {id:'kSand',qty:'pymodulus'},{id:'yMaxMM',qty:'settlement'},
+    ];
+    function onUnitSwitch(old){
+        const f=unitSystem==='imperial'?TO_IMP_LP;
+        UNIT_FIELDS.forEach(({id,qty})=>{const el=document.getElementById(id);if(!el||el.value.trim()==='')return;const v=parseFloat(el.value);if(!isNaN(v)&&f[qty])el.value=parseFloat((v*f[qty]).toFixed(5));});
+    }
+    (function(){const s=localStorage.getItem('geotools-units');if(s==='imperial'){unitSystem='imperial';const btn=document.getElementById('unit-toggle-btn');if(btn){btn.textContent='📏 Switch to Metric (SI)';btn.classList.add('imperial');}document.querySelectorAll('[data-unit]').forEach(el=>{el.textContent=unitLbl(el.dataset.unit);});}})();
+    // ── End Unit System ────────────────────────────────────────────────
+</script>
+
+</body>
+</html>

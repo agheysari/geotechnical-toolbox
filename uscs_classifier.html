@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>USCS Soil Classifier</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 { margin-top: 0; color: #2c3e50; }
+        h3 { border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 1.5rem; color: #34495e; }
+        
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-weight: 600; margin-bottom: 0.25rem; font-size: 0.9rem; }
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .checkbox-group label { margin-bottom: 0; font-weight: normal; }
+        
+        .fallback-box {
+            background: #fff3e0;
+            border: 1px solid #ffe0b2;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+        .fallback-box h4 { margin: 0 0 10px 0; color: #e65100; }
+
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1.5rem;
+            transition: background 0.3s;
+        }
+        button:hover { background: #0052a3; }
+
+        #resultBox {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border-radius: 8px;
+            display: none;
+        }
+        .success { background: #e8f5e9; border: 1px solid #c8e6c9; color: #2e7d32; }
+        .error { background: #ffebee; border: 1px solid #ffcdd2; color: #c62828; }
+        
+        .symbol { font-size: 2rem; font-weight: bold; margin: 0; }
+        .description { font-size: 1.25rem; font-weight: bold; margin: 5px 0; }
+        .notes { font-size: 0.9rem; margin: 10px 0 0 0; opacity: 0.9; }
+        .input-error {
+            border: 2px solid #e74c3c !important;
+            background-color: #fdf2f2 !important;
+        }
+    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="legacy-top-bar">
+      <div></div>
+      <div class="legacy-actions">
+        <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+      </div>
+    </div>
+    <h1>🌍 USCS Soil Classifier</h1>
+    <p>Enter soil properties below to classify according to the Unified Soil Classification System (ASTM D2487).</p>
+
+    <h3>1. Soil Composition (Required: Must sum to 100%)</h3>
+    <div class="grid-3">
+        <div class="form-group">
+            <label for="pct_gravel">% Gravel (Retained No. 4)</label>
+            <input type="number" id="pct_gravel" step="0.1" min="0" max="100">
+        </div>
+        <div class="form-group">
+            <label for="pct_sand">% Sand (Pass No. 4, Ret. No. 200)</label>
+            <input type="number" id="pct_sand" step="0.1" min="0" max="100">
+        </div>
+        <div class="form-group">
+            <label for="pct_fines">% Fines (Pass No. 200)</label>
+            <input type="number" id="pct_fines" step="0.1" min="0" max="100">
+        </div>
+    </div>
+
+    <h3>2. Gradation Parameters (Coarse Soils)</h3>
+    <div class="grid-2">
+        <div class="form-group">
+            <label for="cu">Cu (Coefficient of Uniformity)</label>
+            <input type="number" id="cu" step="0.1" min="0">
+        </div>
+        <div class="form-group">
+            <label for="cc">Cc (Coefficient of Curvature)</label>
+            <input type="number" id="cc" step="0.1" min="0">
+        </div>
+    </div>
+
+    <h3>3. Atterberg Limits & Organics (Fine/Plastic Soils)</h3>
+    <div class="grid-3">
+        <div class="form-group">
+            <label for="ll">LL (Liquid Limit)</label>
+            <input type="number" id="ll" step="0.1" min="0">
+        </div>
+        <div class="form-group">
+            <label for="pl">PL (Plastic Limit)</label>
+            <input type="number" id="pl" step="0.1" min="0">
+        </div>
+        <div class="form-group">
+            <label for="ll_dry">LL after Oven Dry</label>
+            <input type="number" id="ll_dry" step="0.1" min="0">
+        </div>
+    </div>
+
+    <h3>4. Modifiers</h3>
+    <div class="checkbox-group">
+        <input type="checkbox" id="cobbles">
+        <label for="cobbles">Contains Cobbles</label>
+    </div>
+    <div class="checkbox-group">
+        <input type="checkbox" id="boulders">
+        <label for="boulders">Contains Boulders</label>
+    </div>
+
+    <h3>5. Advanced Settings</h3>
+    <div class="checkbox-group">
+        <input type="checkbox" id="check_u_line">
+        <label for="check_u_line">Verify Atterberg limits against U-line</label>
+    </div>
+    <div class="fallback-box">
+        <h4>⚠️ Missing Data Fallbacks</h4>
+        <div class="checkbox-group">
+            <input type="checkbox" id="allow_organic_fallback">
+            <label for="allow_organic_fallback">Assume Organic if Org. Content > 5% (When LL_dry missing)</label>
+        </div>
+        <div class="form-group" style="margin-top: 0.5rem; margin-bottom: 1rem;">
+            <label for="organic_content">Organic Content (%)</label>
+            <input type="number" id="organic_content" step="0.1" min="0" max="100">
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="allow_coarse_np_fallback">
+            <label for="allow_coarse_np_fallback">Assume NP (M) for Coarse Soils (When LL/PL missing)</label>
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="allow_fine_np_fallback">
+            <label for="allow_fine_np_fallback">Assume NP (ML) for Fine Soils (When LL/PL missing)</label>
+        </div>
+    </div>
+
+    <button onclick="runClassification()">Classify Soil</button>
+
+    <div id="resultBox">
+        <p class="symbol" id="outSymbol"></p>
+        <p class="description" id="outDescription"></p>
+        <p class="notes" id="outNotes"></p>
+    </div>
+</div>
+
+<script>
+
+  let currentUnitSystem = 'metric';
+  function setUnitSystem(system) {
+    currentUnitSystem = system;
+    const btnMetric = document.getElementById('btn_metric');
+    const btnImperial = document.getElementById('btn_imperial');
+    if (btnMetric && btnImperial) {
+      btnMetric.className = system === 'metric' ? 'unit-switcher-btn active' : 'unit-switcher-btn';
+      btnImperial.className = system === 'imperial' ? 'unit-switcher-btn active' : 'unit-switcher-btn';
+    }
+    if (typeof calculate === 'function') {
+      calculate();
+    } else if (typeof runCalc === 'function') {
+      runCalc();
+    }
+  }
+
+    // --- Core Classifier Utilities ---
+    function a_line_pi(ll) {
+        return 0.73 * (ll - 20.0);
+    }
+
+    function classify_fines_group(ll, pi) {
+        let a = a_line_pi(ll);
+        if (ll < 50) {
+            if (pi < 4 || pi < a) return "ML";
+            else if (pi >= 4 && pi <= 7 && pi >= a) return "CL-ML";
+            else return "CL";
+        } else {
+            return pi >= a ? "CH" : "MH";
+        }
+    }
+
+    function classify_fines_group_organic(ll_wet, ll_dry, pi) {
+        return ll_wet >= 50 ? "OH" : "OL";
+    }
+
+    // --- Helper to read inputs safely ---
+    function getVal(id) {
+        const el = document.getElementById(id);
+        return el.value === "" ? null : parseFloat(el.value);
+    }
+    function getBool(id) {
+        return document.getElementById(id).checked;
+    }
+
+    // --- Core Classifier Logic (Mirrors Python) ---
+    function classify_soil(inp) {
+        let notes = [];
+        let total = (inp.pct_gravel || 0) + (inp.pct_sand || 0) + (inp.pct_fines || 0);
+        
+        if (Math.abs(total - 100.0) > 1e-6) {
+            throw new Error(`Percentages must sum to 100 (got ${total.toFixed(2)}).`);
+        }
+
+        // Peat check
+        if ((inp.organic_content || 0) >= 75) {
+            let name = "Peat";
+            let symbol = "PT";
+            if (inp.cobbles) name += " (with cobbles)";
+            if (inp.boulders) name += " (with boulders)";
+            notes.push("Organic content ≥ 75%; classify per ASTM D4427 and von Post scale.");
+            return { symbol, name, notes: notes.join("; ") };
+        }
+
+        let fines = inp.pct_fines;
+        let symbol = "", name = "", base_name = "";
+        let is_gravel = false;
+        let PI = null;
+
+        if (fines >= 50.0) {
+            // FINE-GRAINED BRANCH
+            let is_organic = false;
+            PI = 0.0;
+
+            if (inp.LL === null || inp.PL === null) {
+                if (inp.allow_fine_np_fallback) {
+                    symbol = "ML";
+                    base_name = "Silt";
+                    notes.push("No LL/PL provided; assumed NP (M).");
+                } else {
+                    throw new Error("LL and PL are required for fine-grained classification (fines ≥50%).");
+                }
+            } else {
+                PI = Math.max(inp.LL - inp.PL, 0.0);
+                let has_valid_ll_dry = (inp.LL_dry !== null && inp.LL !== null && inp.LL > 0);
+                
+                if (has_valid_ll_dry) {
+                    is_organic = (inp.LL_dry <= 0.75 * inp.LL);
+                } else {
+                    is_organic = inp.allow_organic_fallback ? ((inp.organic_content || 0) > 5) : false;
+                }
+
+                if (is_organic) {
+                    symbol = classify_fines_group_organic(inp.LL, inp.LL_dry !== null ? inp.LL_dry : inp.LL, PI);
+                    let a = a_line_pi(inp.LL);
+                    if (inp.LL >= 50) {
+                        base_name = PI >= a ? "Organic clay" : "Organic silt";
+                    } else {
+                        base_name = (PI >= 4 && PI >= a) ? "Organic clay" : "Organic silt";
+                    }
+                } else {
+                    let fg = classify_fines_group(inp.LL, PI);
+                    symbol = fg;
+                    const base_map = {"ML":"Silt", "CL":"Lean clay", "CL-ML":"Silty clay", "MH":"Elastic silt", "CH":"Fat clay"};
+                    base_name = base_map[fg];
+                }
+                
+                notes.push(`LL=${inp.LL.toFixed(1)}, PL=${inp.PL.toFixed(1)}, PI=${PI.toFixed(1)}`);
+                if (inp.check_u_line) {
+                    if (inp.LL < 16 || PI > 0.9 * (inp.LL - 8)) {
+                        notes.push("Warning: Atterberg limits plot above or left of the U-line; verify data.");
+                    }
+                }
+                if (has_valid_ll_dry) notes.push(`LL_dry/LL=${inp.LL_dry.toFixed(1)}/${inp.LL.toFixed(1)}`);
+            }
+
+            let plus200 = inp.pct_sand + inp.pct_gravel;
+            let desc = base_name;
+            if (plus200 >= 30) {
+                if (inp.pct_sand >= inp.pct_gravel) {
+                    desc = `Sandy ${base_name.toLowerCase()}`;
+                    if (inp.pct_gravel >= 15) desc += " with gravel";
+                } else {
+                    desc = `Gravelly ${base_name.toLowerCase()}`;
+                    if (inp.pct_sand >= 15) desc += " with sand";
+                }
+            } else if (plus200 >= 15 && plus200 < 30) {
+                desc = (inp.pct_sand >= inp.pct_gravel) ? `${base_name} with sand` : `${base_name} with gravel`;
+            }
+
+            name = desc;
+
+        } else {
+            // COARSE-GRAINED BRANCH
+            let coarse_fraction = 100.0 - fines;
+            let pct_gravel_in_coarse = coarse_fraction > 0 ? (inp.pct_gravel / coarse_fraction * 100.0) : 0.0;
+            is_gravel = pct_gravel_in_coarse > 50.0;
+            let major = is_gravel ? "G" : "S";
+            
+            if (fines <= 12.0 && (inp.Cu === null || inp.Cc === null)) {
+                throw new Error("Cu and Cc are required for coarse-grained soils when fines <=12% to determine well- vs poorly graded.");
+            }
+
+            let wg_ok = (inp.Cu !== null && inp.Cc !== null &&
+                        ((is_gravel && inp.Cu >= 4 && inp.Cc >= 1 && inp.Cc <= 3) ||
+                         (!is_gravel && inp.Cu >= 6 && inp.Cc >= 1 && inp.Cc <= 3)));
+
+            let fines_group = null;
+            let has_limits = (inp.LL !== null && inp.PL !== null);
+
+            if (has_limits) {
+                PI = Math.max(inp.LL - inp.PL, 0.0);
+                let fg = classify_fines_group(inp.LL, PI);
+                if (["ML", "MH"].includes(fg)) fines_group = "M";
+                else if (["CL", "CH", "CL-ML"].includes(fg)) fines_group = "C";
+            }
+
+            let other = is_gravel ? "sand" : "gravel";
+            let other_pct = is_gravel ? inp.pct_sand : inp.pct_gravel;
+
+            if (fines < 5) {
+                let grad = wg_ok ? "W" : "P";
+                symbol = `${major}${grad}`;
+                base_name = (grad === "W" ? "Well-graded " : "Poorly graded ") + (is_gravel ? "gravel" : "sand");
+                if (other_pct >= 15) base_name += ` with ${other}`;
+                name = base_name;
+            } else if (fines >= 5 && fines <= 12) {
+                if (fines_group === null) {
+                    if (inp.allow_coarse_np_fallback) { fines_group = "M"; notes.push("No LL/PL provided; assumed NP (M)."); }
+                    else throw new Error("LL and PL required to assign dual symbol for 5–12% fines in coarse-grained soils.");
+                }
+                let grad = wg_ok ? "W" : "P";
+                symbol = `${major}${grad}-${major}${fines_group}`;
+                let ftext = fines_group === "M" ? "silt" : "clay";
+                base_name = (grad === "W" ? "Well-graded " : "Poorly graded ") + (is_gravel ? "gravel" : "sand") + ` with ${ftext}`;
+                if (other_pct >= 15) base_name += ` and ${other}`;
+                name = base_name;
+            } else {
+                // fines > 12%
+                if (fines_group === null) {
+                    if (inp.allow_coarse_np_fallback) { fines_group = "M"; notes.push("No LL/PL provided; assumed NP (M)."); }
+                    else throw new Error("LL and PL required to classify coarse soils with fines >12% and <50% (GM/GC/SM/SC).");
+                }
+                symbol = `${major}${fines_group}`;
+                let ftext = fines_group === "M" ? "silty" : "clayey";
+                base_name = `${ftext} ` + (is_gravel ? "gravel" : "sand");
+                if (other_pct >= 15) base_name += ` with ${other}`;
+                name = base_name;
+
+                let has_valid_ll_dry = (inp.LL_dry !== null && inp.LL !== null && inp.LL > 0);
+                if (has_valid_ll_dry && (inp.LL_dry / inp.LL <= 0.75)) {
+                    name += name.toLowerCase().includes(" with ") ? " and organic fines" : " with organic fines";
+                    notes.push(`LL_dry/LL=${inp.LL_dry.toFixed(1)}/${inp.LL.toFixed(1)}`);
+                }
+            }
+            
+            if (inp.Cu !== null && inp.Cc !== null) notes.push(`Cu=${inp.Cu.toFixed(2)}, Cc=${inp.Cc.toFixed(2)}`);
+            if (PI !== null && inp.LL !== null && inp.PL !== null) {
+                notes.push(`LL=${inp.LL.toFixed(1)}, PL=${inp.PL.toFixed(1)}, PI=${PI.toFixed(1)}`);
+                if (inp.check_u_line) {
+                    if (inp.LL < 16 || PI > 0.9 * (inp.LL - 8)) {
+                        notes.push("Warning: Atterberg limits plot above or left of the U-line; verify data.");
+                    }
+                }
+            }
+        }
+
+        if (inp.cobbles) name += " (with cobbles)";
+        if (inp.boulders) name += " (with boulders)";
+
+        // Capitalize for USCS Standard Description format
+        let words = name.split(" ");
+        let sk = {"gravel": "GRAVEL", "sand": "SAND", "clay": "CLAY", "silt": "SILT"};
+        for (let i=0; i<words.length; i++) {
+            let lw = words[i].toLowerCase().replace(",", "");
+            if (sk[lw]) words[i] = sk[lw];
+            else if (!["with", "and"].includes(lw)) words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1);
+            
+            if (words[i-1] === "with" && sk[lw]) words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1).toLowerCase();
+        }
+        name = words.join(" ").replace("Well-graded", "Well-Graded").replace("Poorly graded", "Poorly Graded");
+
+        return { symbol, name: `${name} (${symbol})`, notes: notes.join("; ") };
+    }
+
+    function runClassification() {
+        const box = document.getElementById('resultBox');
+        const sOut = document.getElementById('outSymbol');
+        const dOut = document.getElementById('outDescription');
+        const nOut = document.getElementById('outNotes');
+
+        box.style.display = 'block';
+        box.className = '';
+
+        document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+        let reqIds = ['pct_gravel', 'pct_sand', 'pct_fines'];
+        let finesVal = getVal('pct_fines');
+        if (finesVal !== null) {
+            if (finesVal >= 50 && !getBool('allow_fine_np_fallback')) reqIds.push('ll', 'pl');
+            if (finesVal < 50) {
+                if (finesVal <= 12) reqIds.push('cu', 'cc');
+                if (finesVal >= 5 && !getBool('allow_coarse_np_fallback')) reqIds.push('ll', 'pl');
+            }
+        }
+        reqIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.value.trim() === '') el.classList.add('input-error');
+        });
+
+        try {
+            const inp = {
+                pct_gravel: getVal('pct_gravel'),
+                pct_sand: getVal('pct_sand'),
+                pct_fines: getVal('pct_fines'),
+                Cu: getVal('cu'),
+                Cc: getVal('cc'),
+                LL: getVal('ll'),
+                PL: getVal('pl'),
+                LL_dry: getVal('ll_dry'),
+                organic_content: getVal('organic_content'),
+                cobbles: getBool('cobbles'),
+                boulders: getBool('boulders'),
+                allow_organic_fallback: getBool('allow_organic_fallback'),
+                allow_coarse_np_fallback: getBool('allow_coarse_np_fallback'),
+                allow_fine_np_fallback: getBool('allow_fine_np_fallback'),
+                check_u_line: getBool('check_u_line')
+            };
+
+            const res = classify_soil(inp);
+            
+            box.classList.add('success');
+            sOut.innerText = `Symbol: ${res.symbol}`;
+            dOut.innerText = res.name;
+            nOut.innerText = res.notes ? `Notes: ${res.notes}` : "";
+            
+        } catch (err) {
+            box.classList.add('error');
+            sOut.innerText = "Classification Error";
+            dOut.innerText = err.message;
+            nOut.innerText = "";
+        }
+    }
+
+    document.addEventListener('input', function(e) {
+        if (e.target.classList && e.target.classList.contains('input-error')) {
+            e.target.classList.remove('input-error');
+        }
+    });
+</script>
+</body>
+</html>

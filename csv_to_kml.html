@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV to KML Converter</title>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px;
+            background: #fff;
+            margin-bottom: 1rem;
+            transition: border-color 0.3s;
+        }
+        .upload-area:hover {
+            border-color: #0066cc;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button {
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            background: #0052a3;
+        }
+        #log {
+            margin-top: 1.5rem;
+            background: #222;
+            color: #0f0;
+            padding: 1rem;
+            border-radius: 4px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .progress {
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="legacy-top-bar">
+      <div></div>
+      <div class="legacy-actions">
+        <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+      </div>
+    </div>
+    <h1>📍 CSV to KML Converter</h1>
+    <p>Select a <strong>.csv</strong> file below. It will be processed <strong>locally in your browser</strong> to generate a KML file.</p>
+    
+    <div class="upload-area">
+        <input type="file" id="fileInput" accept=".csv" style="font-size: 16px;">
+    </div>
+
+    <div class="form-group">
+        <label for="latCol">Latitude Column Name</label>
+        <input type="text" id="latCol" value="latitude">
+    </div>
+    <div class="form-group">
+        <label for="lonCol">Longitude Column Name</label>
+        <input type="text" id="lonCol" value="longitude">
+    </div>
+    <div class="form-group">
+        <label for="nameCol">Placemark Name Column</label>
+        <input type="text" id="nameCol" value="name">
+    </div>
+    <div class="form-group">
+        <label for="altCol">Altitude Column Name (Optional)</label>
+        <input type="text" id="altCol" value="">
+    </div>
+
+    <button id="processBtn">Convert to KML</button>
+
+    <div class="progress" id="progressText"></div>
+    <div id="log">Waiting for file...</div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const latColInput = document.getElementById('latCol');
+    const lonColInput = document.getElementById('lonCol');
+    const nameColInput = document.getElementById('nameCol');
+    const altColInput = document.getElementById('altCol');
+    const processBtn = document.getElementById('processBtn');
+    const logDiv = document.getElementById('log');
+    const progressText = document.getElementById('progressText');
+
+    function log(message) {
+        const p = document.createElement('div');
+        p.textContent = message;
+        logDiv.appendChild(p);
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    // Simple CSV parser that handles basic quotes
+    function parseCSV(text) {
+        const lines = text.split(/\r?\n/);
+        const result = [];
+        for (let line of lines) {
+            if (!line.trim()) continue;
+            const rowArr = [];
+            let inQuotes = false;
+            let currentVal = '';
+            for (let i = 0; i < line.length; i++) {
+                let char = line[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    rowArr.push(currentVal);
+                    currentVal = '';
+                } else {
+                    currentVal += char;
+                }
+            }
+            rowArr.push(currentVal);
+            result.push(rowArr.map(v => v.replace(/^"|"$/g, '').trim()));
+        }
+        return result;
+    }
+
+    processBtn.addEventListener('click', async () => {
+        const files = fileInput.files;
+        if (files.length === 0) {
+            alert("Please select a CSV file first!");
+            return;
+        }
+
+        const file = files[0];
+        const latColName = latColInput.value.trim();
+        const lonColName = lonColInput.value.trim();
+        const nameColName = nameColInput.value.trim();
+        const altColName = altColInput.value.trim();
+
+        if (!latColName || !lonColName || !nameColName) {
+            alert("Please provide the column names for Latitude, Longitude, and Name.");
+            return;
+        }
+
+        processBtn.disabled = true;
+        logDiv.innerHTML = '';
+        progressText.textContent = "Reading file...";
+
+        try {
+            log(`Reading CSV file: ${file.name}`);
+            const text = await file.text();
+            
+            log("Parsing CSV data...");
+            const rows = parseCSV(text);
+            
+            if (rows.length < 2) {
+                throw new Error("CSV file must contain a header row and at least one data row.");
+            }
+
+            const headers = rows[0];
+            const latIdx = headers.indexOf(latColName);
+            const lonIdx = headers.indexOf(lonColName);
+            const nameIdx = headers.indexOf(nameColName);
+
+            if (latIdx === -1 || lonIdx === -1) {
+                throw new Error(`Could not find coordinate columns '${latColName}' or '${lonColName}'. Available columns: ${headers.join(', ')}`);
+            }
+
+            const altIdx = altColName ? headers.indexOf(altColName) : -1;
+            if (altColName && altIdx === -1) {
+                log(`[Warning] Altitude column '${altColName}' not found. Defaulting to 0.`);
+            }
+
+            let placemarks = '';
+            let validPoints = 0;
+
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                
+                // Skip malformed rows
+                if (row.length <= Math.max(latIdx, lonIdx)) continue;
+
+                const latStr = row[latIdx];
+                const lonStr = row[lonIdx];
+                const nameStr = nameIdx !== -1 && row.length > nameIdx ? row[nameIdx] : `Point ${i}`;
+                const altStr = altIdx !== -1 && row.length > altIdx ? row[altIdx] : "0";
+
+                const lat = parseFloat(latStr);
+                const lon = parseFloat(lonStr);
+                let alt = parseFloat(altStr);
+                
+                if (isNaN(alt)) alt = 0.0;
+
+                if (!isNaN(lat) && !isNaN(lon)) {
+                    placemarks += `
+      <Placemark>
+        <name><![CDATA[${nameStr}]]></name>
+        <Point>
+          <coordinates>${lon},${lat},${alt}</coordinates>
+        </Point>
+      </Placemark>`;
+                    validPoints++;
+                } else {
+                    log(`[Warning] Skipping row ${i + 1} due to invalid coordinates: ${latStr}, ${lonStr}`);
+                }
+            }
+
+            if (validPoints === 0) {
+                throw new Error("No valid coordinates found in the CSV to create KML.");
+            }
+
+            log(`Successfully parsed ${validPoints} point(s). Generating KML...`);
+            
+            const kmlHeader = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n  <Document>\n    <name>Exported Points</name>\n`;
+            const kmlFooter = `  </Document>\n</kml>`;
+            const kmlContent = kmlHeader + placemarks + "\n" + kmlFooter;
+
+            progressText.textContent = "Downloading KML...";
+
+            const blob = new Blob([kmlContent], { type: 'application/vnd.google-earth.kml+xml;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            
+            let outName = file.name.replace(/\.[^/.]+$/, "") + "_converted.kml";
+            link.download = outName;
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            log("✅ KML generated and downloaded successfully!");
+            progressText.textContent = "Done!";
+
+        } catch (error) {
+            log(`[Error] ${error.message}`);
+            progressText.textContent = "An error occurred.";
+        }
+
+        processBtn.disabled = false;
+    });
+</script>
+
+</body>
+</html>

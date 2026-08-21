@@ -1,0 +1,445 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retaining Wall Stability Calculator</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 1000px; margin: 2rem auto; padding: 0 1rem; color: #333; line-height: 1.6; }
+        .container { background: #f9f9f9; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { margin-top: 0; color: #2c3e50; }
+        .section-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 1rem; color: #2c3e50; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem; margin-top: 1.5rem; }
+        .form-row { display: flex; gap: 1rem; margin-bottom: 1rem; }
+        @media (max-width: 768px) { .form-row { flex-direction: column; } }
+        .form-group { flex: 1; display: flex; flex-direction: column; }
+        label { font-weight: 600; margin-bottom: 0.25rem; font-size: 0.9rem; }
+        input { padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; box-sizing: border-box; }
+        .hidden { display: none !important; }
+        button { width: 100%; background: #0066cc; color: white; border: none; padding: 12px; font-size: 1.1rem; font-weight: bold; border-radius: 4px; cursor: pointer; margin-top: 1.5rem; transition: background 0.2s; }
+        button:hover { background: #0052a3; }
+        .result-box { margin-top: 1.5rem; padding: 1rem; background: #eef7ff; border-left: 5px solid #0066cc; border-radius: 4px; text-align: center; }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+        .result-item { background: #fff; padding: 1rem; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .result-value { font-size: 1.8rem; font-weight: bold; color: #004080; }
+        .input-error { border: 2px solid #e74c3c !important; background-color: #fdf2f2 !important; }
+        .error-msg { color: #e74c3c; font-weight: bold; margin-top: 1rem; text-align: center; }
+        /* Unit Toggle Styles */
+        .unit-toggle-bar { display:flex; justify-content:flex-end; margin-bottom:1rem; }
+        .unit-toggle-btn { width:auto !important; padding:7px 16px; font-size:0.85rem;
+            border-radius:8px; background:#0066cc; color:white; border:none; cursor:pointer;
+            font-weight:600; transition:background 0.2s; }
+        .unit-toggle-btn:hover { background:#004fa3; }
+        .unit-toggle-btn.imperial { background:#7c3aed; }    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="legacy-top-bar">
+    <div class="legacy-actions">
+      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+    </div>
+  </div>
+    <h2>🧱 Retaining Wall Stability Calculator</h2>
+    <p>Calculate sliding, overturning, and bearing pressures for a cantilever retaining wall.</p>
+
+    <div class="section-title">1. Wall Geometry</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label for="rw-hStem">Stem Height (H<sub>stem</sub>)</label>
+            <input type="number" id="rw-hStem" step="any" placeholder="e.g., 4.0">
+        </div>
+        <div class="form-group">
+            <label for="rw-tStem">Stem Thickness (t<sub>stem</sub>)</label>
+            <input type="number" id="rw-tStem" step="any" placeholder="e.g., 0.4">
+        </div>
+        <div class="form-group">
+            <label for="rw-tBase">Base Thickness (t<sub>base</sub>)</label>
+            <input type="number" id="rw-tBase" step="any" placeholder="e.g., 0.5">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group">
+            <label for="rw-B">Total Base Width (B) [<span data-unit="length">m</span>]</label>
+            <input type="number" id="rw-B" step="any" placeholder="e.g., 3.0">
+        </div>
+        <div class="form-group">
+            <label for="rw-toe">Toe Width (B<sub>toe</sub>)</label>
+            <input type="number" id="rw-toe" step="any" placeholder="e.g., 0.8">
+        </div>
+        <div class="form-group">
+            <label for="rw-gammaC">Concrete Unit Wt. (&gamma;<sub>c</sub>)</label>
+            <input type="number" id="rw-gammaC" step="any" placeholder="e.g., 24.0" value="24.0">
+        </div>
+    </div>
+
+    <div class="section-title">2. Retained Soil (Backfill)</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label for="rw-gamma1">Unit Weight (&gamma;<sub>1</sub>)</label>
+            <input type="number" id="rw-gamma1" step="any" placeholder="e.g., 18.0">
+        </div>
+        <div class="form-group">
+            <label for="rw-phi1">Friction Angle (&phi;<sub>1</sub>&deg;)</label>
+            <input type="number" id="rw-phi1" step="any" placeholder="e.g., 32">
+        </div>
+        <div class="form-group">
+            <label for="rw-q">Uniform Surcharge (q) [<span data-unit="pressure">kPa</span>]</label>
+            <input type="number" id="rw-q" step="any" value="0" placeholder="e.g., 10">
+        </div>
+    </div>
+
+    <div class="section-title">3. Foundation Soil</div>
+    <div class="form-row">
+        <div class="form-group">
+            <label for="rw-phi2">Friction Angle (&phi;<sub>2</sub>&deg;)</label>
+            <input type="number" id="rw-phi2" step="any" placeholder="e.g., 30">
+        </div>
+        <div class="form-group">
+            <label for="rw-c2">Cohesion (c<sub>2</sub>)</label>
+            <input type="number" id="rw-c2" step="any" value="0" placeholder="e.g., 0">
+        </div>
+        <div class="form-group">
+            <label for="rw-k">Base Friction Multiplier (k)</label>
+            <input type="number" id="rw-k" step="any" value="0.67" title="Multiplier for phi and cohesion (typically 0.67)">
+        </div>
+    </div>
+
+    <div class="section-title">Cross-Section Sketch</div>
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+        <canvas id="rw-diagram" width="800" height="350" style="max-width: 100%; height: auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; box-shadow: inset 0 0 5px rgba(0,0,0,0.05);"></canvas>
+    </div>
+
+    <button id="rw-calc-btn">Calculate Stability</button>
+    <div id="rw-error" class="error-msg hidden"></div>
+
+    <div id="rw-resultBox" class="result-box hidden">
+        <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;">Analysis Results</div>
+        <div id="rw-results-container"></div>
+    </div>
+</div>
+
+<script>
+    function drawDiagram() {
+        const canvas = document.getElementById('rw-diagram');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        
+        // Fixed proportions for generic sketch
+        const hStem = 4.0;
+        const tStem = 0.4;
+        const tBase = 0.5;
+        const B = 3.0;
+        const toe = 0.8;
+        const H = hStem + tBase;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const padX = Math.max(B * 0.4, 1.0);
+        const padY = Math.max(H * 0.3, 1.0);
+        const minX = -padX, maxX = B + padX;
+        const minY = -padY * 0.5, maxY = H + padY;
+        const rangeX = maxX - minX, rangeY = maxY - minY;
+        
+        const scale = Math.min(canvas.width / rangeX, canvas.height / rangeY);
+        const cx = (x) => (x - minX) * scale + (canvas.width - rangeX * scale) / 2;
+        const cy = (y) => canvas.height - ((y - minY) * scale + (canvas.height - rangeY * scale) / 2);
+        
+        // Foundation Soil
+        ctx.fillStyle = '#e6dabb';
+        ctx.fillRect(0, cy(0), canvas.width, canvas.height - cy(0));
+        
+        // Retained Soil (Active)
+        ctx.fillStyle = '#d4c4a8';
+        ctx.beginPath(); ctx.moveTo(cx(toe + tStem), cy(H)); ctx.lineTo(cx(maxX), cy(H)); ctx.lineTo(cx(maxX), cy(0)); ctx.lineTo(cx(B), cy(0)); ctx.lineTo(cx(B), cy(tBase)); ctx.lineTo(cx(toe + tStem), cy(tBase)); ctx.fill();
+
+        // Passive Soil
+        ctx.beginPath(); ctx.moveTo(cx(minX), cy(tBase)); ctx.lineTo(cx(toe), cy(tBase)); ctx.lineTo(cx(0), cy(tBase)); ctx.lineTo(cx(0), cy(0)); ctx.lineTo(cx(minX), cy(0)); ctx.fill();
+
+        // Ground Surface Lines
+        ctx.strokeStyle = '#8d6e63'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(cx(minX), cy(tBase)); ctx.lineTo(cx(toe), cy(tBase)); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx(toe + tStem), cy(H)); ctx.lineTo(cx(maxX), cy(H)); ctx.stroke();
+
+        // Concrete Wall
+        ctx.fillStyle = '#bdc3c7'; ctx.strokeStyle = '#2c3e50'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(cx(0), cy(0)); ctx.lineTo(cx(B), cy(0)); ctx.lineTo(cx(B), cy(tBase)); ctx.lineTo(cx(toe + tStem), cy(tBase)); ctx.lineTo(cx(toe + tStem), cy(H)); ctx.lineTo(cx(toe), cy(H)); ctx.lineTo(cx(toe), cy(tBase)); ctx.lineTo(cx(0), cy(tBase)); ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        // Surcharge Arrows
+        ctx.fillStyle = '#e74c3c'; ctx.font = 'italic 14px Arial'; ctx.textAlign = 'center'; 
+        ctx.fillText('q (Surcharge)', cx((toe + tStem + maxX)/2), cy(H) - 25);
+        ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 2;
+        for (let i = 1; 5 >= i; i++) {
+            let ax = cx(toe + tStem + (maxX - toe - tStem) * i / 6), ay = cy(H) - 5;
+            ctx.beginPath(); ctx.moveTo(ax, ay - 15); ctx.lineTo(ax, ay); ctx.lineTo(ax - 4, ay - 4); ctx.moveTo(ax, ay); ctx.lineTo(ax + 4, ay - 4); ctx.stroke();
+        }
+        
+        // Dimensions
+        function drawDim(x1, y1, x2, y2, label, offsetX, offsetY) {
+            ctx.strokeStyle = '#2980b9'; ctx.lineWidth = 1.5; ctx.fillStyle = '#2980b9'; ctx.font = 'bold 14px Arial';
+            ctx.beginPath(); ctx.moveTo(cx(x1), cy(y1)); ctx.lineTo(cx(x2), cy(y2)); ctx.stroke();
+            if (y1 === y2) { // Horizontal
+                ctx.beginPath(); ctx.moveTo(cx(x1), cy(y1)-5); ctx.lineTo(cx(x1), cy(y1)+5); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx(x2), cy(y2)-5); ctx.lineTo(cx(x2), cy(y2)+5); ctx.stroke();
+                ctx.textAlign = 'center'; ctx.fillText(label, cx((x1+x2)/2) + offsetX, cy(y1) + offsetY);
+            } else { // Vertical
+                ctx.beginPath(); ctx.moveTo(cx(x1)-5, cy(y1)); ctx.lineTo(cx(x1)+5, cy(y1)); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx(x2)-5, cy(y2)); ctx.lineTo(cx(x2)+5, cy(y2)); ctx.stroke();
+                ctx.textAlign = offsetX < 0 ? 'right' : 'left';
+                ctx.fillText(label, cx(x1) + offsetX, cy((y1+y2)/2) + offsetY);
+            }
+        }
+
+        drawDim(0, -0.3, B, -0.3, 'B', 0, 15);
+        drawDim(0, tBase + 0.2, toe, tBase + 0.2, 'B_toe', 0, -8);
+        drawDim(toe, H + 0.2, toe + tStem, H + 0.2, 't_stem', 0, -8);
+        drawDim(B + 0.3, 0, B + 0.3, tBase, 't_base', 8, 4);
+        drawDim(B + 0.3, tBase, B + 0.3, H, 'H_stem', 8, 4);
+        drawDim(-0.3, 0, -0.3, H, 'H', -8, 4);
+    }
+
+    drawDiagram();
+
+    document.getElementById('rw-calc-btn').addEventListener('click', function() {
+        document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+        const errorDiv = document.getElementById('rw-error');
+        errorDiv.classList.add('hidden');
+        document.getElementById('rw-resultBox').classList.add('hidden');
+
+        const reqIds = ['rw-hStem', 'rw-tStem', 'rw-tBase', 'rw-B', 'rw-toe', 'rw-gammaC', 'rw-gamma1', 'rw-phi1', 'rw-phi2'];
+        let hasError = false;
+        
+        reqIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (!el || el.value.trim() === '') {
+                if (el) el.classList.add('input-error');
+                hasError = true;
+            }
+        });
+
+        if (hasError) {
+            errorDiv.innerText = "Please fill in all required highlighted fields.";
+            errorDiv.classList.remove('hidden');
+            return;
+        }
+
+        const hStem = parseFloat(document.getElementById('rw-hStem').value);
+        const tStem = parseFloat(document.getElementById('rw-tStem').value);
+        const B = parseFloat(document.getElementById('rw-B').value);
+        const tBase = parseFloat(document.getElementById('rw-tBase').value);
+        const toe = parseFloat(document.getElementById('rw-toe').value);
+        const gammaC = parseFloat(document.getElementById('rw-gammaC').value);
+        const gamma1 = parseFloat(document.getElementById('rw-gamma1').value);
+        const phi1 = parseFloat(document.getElementById('rw-phi1').value);
+        const q = parseFloat(document.getElementById('rw-q').value) || 0;
+        const phi2 = parseFloat(document.getElementById('rw-phi2').value);
+        const c2 = parseFloat(document.getElementById('rw-c2').value) || 0;
+        const k = parseFloat(document.getElementById('rw-k').value) || 0.67;
+
+        const heel = B - toe - tStem;
+        if (0 > heel) {
+            document.getElementById('rw-B').classList.add('input-error');
+            document.getElementById('rw-toe').classList.add('input-error');
+            document.getElementById('rw-tStem').classList.add('input-error');
+            errorDiv.innerText = "Error: Base width (B) is less than Toe + Stem thickness.";
+            errorDiv.classList.remove('hidden');
+            return;
+        }
+
+        const H = hStem + tBase;
+        const Ka = Math.pow(Math.tan((45 - phi1/2) * Math.PI/180), 2);
+
+        const Pa = 0.5 * Ka * gamma1 * H * H;
+        const Pq = q * Ka * H;
+        const totalDriving = Pa + Pq;
+        const Mo = Pa * (H / 3) + Pq * (H / 2);
+
+        const W_stem = hStem * tStem * gammaC;
+        const x_stem = toe + tStem / 2;
+        const W_base = B * tBase * gammaC;
+        const x_base = B / 2;
+        const W_soil = hStem * heel * gamma1;
+        const x_soil = toe + tStem + heel / 2;
+        const W_sur = q * heel;
+        const x_sur = x_soil;
+
+        const V = W_stem + W_base + W_soil + W_sur;
+        const Mr = W_stem * x_stem + W_base * x_base + W_soil * x_soil + W_sur * x_sur;
+
+        const delta = k * phi2 * Math.PI/180;
+        const ca = k * c2;
+        const Fr = V * Math.tan(delta) + ca * B;
+        const FS_sliding = totalDriving > 0 ? Fr / totalDriving : 999;
+        const FS_overturning = Mo > 0 ? Mr / Mo : 999;
+
+        const x_bar = V > 0 ? (Mr - Mo) / V : 0;
+        const e = B / 2 - x_bar;
+        const b_over_6 = B / 6;
+        
+        let q_toe = 0, q_heel = 0;
+        if (b_over_6 >= Math.abs(e)) {
+            q_toe = (V / B) * (1 + 6 * e / B);
+            q_heel = (V / B) * (1 - 6 * e / B);
+        } else {
+            const B_eff = 3 * x_bar;
+            if (B_eff > 0) {
+                q_toe = (2 * V) / B_eff;
+                q_heel = 0;
+            }
+        }
+
+        const slideColor = FS_sliding >= 1.5 ? '#27ae60' : '#c0392b';
+        const overColor = FS_overturning >= 2.0 ? '#27ae60' : '#c0392b';
+        const eccColor = b_over_6 >= Math.abs(e) ? '#27ae60' : '#e67e22';
+        const eccText = b_over_6 >= Math.abs(e) ? 'Resultant is within the middle third (No tension).' : 'Resultant is outside the middle third! (Tension at heel)';
+
+        const resultHtml = `
+            <div class="result-grid">
+                <div class="result-item">
+                    <div style="font-size:0.9rem; color:#555;">FS Sliding</div>
+                    <div class="result-value" style="color: ${slideColor}">${FS_sliding.toFixed(2)}</div>
+                    <div style="font-size: 0.8rem; color:#888;">Typically &ge; 1.5</div>
+                </div>
+                <div class="result-item">
+                    <div style="font-size:0.9rem; color:#555;">FS Overturning</div>
+                    <div class="result-value" style="color: ${overColor}">${FS_overturning.toFixed(2)}</div>
+                    <div style="font-size: 0.8rem; color:#888;">Typically &ge; 2.0</div>
+                </div>
+                <div class="result-item">
+                    <div style="font-size:0.9rem; color:#555;">Toe Pressure (q<sub>toe</sub>)</div>
+                    <div class="result-value">${q_toe.toFixed(1)}</div>
+                    <div style="font-size: 0.8rem; color:#888;">Pressure Units</div>
+                </div>
+                <div class="result-item">
+                    <div style="font-size:0.9rem; color:#555;">Heel Pressure (q<sub>heel</sub>)</div>
+                    <div class="result-value">${q_heel.toFixed(1)}</div>
+                    <div style="font-size: 0.8rem; color:#888;">Pressure Units</div>
+                </div>
+            </div>
+            <div style="margin-top: 1rem; font-weight: 500; color: ${eccColor}; background: #fff; padding: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                Eccentricity (e) = ${e.toFixed(3)} units <br>
+                (B/6 = ${b_over_6.toFixed(3)} units) <br>
+                <small>${eccText}</small>
+            </div>
+        `;
+
+        document.getElementById('rw-results-container').innerHTML = resultHtml;
+        document.getElementById('rw-resultBox').classList.remove('hidden');
+    });
+
+    document.addEventListener('input', function(e) {
+        if (e.target.classList && e.target.classList.contains('input-error')) {
+            e.target.classList.remove('input-error');
+        }
+    });
+
+    // ── Unit System ────────────────────────────────────────────────────
+    const TO_IMP_RW = {length:3.28084,settlement:0.0393701,pressure:0.020885,unitweight:6.36587,force:0.224809,forcelength:0.0685218,cv:10.7639,pymodulus:0.003684};
+    const TO_MET_RW = Object.fromEntries(Object.entries(TO_IMP_RW).map(([k,v])=>[k,1/v]));
+    const LABELS_RW = {length:{metric:'m',imperial:'ft'},settlement:{metric:'mm',imperial:'in'},pressure:{metric:'kPa',imperial:'ksf'},unitweight:{metric:'kN/m³',imperial:'pcf'},force:{metric:'kN',imperial:'kip'},forcelength:{metric:'kN/m',imperial:'kip/ft'},cv:{metric:'m²/yr',imperial:'ft²/yr'},pymodulus:{metric:'kN/m³',imperial:'pci'}};
+    let unitSystem = 'metric';
+    function toDisp(v,qty){return unitSystem==='metric'?v:(TO_IMP_RW[qty]?v*TO_IMP_RW[qty]:v);}
+    function toMet(v,qty) {return unitSystem==='metric'?v:(TO_MET_RW[qty]?v*TO_MET_RW[qty]:v);}
+    function unitLbl(qty) {const e=LABELS_RW[qty];return e?(unitSystem==='metric'?e.metric:e.imperial):'';}
+    function toggleUnitSystem(){
+        const old=unitSystem;
+        unitSystem=unitSystem==='metric'?'imperial':'metric';
+        localStorage.setItem('geotools-units',unitSystem);
+        const btn=document.getElementById('unit-toggle-btn');
+        btn.textContent=unitSystem==='metric'?'🌐 Switch to Imperial (US)':'📏 Switch to Metric (SI)';
+        btn.classList.toggle('imperial',unitSystem==='imperial');
+        document.querySelectorAll('[data-unit]').forEach(el=>{el.textContent=unitLbl(el.dataset.unit);});
+        onUnitSwitch(old);
+    }
+    const UNIT_FIELDS=[
+        {id:'hStem',qty:'length'},{id:'tStem',qty:'length'},{id:'tBase',qty:'length'},
+        {id:'B',qty:'length'},{id:'toe',qty:'length'},
+        {id:'gammaC',qty:'unitweight'},{id:'gamma1',qty:'unitweight'},
+        {id:'q',qty:'pressure'},{id:'c2',qty:'pressure'},
+    ];
+    function onUnitSwitch(old){
+        const f=unitSystem==='imperial'?TO_IMP_RW;
+        UNIT_FIELDS.forEach(({id,qty})=>{const el=document.getElementById(id);if(!el||el.value.trim()==='')return;const v=parseFloat(el.value);if(!isNaN(v)&&f[qty])el.value=parseFloat((v*f[qty]).toFixed(5));});
+    }
+    (function(){const s=localStorage.getItem('geotools-units');if(s==='imperial'){unitSystem='imperial';const btn=document.getElementById('unit-toggle-btn');if(btn){btn.textContent='📏 Switch to Metric (SI)';btn.classList.add('imperial');}document.querySelectorAll('[data-unit]').forEach(el=>{el.textContent=unitLbl(el.dataset.unit);});}})();
+    // ── End Unit System ────────────────────────────────────────────────
+</script>
+</body>
+</html>

@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soil Permeability Calculator (ASTM D2434 / D5084)</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+            line-height: 1.6;
+            background-color: #f4f6f8;
+        }
+        .container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-top: -10px;
+            margin-bottom: 1.5rem;
+        }
+        .tab-bar {
+            display: flex;
+            border-bottom: 2px solid #e2e8f0;
+            margin-bottom: 1.5rem;
+            gap: 0.5rem;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            width: auto;
+            margin-top: 0;
+        }
+        .tab-btn:hover {
+            color: #0066cc;
+            background: none;
+        }
+        .tab-btn.active {
+            color: #0066cc;
+            border-bottom-color: #0066cc;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #34495e;
+            border-bottom: 2px solid #e1e4e8;
+            padding-bottom: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+            .tab-bar {
+                flex-wrap: wrap;
+            }
+        }
+        .form-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+        input, select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            background: #fff;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 2px rgba(0,102,204,0.2);
+        }
+        .hint {
+            font-size: 0.8rem;
+            color: #718096;
+            margin-top: 0.25rem;
+        }
+        button.calc-btn {
+            width: 100%;
+            background: #0066cc;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: background 0.2s;
+        }
+        button.calc-btn:hover {
+            background: #0052a3;
+        }
+        .result-box {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: #f0fdf4;
+            border-left: 5px solid #10b981;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .result-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #065f46;
+            margin: 0.5rem 0;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .stat-box {
+            background: #fff;
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+        .stat-val {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: #0f766e;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+        .class-badge {
+            display: inline-block;
+            margin-top: 0.5rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .formula-box {
+            margin-top: 2rem;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 1.25rem;
+        }
+        .formula-box h3 {
+            margin-top: 0;
+            color: #334155;
+            font-size: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+        .tab-panel {
+            display: none;
+        }
+        .tab-panel.active {
+            display: block;
+        }
+        .input-error {
+            border: 2px solid #e74c3c !important;
+            background-color: #fdf2f2 !important;
+        }
+    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="legacy-top-bar">
+    <div class="legacy-actions">
+      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+    </div>
+  </div>
+
+<div id="soil-permeability-tool" class="container">
+    <h2>Soil Permeability Calculator</h2>
+    <p class="subtitle">
+        Constant Head, Falling Head & Hazen's Methods (ASTM D2434 / ASTM D5084)
+    </p>
+
+    <!-- Method Tabs -->
+    <div class="tab-bar">
+        <button type="button" class="tab-btn active" onclick="switchTab('constant')">Constant Head Test</button>
+        <button type="button" class="tab-btn" onclick="switchTab('falling')">Falling Head Test</button>
+        <button type="button" class="tab-btn" onclick="switchTab('hazen')">Hazen's Empirical</button>
+    </div>
+
+    <!-- 1. Constant Head Form -->
+    <div id="panel-constant" class="tab-panel active">
+        <div class="section-title">Constant Head Test Parameters (Coarse Soils)</div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Volume of Water Collected (V, cm³)</label>
+                <input type="number" id="ch_V" value="450" step="any" min="0">
+                <span class="hint">Water collected in graduated cylinder</span>
+            </div>
+            <div class="form-group">
+                <label>Length of Specimen (L, cm)</label>
+                <input type="number" id="ch_L" value="15.0" step="any" min="0">
+                <span class="hint">Length between manometer ports</span>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Cross-Sectional Area (A, cm²)</label>
+                <input type="number" id="ch_A" value="78.5" step="any" min="0">
+                <span class="hint">Sample area: A = π·D²/4 (D=10cm → 78.5 cm²)</span>
+            </div>
+            <div class="form-group">
+                <label>Constant Head Difference (h, cm)</label>
+                <input type="number" id="ch_h" value="40.0" step="any" min="0">
+                <span class="hint">Total head loss across specimen length</span>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Collection Time (t, s)</label>
+                <input type="number" id="ch_t" value="60" step="any" min="0">
+                <span class="hint">Duration of test collection in seconds</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Falling Head Form -->
+    <div id="panel-falling" class="tab-panel">
+        <div class="section-title">Falling Head Test Parameters (Fine Soils)</div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Standpipe Area (a, cm²)</label>
+                <input type="number" id="fh_a" value="0.5" step="any" min="0">
+                <span class="hint">Cross-sectional area of standpipe tube</span>
+            </div>
+            <div class="form-group">
+                <label>Length of Specimen (L, cm)</label>
+                <input type="number" id="fh_L" value="12.0" step="any" min="0">
+                <span class="hint">Soil sample length</span>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Sample Cross-Sectional Area (A, cm²)</label>
+                <input type="number" id="fh_A" value="45.0" step="any" min="0">
+                <span class="hint">Area of permeameter cylinder</span>
+            </div>
+            <div class="form-group">
+                <label>Initial Head (h₁, cm)</label>
+                <input type="number" id="fh_h1" value="80.0" step="any" min="0">
+                <span class="hint">Water head level at time t = 0</span>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Final Head (h₂, cm)</label>
+                <input type="number" id="fh_h2" value="35.0" step="any" min="0">
+                <span class="hint">Water head level at time t = t</span>
+            </div>
+            <div class="form-group">
+                <label>Elapsed Time (t, s)</label>
+                <input type="number" id="fh_t" value="300" step="any" min="0">
+                <span class="hint">Time interval for head drop</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Hazen's Form -->
+    <div id="panel-hazen" class="tab-panel">
+        <div class="section-title">Hazen's Empirical Estimation (Clean Sands)</div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Hazen Coefficient (C)</label>
+                <input type="number" id="hz_C" value="1.0" step="0.1" min="0">
+                <span class="hint">Empirical factor (typically 0.8 to 1.5, default 1.0)</span>
+            </div>
+            <div class="form-group">
+                <label>Effective Grain Size (D₁₀, mm)</label>
+                <input type="number" id="hz_D10" value="0.25" step="0.01" min="0">
+                <span class="hint">Grain diameter at 10% passing (from PSD curve)</span>
+            </div>
+        </div>
+    </div>
+
+    <button type="button" class="calc-btn" onclick="calculatePermeability()">Calculate Permeability</button>
+
+    <!-- Results Section -->
+    <div id="results" style="display:none;">
+        <div class="result-box">
+            <div style="font-size: 1.1rem; color: #34495e; font-weight: 600;">Hydraulic Conductivity (k)</div>
+            <div id="outK" class="result-value">0.00 cm/s</div>
+            <div id="outClass" class="class-badge">Medium Permeability</div>
+        </div>
+
+        <div class="results-grid">
+            <div class="stat-box">
+                <div class="stat-label">Permeability (m/s)</div>
+                <div id="outK_ms" class="stat-val">0.00 m/s</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Permeability (m/day)</div>
+                <div id="outK_mday" class="stat-val">0.00 m/day</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Relative Drainage</div>
+                <div id="outDrainage" class="stat-val">Good</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Typical Soil Types</div>
+                <div id="outSoilType" class="stat-val">Clean Sand</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formula & Theory Section -->
+    <div class="formula-box">
+        <h3>Governing Equations & Reference</h3>
+        <p style="font-size: 0.9rem; color: #475569;">
+            <strong>Constant Head Method (ASTM D2434):</strong><br>
+            Used for permeable coarse-grained soils ($k > 10^{-3}\text{ cm/s}$):
+            $$k = \frac{V \cdot L}{A \cdot h \cdot t}$$
+        </p>
+        <p style="font-size: 0.9rem; color: #475569;">
+            <strong>Falling Head Method (ASTM D5084):</strong><br>
+            Used for fine-grained silts and clays ($k < 10^{-3}\text{ cm/s}$):
+            $$k = \frac{a \cdot L}{A \cdot t} \ln\left(\frac{h_1}{h_2}\right) = 2.303 \frac{a \cdot L}{A \cdot t} \log_{10}\left(\frac{h_1}{h_2}\right)$$
+        </p>
+        <p style="font-size: 0.9rem; color: #475569;">
+            <strong>Hazen's Empirical Formula (Clean Sands):</strong><br>
+            Approximation based on effective grain size $D_{10}$ in mm ($C \approx 1.0$):
+            $$k = C \cdot (D_{10})^2 \quad [\text{cm/s}]$$
+        </p>
+    </div>
+</div>
+
+<script>
+
+  let currentUnitSystem = 'metric';
+  function setUnitSystem(system) {
+    currentUnitSystem = system;
+    const btnMetric = document.getElementById('btn_metric');
+    const btnImperial = document.getElementById('btn_imperial');
+    if (btnMetric && btnImperial) {
+      btnMetric.className = system === 'metric' ? 'unit-switcher-btn active' : 'unit-switcher-btn';
+      btnImperial.className = system === 'imperial' ? 'unit-switcher-btn active' : 'unit-switcher-btn';
+    }
+    if (typeof calculate === 'function') {
+      calculate();
+    } else if (typeof runCalc === 'function') {
+      runCalc();
+    }
+  }
+
+let currentTab = 'constant';
+
+function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    
+    if (tab === 'constant') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('panel-constant').classList.add('active');
+    } else if (tab === 'falling') {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('panel-falling').classList.add('active');
+    } else if (tab === 'hazen') {
+        document.querySelectorAll('.tab-btn')[2].classList.add('active');
+        document.getElementById('panel-hazen').classList.add('active');
+    }
+}
+
+function classifyPermeability(k) {
+    // k in cm/s
+    if (k >= 0.1) {
+        return {
+            category: 'High Permeability',
+            drainage: 'Excellent',
+            soil: 'Clean Gravel, Coarse Sand',
+            colorBg: '#d1fae5',
+            colorText: '#065f46'
+        };
+    } else if (k >= 1e-3) {
+        return {
+            category: 'Medium Permeability',
+            drainage: 'Good',
+            soil: 'Clean Sand, Sand-Gravel Mix',
+            colorBg: '#dbeafe',
+            colorText: '#1e40af'
+        };
+    } else if (k >= 1e-5) {
+        return {
+            category: 'Low Permeability',
+            drainage: 'Poor',
+            soil: 'Fine Sand, Silty Sand',
+            colorBg: '#fef3c7',
+            colorText: '#92400e'
+        };
+    } else if (k >= 1e-7) {
+        return {
+            category: 'Very Low Permeability',
+            drainage: 'Practically Impervious',
+            soil: 'Silt, Clayey Silt, Sandy Clay',
+            colorBg: '#fee2e2',
+            colorText: '#991b1b'
+        };
+    } else {
+        return {
+            category: 'Impermeable',
+            drainage: 'Impervious',
+            soil: 'Intact Clay, Bentonite',
+            colorBg: '#f3e8ff',
+            colorText: '#6b21a8'
+        };
+    }
+}
+
+function formatSci(val) {
+    if (val === 0) return '0.00';
+    if (val < 0.001 || val >= 1000) {
+        return val.toExponential(3);
+    }
+    return val.toPrecision(4);
+}
+
+function calculatePermeability() {
+    let k_cms = 0; // cm/s
+
+    if (currentTab === 'constant') {
+        const V = parseFloat(document.getElementById('ch_V').value);
+        const L = parseFloat(document.getElementById('ch_L').value);
+        const A = parseFloat(document.getElementById('ch_A').value);
+        const h = parseFloat(document.getElementById('ch_h').value);
+        const t = parseFloat(document.getElementById('ch_t').value);
+
+        if ([V, L, A, h, t].some(isNaN) || A <= 0 || h <= 0 || t <= 0) {
+            alert('Please enter valid positive values for all Constant Head fields.');
+            return;
+        }
+        k_cms = (V * L) / (A * h * t);
+
+    } else if (currentTab === 'falling') {
+        const a = parseFloat(document.getElementById('fh_a').value);
+        const L = parseFloat(document.getElementById('fh_L').value);
+        const A = parseFloat(document.getElementById('fh_A').value);
+        const h1 = parseFloat(document.getElementById('fh_h1').value);
+        const h2 = parseFloat(document.getElementById('fh_h2').value);
+        const t = parseFloat(document.getElementById('fh_t').value);
+
+        if ([a, L, A, h1, h2, t].some(isNaN) || A <= 0 || h1 <= 0 || h2 <= 0 || t <= 0) {
+            alert('Please enter valid positive values for all Falling Head fields.');
+            return;
+        }
+        if (h1 <= h2) {
+            alert('Initial head (h₁) must be greater than final head (h₂).');
+            return;
+        }
+        k_cms = ((a * L) / (A * t)) * Math.log(h1 / h2);
+
+    } else if (currentTab === 'hazen') {
+        const C = parseFloat(document.getElementById('hz_C').value);
+        const D10 = parseFloat(document.getElementById('hz_D10').value);
+
+        if ([C, D10].some(isNaN) || D10 < 0 || C <= 0) {
+            alert("Please enter valid positive values for Hazen's parameters.");
+            return;
+        }
+        k_cms = C * Math.pow(D10, 2);
+    }
+
+    const k_ms = k_cms * 0.01; // cm/s -> m/s
+    const k_mday = k_cms * 864.0; // cm/s -> m/day (0.01 * 86400)
+    const info = classifyPermeability(k_cms);
+
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('outK').textContent = formatSci(k_cms) + ' cm/s';
+    document.getElementById('outK_ms').textContent = formatSci(k_ms) + ' m/s';
+    document.getElementById('outK_mday').textContent = formatSci(k_mday) + ' m/day';
+    document.getElementById('outDrainage').textContent = info.drainage;
+    document.getElementById('outSoilType').textContent = info.soil;
+
+    const badge = document.getElementById('outClass');
+    badge.textContent = info.category;
+    badge.style.backgroundColor = info.colorBg;
+    badge.style.color = info.colorText;
+
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    calculatePermeability();
+});
+</script>
+
+</body>
+</html>

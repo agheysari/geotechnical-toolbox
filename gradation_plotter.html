@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Particle Size Distribution (PSD) Plotter</title>
+
+    <!-- Plotly.js for charts -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <!-- PapaParse for CSV reading -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            background: #f9f9f9;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            padding: 1.5rem;
+            text-align: center;
+            border-radius: 8px;
+            background: #fff;
+            margin-bottom: 1rem;
+        }
+        .upload-area input {
+            font-size: 16px;
+        }
+        .mode-selector {
+            margin-bottom: 1.5rem;
+            padding: 10px;
+            background: #eef;
+            border-radius: 6px;
+        }
+        .mode-selector label {
+            margin-right: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .manual-entry {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin-bottom: 1rem;
+        }
+        .manual-entry table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1rem;
+        }
+        .manual-entry th, .manual-entry td {
+            border: 1px solid #eee;
+            padding: 0.5rem;
+            text-align: left;
+        }
+        .manual-entry input[type="text"], .manual-entry input[type="number"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 6px;
+        }
+        .btn { background: #0066cc; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .btn:hover { background: #0052a3; }
+        .btn-danger { background: #cc0000; padding: 6px 10px; }
+        .btn-danger:hover { background: #a30000; }
+        #plotArea {
+            width: 100%;
+            height: 600px;
+            margin-top: 2rem;
+            background: #fff;
+            border-radius: 4px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+        }
+        #log {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 4px;
+            background: #e8f5e9;
+            color: #2e7d32;
+            display: none;
+        }
+        #log.error {
+            background: #ffebee;
+            color: #c62828;
+            display: block;
+        }
+    .input-error {
+        border: 2px solid #e74c3c !important;
+        background-color: #fdf2f2 !important;
+    }
+    
+    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
+    .legacy-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .legacy-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .bmc-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFDD00;
+      color: #000000;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      text-decoration: none;
+      border: 1px solid #E6C800;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bmc-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    }
+    .demo-disclaimer-banner {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: #92400e;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .unit-switcher-group {
+      display: inline-flex;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #cbd5e1;
+    }
+    .unit-switcher-btn {
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      color: #64748b;
+      transition: all 0.2s;
+    }
+    .unit-switcher-btn.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="legacy-top-bar">
+      <div></div>
+      <div class="legacy-actions">
+        <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
+      <span>Buy me a coffee</span>
+    </a>
+      </div>
+    </div>
+    <h1>📈 Particle Size Distribution Plotter</h1>
+    <p>Upload a CSV file containing sieve analysis data to generate gradation envelopes.</p>
+    <ul style="font-size: 0.9rem; color: #555;">
+        <li>CSV must contain a <strong>Sieve</strong> OR <strong>Diameter</strong> (in mm) column. Standard sieves (e.g., "No. 4", "3/4&quot;") will automatically map to their diameters.</li>
+        <li>Subsequent columns represent material samples (e.g., 'Sample A').</li>
+        <li>Values can be single percentages (e.g., <code>100</code>) or ranges (e.g., <code>70-100</code>).</li>
+    </ul>
+
+    <div class="mode-selector">
+        <label><input type="radio" name="input_mode" id="modeManual" checked> Enter Data Manually</label>
+        <label><input type="radio" name="input_mode" id="modeCsv"> Upload CSV File</label>
+    </div>
+
+    <div id="manualSection" class="manual-entry">
+        <table id="manualTable">
+            <thead>
+                <tr id="manualTheadRow">
+                    <th>Sieve</th>
+                    <th>Diameter (mm)</th>
+                    <th class="mat-col-header"><input type="text" class="m-mat-name" value="Sample A" style="font-weight: bold; width: 100%; box-sizing: border-box;"></th>
+                    <th id="manualTheadAction" style="width: 50px;"></th>
+                </tr>
+            </thead>
+            <tbody id="manualTbody">
+                <!-- Rows generated via JS -->
+            </tbody>
+        </table>
+        <div>
+            <button class="btn" id="addRowBtn">+ Add Sieve</button>
+            <button class="btn" id="addSampleBtn">+ Add Sample</button>
+            <button class="btn" id="plotManualBtn" style="float: right;">Plot Manual Data</button>
+            <div style="clear: both;"></div>
+        </div>
+    </div>
+
+    <div id="csvSection" style="display: none;">
+        <div class="upload-area">
+            <input type="file" id="fileInput" accept=".csv">
+        </div>
+    </div>
+
+    <div id="log"></div>
+    <div id="plotArea"></div>
+    
+    <div id="summaryContainer" class="manual-entry" style="display: none; margin-top: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0;">Gradation Summary</h3>
+            <button class="btn" id="downloadSummaryBtn">Download CSV</button>
+        </div>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead id="summaryThead">
+            </thead>
+            <tbody id="summaryTbody">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const logDiv = document.getElementById('log');
+    const plotArea = document.getElementById('plotArea');
+    const modeCsv = document.getElementById('modeCsv');
+    const modeManual = document.getElementById('modeManual');
+    const csvSection = document.getElementById('csvSection');
+    const manualSection = document.getElementById('manualSection');
+    const manualTbody = document.getElementById('manualTbody');
+
+    const colors = [
+        'rgba(31, 119, 180, 1)', 'rgba(255, 127, 14, 1)', 'rgba(44, 160, 44, 1)',
+        'rgba(214, 39, 40, 1)', 'rgba(148, 103, 189, 1)', 'rgba(140, 86, 75, 1)',
+        'rgba(227, 119, 194, 1)', 'rgba(127, 127, 127, 1)', 'rgba(188, 189, 34, 1)',
+        'rgba(23, 190, 207, 1)'
+    ];
+
+    const sieveDict = {
+        '6"': 150.0, '5"': 125.0, '4"': 100.0, '3"': 75.0, '2.5"': 63.0, '2"': 50.0,
+        '1.5"': 37.5, '1"': 25.0, '3/4"': 19.0, '1/2"': 12.5, '3/8"': 9.5, '1/4"': 6.3,
+        'no. 4': 4.75, 'no. 8': 2.36, 'no. 10': 2.0, 'no. 16': 1.18, 'no. 20': 0.85,
+        'no. 30': 0.6, 'no. 40': 0.425, 'no. 50': 0.3, 'no. 60': 0.25, 'no. 80': 0.18,
+        'no. 100': 0.15, 'no. 140': 0.106, 'no. 200': 0.075, 'no. 270': 0.053, 'no. 400': 0.038,
+        '#4': 4.75, '#8': 2.36, '#10': 2.0, '#16': 1.18, '#20': 0.85, '#30': 0.6, 
+        '#40': 0.425, '#50': 0.3, '#60': 0.25, '#80': 0.18, '#100': 0.15, 
+        '#140': 0.106, '#200': 0.075, '#270': 0.053, '#400': 0.038
+    };
+
+    const reverseSieveDict = {
+        150.0: '6"', 125.0: '5"', 100.0: '4"', 75.0: '3"', 63.0: '2.5"', 50.0: '2"',
+        37.5: '1.5"', 25.0: '1"', 19.0: '3/4"', 12.5: '1/2"', 9.5: '3/8"', 6.3: '1/4"',
+        4.75: 'No. 4', 2.36: 'No. 8', 2.0: 'No. 10', 1.18: 'No. 16', 0.85: 'No. 20',
+        0.6: 'No. 30', 0.425: 'No. 40', 0.3: 'No. 50', 0.25: 'No. 60', 0.18: 'No. 80',
+        0.15: 'No. 100', 0.106: 'No. 140', 0.075: 'No. 200', 0.053: 'No. 270', 0.038: 'No. 400'
+    };
+
+    function getFillColor(rgbString) {
+        return rgbString.replace(', 1)', ', 0.2)');
+    }
+
+    function calcDx(diamArr, passArr, target) {
+        let pts = [];
+        for(let i=0; i<diamArr.length; i++) {
+            if(!isNaN(diamArr[i]) && !isNaN(passArr[i])) {
+                pts.push({d: diamArr[i], p: passArr[i]});
+            }
+        }
+        pts.sort((a,b) => a.p - b.p);
+        if(pts.length === 0) return NaN;
+        if(target < pts[0].p || target > pts[pts.length-1].p) return NaN;
+        for(let i=0; i<pts.length-1; i++) {
+            if(target >= pts[i].p && target <= pts[i+1].p) {
+                if(pts[i+1].p === pts[i].p) return pts[i].d;
+                let logD0 = Math.log10(pts[i].d), logD1 = Math.log10(pts[i+1].d);
+                let logD = logD0 + (logD1 - logD0) * (target - pts[i].p) / (pts[i+1].p - pts[i].p);
+                return Math.pow(10, logD);
+            }
+        }
+        return NaN;
+    }
+
+    function calcPx(diamArr, passArr, targetD) {
+        let pts = [];
+        for(let i=0; i<diamArr.length; i++) {
+            if(!isNaN(diamArr[i]) && !isNaN(passArr[i])) {
+                pts.push({d: diamArr[i], p: passArr[i]});
+            }
+        }
+        pts.sort((a,b) => a.d - b.d);
+        if(pts.length === 0) return NaN;
+        
+        if(targetD < pts[0].d) return (pts[0].p <= 0.01) ? 0.0 : NaN;
+        if(targetD > pts[pts.length-1].d) return (pts[pts.length-1].p >= 99.99) ? 100.0 : NaN;
+        
+        for(let i=0; i<pts.length-1; i++) {
+            if(targetD >= pts[i].d && targetD <= pts[i+1].d) {
+                if(pts[i+1].d === pts[i].d) return pts[i].p;
+                let logD0 = Math.log10(pts[i].d), logD1 = Math.log10(pts[i+1].d);
+                let logTarget = Math.log10(targetD);
+                return pts[i].p + (pts[i+1].p - pts[i].p) * (logTarget - logD0) / (logD1 - logD0);
+            }
+        }
+        return NaN;
+    }
+
+    function fmtRange(v1, v2) {
+        if (isNaN(v1) && isNaN(v2)) return '-';
+        if (isNaN(v1)) return v2.toFixed(2);
+        if (isNaN(v2)) return v1.toFixed(2);
+        if (Math.abs(v1 - v2) < 0.001) return v1.toFixed(2);
+        return `${Math.min(v1, v2).toFixed(2)} - ${Math.max(v1, v2).toFixed(2)}`;
+    }
+
+    function showMsg(msg, isError = false) {
+        logDiv.style.display = 'block';
+        logDiv.className = isError ? 'error' : '';
+        logDiv.textContent = msg;
+    }
+
+    // Mode Switching
+    modeCsv.addEventListener('change', () => {
+        csvSection.style.display = 'block';
+        manualSection.style.display = 'none';
+    });
+    modeManual.addEventListener('change', () => {
+        csvSection.style.display = 'none';
+        manualSection.style.display = 'block';
+    });
+
+    // Manual Entry Logic
+    function createRow(sieve = '', d = '') {
+        const tr = document.createElement('tr');
+        const matCols = document.querySelectorAll('.mat-col-header').length;
+        
+        let passCells = '';
+        for (let i = 0; i < matCols; i++) {
+            passCells += `<td><input type="text" class="m-pass" placeholder="e.g., 80-100, 100"></td>`;
+        }
+
+        tr.innerHTML = `
+            <td><input type="text" class="m-sieve" value="${sieve}" placeholder='e.g., "No. 4", "3/4""'></td>
+            <td><input type="number" class="m-d" step="any" value="${d}" placeholder="e.g., 4.75"></td>
+            ${passCells}
+            <td><button class="btn btn-danger remove-btn">X</button></td>
+        `;
+
+        document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+
+        const sieveIn = tr.querySelector('.m-sieve');
+        const dIn = tr.querySelector('.m-d');
+        sieveIn.addEventListener('input', (e) => {
+            const val = e.target.value.trim().toLowerCase();
+            if (val === '') {
+                dIn.value = '';
+            } else if (sieveDict[val] !== undefined) {
+                dIn.value = sieveDict[val];
+            } else {
+                dIn.value = '';
+            }
+        });
+
+        dIn.addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            if (!isNaN(val) && reverseSieveDict[val] !== undefined) {
+                sieveIn.value = reverseSieveDict[val];
+            } else {
+                sieveIn.value = '';
+            }
+        });
+
+        tr.querySelector('.remove-btn').addEventListener('click', () => tr.remove());
+        manualTbody.appendChild(tr);
+    }
+
+    document.getElementById('addRowBtn').addEventListener('click', () => createRow('', ''));
+
+    document.getElementById('addSampleBtn').addEventListener('click', () => {
+        const theadRow = document.getElementById('manualTheadRow');
+        const actionTh = document.getElementById('manualTheadAction');
+        const sampleCount = document.querySelectorAll('.mat-col-header').length + 1;
+        
+        const newTh = document.createElement('th');
+        newTh.className = 'mat-col-header';
+        newTh.innerHTML = `<input type="text" class="m-mat-name" value="Sample ${String.fromCharCode(64 + sampleCount)}" style="font-weight: bold; width: 100%; box-sizing: border-box;">`;
+        theadRow.insertBefore(newTh, actionTh);
+
+        const rows = manualTbody.querySelectorAll('tr');
+        rows.forEach(tr => {
+            const actionTd = tr.lastElementChild;
+            const newTd = document.createElement('td');
+            newTd.innerHTML = `<input type="text" class="m-pass" placeholder="e.g., 80-100, 100">`;
+            tr.insertBefore(newTd, actionTd);
+        });
+    });
+
+    // Prepopulate a few common sieves
+    createRow('', '');
+
+    document.getElementById('plotManualBtn').addEventListener('click', () => {
+        const rows = manualTbody.querySelectorAll('tr');
+        const matHeaders = document.querySelectorAll('.m-mat-name');
+        const data = [];
+        
+        rows.forEach(tr => {
+            const sieve = tr.querySelector('.m-sieve').value.trim();
+            const d = tr.querySelector('.m-d').value.trim();
+            const passInputs = tr.querySelectorAll('.m-pass');
+
+            let hasPass = false;
+            let rowData = { 'Sieve': sieve, 'Diameter': d };
+            
+            passInputs.forEach((input, index) => {
+                const passVal = input.value.trim();
+                if (passVal !== '') hasPass = true;
+                const matName = matHeaders[index].value.trim() || `Sample ${index + 1}`;
+                rowData[matName] = passVal;
+            });
+
+            if (hasPass && sieve === '' && d === '') {
+                tr.querySelector('.m-sieve').classList.add('input-error');
+                tr.querySelector('.m-d').classList.add('input-error');
+            }
+            if ((sieve !== '' || d !== '') && !hasPass) {
+                passInputs.forEach(input => input.classList.add('input-error'));
+            }
+
+            if (sieve !== '' || d !== '') {
+                data.push(rowData);
+            }
+        });
+
+        try {
+            if (data.length === 0) throw new Error("Please enter at least one valid sieve or diameter.");
+            processData(data);
+            showMsg("Plot generated successfully!");
+        } catch (err) {
+            showMsg(`Error: ${err.message}`, true);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                try {
+                    processData(results.data);
+                    showMsg("Plot generated successfully!");
+                } catch (err) {
+                    showMsg(`Error: ${err.message}`, true);
+                }
+            },
+            error: function(err) {
+                showMsg(`CSV Parsing Error: ${err.message}`, true);
+            }
+        });
+    });
+
+    function parseBounds(val) {
+        if (val === null || val === undefined || val === '') return [NaN, NaN];
+        let s = String(val).trim().replace(/—/g, '-').replace(/–/g, '-');
+        if (s === '') return [NaN, NaN];
+        
+        let parts;
+        if (s.includes('--')) parts = s.split('--');
+        else if (s.includes('-')) parts = s.split('-');
+        else {
+            let v = parseFloat(s);
+            return isNaN(v) ? [NaN, NaN] : [v, v];
+        }
+        
+        if (parts.length !== 2) return [NaN, NaN];
+        let lo = parseFloat(parts[0]), hi = parseFloat(parts[1]);
+        if (isNaN(lo) || isNaN(hi)) return [NaN, NaN];
+        return [Math.min(lo, hi), Math.max(lo, hi)];
+    }
+
+    function forwardFillCoarser100(arr) {
+        let res = [...arr];
+        let first100Idx = -1;
+        for(let i = 0; i < res.length; i++) {
+            if (!isNaN(res[i]) && res[i] >= 99.999999) {
+                first100Idx = i;
+                break;
+            }
+        }
+        if (first100Idx !== -1) {
+            for(let i = 0; i <= first100Idx; i++) res[i] = 100.0;
+        }
+        return res;
+    }
+
+    function interpolateLogD(dDesc, arrDesc) {
+        let res = [...arrDesc];
+        let n = res.length;
+        let validIdx = [];
+        
+        for (let i = 0; i < n; i++) if (!isNaN(res[i])) validIdx.push(i);
+        
+        if (validIdx.length >= 2) {
+            for (let i = 0; i < n; i++) {
+                if (isNaN(res[i])) {
+                    let leftIdx = -1, rightIdx = -1;
+                    for (let v of validIdx) {
+                        if (v < i) leftIdx = v;
+                        if (v > i && rightIdx === -1) rightIdx = v;
+                    }
+                    if (leftIdx !== -1 && rightIdx !== -1) {
+                        let x0 = Math.log10(dDesc[leftIdx]), x1 = Math.log10(dDesc[rightIdx]);
+                        let y0 = res[leftIdx], y1 = res[rightIdx];
+                        let x = Math.log10(dDesc[i]);
+                        res[i] = y0 + (y1 - y0) * (x - x0) / (x1 - x0);
+                    }
+                }
+            }
+        }
+        
+        for (let i = 1; i < n; i++) if (isNaN(res[i])) res[i] = res[i-1];
+        for (let i = n - 2; i >= 0; i--) if (isNaN(res[i])) res[i] = res[i+1];
+        return res;
+    }
+
+    function enforceMonotonicAndBounds(lower, upper) {
+        let lo = [...lower], up = [...upper];
+        for (let i = 1; i < lo.length; i++) lo[i] = Math.min(lo[i], lo[i-1]);
+        for (let i = 1; i < up.length; i++) up[i] = Math.min(up[i], up[i-1]);
+        
+        for (let i = 0; i < up.length; i++) {
+            up[i] = Math.max(up[i], lo[i]);
+            lo[i] = Math.max(0, Math.min(100, lo[i]));
+            up[i] = Math.max(0, Math.min(100, up[i]));
+        }
+        return {lo, up};
+    }
+
+    function processData(data) {
+        if (!data || data.length === 0) throw new Error("CSV is empty.");
+        let headers = Object.keys(data[0]);
+        let hasSieve = headers.includes('Sieve');
+        let hasDiam = headers.includes('Diameter');
+        
+        if (!hasSieve && !hasDiam) {
+            throw new Error("CSV must contain a 'Sieve' or 'Diameter' column.");
+        }
+
+        let materialCols = headers.filter(h => h !== 'Sieve' && h !== 'Diameter');
+        if (materialCols.length === 0) throw new Error("No material columns found.");
+
+        let rows = [];
+        for (let row of data) {
+            let sv = hasSieve ? String(row['Sieve'] || '').trim() : '';
+            let d = hasDiam ? parseFloat(row['Diameter']) : NaN;
+            
+            if (isNaN(d) && sv !== '') {
+                let svKey = sv.toLowerCase();
+                if (sieveDict[svKey] !== undefined) d = sieveDict[svKey];
+            }
+            if (sv === '' && !isNaN(d)) {
+                sv = String(d);
+            }
+            
+            if (!isNaN(d)) {
+                row['Diameter'] = d;
+                row['Sieve'] = sv;
+                rows.push(row);
+            }
+        }
+        if (rows.length === 0) throw new Error("No valid diameter data found.");
+        
+        rows.sort((a, b) => b.Diameter - a.Diameter); // descending (coarse to fine)
+        let diamDesc = rows.map(r => r.Diameter);
+        let sieveNamesDesc = rows.map(r => String(r.Sieve));
+
+        let traces = [];
+        let colorIdx = 0;
+        let validMaterials = [];
+        let summaryData = {
+            '% Gravel': [],
+            '% Sand': [],
+            '% Fines': [],
+            'D10 (mm)': [],
+            'D30 (mm)': [],
+            'D60 (mm)': [],
+            'D90 (mm)': [],
+            'Cu': [],
+            'Cc': []
+        };
+
+        for (let mat of materialCols) {
+            let lower = [], upper = [];
+            for (let row of rows) {
+                let [lo, hi] = parseBounds(row[mat]);
+                lower.push(lo); upper.push(hi);
+            }
+
+            if (lower.every(isNaN) && upper.every(isNaN)) continue;
+
+            validMaterials.push(mat);
+
+            lower = forwardFillCoarser100(lower);
+            upper = forwardFillCoarser100(upper);
+            lower = interpolateLogD(diamDesc, lower);
+            upper = interpolateLogD(diamDesc, upper);
+            
+            let bounds = enforceMonotonicAndBounds(lower, upper);
+            let lo = bounds.lo, up = bounds.up;
+            
+            let color = colors[colorIdx % colors.length];
+            colorIdx++;
+
+            traces.push({
+                x: diamDesc, y: up,
+                type: 'scatter', mode: 'lines',
+                line: { color: color, width: 2 },
+                name: mat, legendgroup: mat, showlegend: false, hoverinfo: 'none'
+            });
+
+            traces.push({
+                x: diamDesc, y: lo,
+                type: 'scatter', mode: 'lines',
+                line: { color: color, width: 2, dash: 'dash' },
+                fill: 'tonexty', fillcolor: getFillColor(color),
+                name: mat, legendgroup: mat,
+                hovertemplate: '<b>%{data.name}</b><br>Diameter: %{x} mm<br>Passing: %{y:.1f}%<extra></extra>'
+            });
+            
+            let p76_lo = calcPx(diamDesc, lo, 76.2), p76_up = calcPx(diamDesc, up, 76.2);
+            let p4_lo = calcPx(diamDesc, lo, 4.75), p4_up = calcPx(diamDesc, up, 4.75);
+            let p075_lo = calcPx(diamDesc, lo, 0.075), p075_up = calcPx(diamDesc, up, 0.075);
+
+            let gravel_lo = (!isNaN(p76_lo) && !isNaN(p4_lo)) ? p76_lo - p4_lo : NaN;
+            let gravel_up = (!isNaN(p76_up) && !isNaN(p4_up)) ? p76_up - p4_up : NaN;
+            
+            let sand_lo = (!isNaN(p4_lo) && !isNaN(p075_lo)) ? p4_lo - p075_lo : NaN;
+            let sand_up = (!isNaN(p4_up) && !isNaN(p075_up)) ? p4_up - p075_up : NaN;
+
+            let d10_lo = calcDx(diamDesc, lo, 10), d10_up = calcDx(diamDesc, up, 10);
+            let d30_lo = calcDx(diamDesc, lo, 30), d30_up = calcDx(diamDesc, up, 30);
+            let d60_lo = calcDx(diamDesc, lo, 60), d60_up = calcDx(diamDesc, up, 60);
+            let d90_lo = calcDx(diamDesc, lo, 90), d90_up = calcDx(diamDesc, up, 90);
+
+            let cu_lo = (!isNaN(d10_lo) && !isNaN(d60_lo) && d10_lo > 0) ? d60_lo / d10_lo : NaN;
+            let cu_up = (!isNaN(d10_up) && !isNaN(d60_up) && d10_up > 0) ? d60_up / d10_up : NaN;
+
+            let cc_lo = (!isNaN(d10_lo) && !isNaN(d30_lo) && !isNaN(d60_lo) && d10_lo > 0 && d60_lo > 0) ? (d30_lo * d30_lo) / (d10_lo * d60_lo) : NaN;
+            let cc_up = (!isNaN(d10_up) && !isNaN(d30_up) && !isNaN(d60_up) && d10_up > 0 && d60_up > 0) ? (d30_up * d30_up) / (d10_up * d60_up) : NaN;
+
+            summaryData['% Gravel'].push(fmtRange(gravel_lo, gravel_up));
+            summaryData['% Sand'].push(fmtRange(sand_lo, sand_up));
+            summaryData['% Fines'].push(fmtRange(p075_lo, p075_up));
+            summaryData['D10 (mm)'].push(fmtRange(d10_lo, d10_up));
+            summaryData['D30 (mm)'].push(fmtRange(d30_lo, d30_up));
+            summaryData['D60 (mm)'].push(fmtRange(d60_lo, d60_up));
+            summaryData['D90 (mm)'].push(fmtRange(d90_lo, d90_up));
+            summaryData['Cu'].push(fmtRange(cu_lo, cu_up));
+            summaryData['Cc'].push(fmtRange(cc_lo, cc_up));
+        }
+
+        if (traces.length === 0) throw new Error("No valid material data found to plot.");
+
+        // Determine sensible plot bounds (log10) to ensure USCS regions are visible
+        let xMax = Math.max(diamDesc[0] * 1.5, 100.0); 
+        let xMin = Math.min(diamDesc[diamDesc.length - 1] / 1.5, 0.01);
+        let xrange = [Math.log10(xMax), Math.log10(xMin)];
+
+        const layout = {
+            title: 'Particle Size Distribution',
+            xaxis: { title: 'Sieve opening, d (mm)', type: 'log', range: xrange, gridcolor: '#e5e5e5' },
+            yaxis: { title: 'Percent passing by mass (%)', range: [0, 100], gridcolor: '#e5e5e5' },
+            xaxis2: {
+                title: 'Sieve designation',
+                overlaying: 'x', side: 'top', matches: 'x', type: 'log', range: xrange,
+                tickvals: diamDesc, ticktext: sieveNamesDesc, showgrid: false
+            },
+            legend: { orientation: 'h', y: -0.15 },
+            plot_bgcolor: '#fff', paper_bgcolor: '#fff', margin: { t: 80, b: 60, l: 60, r: 40 },
+            shapes: [
+                { type: 'line', xref: 'x', yref: 'paper', x0: 300, x1: 300, y0: 0, y1: 1, line: { color: '#888', width: 2, dash: 'dot' } },
+                { type: 'line', xref: 'x', yref: 'paper', x0: 76.2, x1: 76.2, y0: 0, y1: 1, line: { color: '#888', width: 2, dash: 'dot' } },
+                { type: 'line', xref: 'x', yref: 'paper', x0: 4.75, x1: 4.75, y0: 0, y1: 1, line: { color: '#888', width: 2, dash: 'dot' } },
+                { type: 'line', xref: 'x', yref: 'paper', x0: 0.075, x1: 0.075, y0: 0, y1: 1, line: { color: '#888', width: 2, dash: 'dot' } }
+            ],
+            annotations: [
+                { x: Math.log10(600), y: 0.98, xref: 'x', yref: 'paper', text: 'Boulders', showarrow: false, font: { size: 12, color: '#666' } },
+                { x: Math.log10(151), y: 0.98, xref: 'x', yref: 'paper', text: 'Cobbles', showarrow: false, font: { size: 12, color: '#666' } },
+                { x: Math.log10(19.0), y: 0.98, xref: 'x', yref: 'paper', text: 'Gravel', showarrow: false, font: { size: 12, color: '#666' } },
+                { x: Math.log10(0.6), y: 0.98, xref: 'x', yref: 'paper', text: 'Sand', showarrow: false, font: { size: 12, color: '#666' } },
+                { x: Math.log10(0.02), y: 0.98, xref: 'x', yref: 'paper', text: 'Fines', showarrow: false, font: { size: 12, color: '#666' } }
+            ]
+        };
+
+        Plotly.newPlot(plotArea, traces, layout, {responsive: true});
+        
+        const summaryContainer = document.getElementById('summaryContainer');
+        if (summaryContainer) {
+            let theadHtml = `<tr><th style="border: 1px solid #ccc; padding: 8px; background: #f1f5f9;">Property</th>`;
+            for (let mat of validMaterials) {
+                theadHtml += `<th style="border: 1px solid #ccc; padding: 8px; background: #f1f5f9;">${mat}</th>`;
+            }
+            theadHtml += `</tr>`;
+            
+            let tbodyHtml = '';
+            for (let prop of ['% Gravel', '% Sand', '% Fines', 'D10 (mm)', 'D30 (mm)', 'D60 (mm)', 'D90 (mm)', 'Cu', 'Cc']) {
+                tbodyHtml += `<tr><td style="border: 1px solid #ccc; padding: 8px;"><strong>${prop}</strong></td>`;
+                for (let val of summaryData[prop]) {
+                    tbodyHtml += `<td style="border: 1px solid #ccc; padding: 8px; text-align: center;">${val}</td>`;
+                }
+                tbodyHtml += `</tr>`;
+            }
+            document.getElementById('summaryThead').innerHTML = theadHtml;
+            document.getElementById('summaryTbody').innerHTML = tbodyHtml;
+            summaryContainer.style.display = 'block';
+        }
+    }
+
+    document.addEventListener('input', function(e) {
+        if (e.target.classList && e.target.classList.contains('input-error')) {
+            e.target.classList.remove('input-error');
+        }
+    });
+
+    document.getElementById('downloadSummaryBtn').addEventListener('click', () => {
+        const thead = document.getElementById('summaryThead');
+        const tbody = document.getElementById('summaryTbody');
+        let csvContent = "";
+        
+        const headers = Array.from(thead.querySelectorAll('th')).map(th => `"${th.innerText}"`);
+        csvContent += headers.join(",") + "\n";
+        
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach(row => {
+            const cols = Array.from(row.querySelectorAll('td')).map(td => `"${td.innerText}"`);
+            csvContent += cols.join(",") + "\n";
+        });
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "gradation_summary.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    });
+</script>
+
+</body>
+</html>
