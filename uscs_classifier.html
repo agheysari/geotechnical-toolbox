@@ -166,7 +166,101 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
-  </style>
+  
+  /* Standard Unified Action Bar & Coffee Link Styles */
+  .standard-actions-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0 8px;
+  }
+  .btn-primary-action {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 12px 24px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    box-shadow: 0 4px 12px rgba(37,99,235,0.25) !important;
+    transition: all 0.2s ease !important;
+  }
+  .btn-primary-action:hover {
+    background: #1d4ed8 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 16px rgba(37,99,235,0.35) !important;
+  }
+  .btn-demo-action {
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+    border: 1px solid #bfdbfe !important;
+    border-radius: 10px !important;
+    padding: 12px 18px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    transition: all 0.2s ease !important;
+  }
+  .btn-demo-action:hover {
+    background: #dbeafe !important;
+    color: #1e40af !important;
+  }
+  .btn-clear-action {
+    background: transparent !important;
+    color: #64748b !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    padding: 12px 16px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    transition: all 0.2s ease !important;
+  }
+  .btn-clear-action:hover {
+    background: #fee2e2 !important;
+    border-color: #fca5a5 !important;
+    color: #b91c1c !important;
+  }
+  .coffee-link-under-calc {
+    display: flex;
+    align-items: center;
+    margin: 8px 0 28px;
+  }
+  .coffee-link-under-calc a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #b45309;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .coffee-link-under-calc a:hover {
+    background: #fde68a;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(217,119,6,0.15);
+  }
+
+</style>
 </head>
 <body>
 
@@ -259,14 +353,26 @@
         </div>
     </div>
 
-    <button onclick="runClassification()">Classify Soil</button>
+    
+    <div class="standard-actions-bar">
+      <button type="button" class="btn-primary-action" onclick="runClassification()">
+        <span>⚡ Classify Soil</span>
+      </button>
+      <button type="button" class="btn-demo-action" onclick="loadDemoData()">
+        <span>📋 Load Demo Data</span>
+      </button>
+      <button type="button" class="btn-clear-action" onclick="clearToolData()">
+        <span>🗑️ Clear</span>
+      </button>
+    </div>
+    <div class="coffee-link-under-calc">
+      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">
+        <span>☕ Enjoying this free tool? <u>Buy me a coffee</u></span>
+      </a>
+    </div>
+    
 
-<div class="bmc-calc-container" style="margin: 20px 0 28px; text-align: center; display: flex; justify-content: center;">
-  <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn" style="display: inline-flex; align-items: center; gap: 8px; background: #FF813F; color: #ffffff; font-family: 'Inter', system-ui, -apple-system, sans-serif; font-size: 13px; font-weight: 700; padding: 10px 20px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 12px rgba(255, 129, 63, 0.25); transition: transform 0.2s ease, box-shadow 0.2s ease;">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
-    <span>☕ Support Development - Buy me a coffee</span>
-  </a>
-</div>
+
 
 
     <div id="resultBox">
@@ -566,8 +672,36 @@
             e.target.classList.remove('input-error');
         }
     });
+
+
+    
+    
+
+
+    // ── Standard Demo & Clear Helpers ─────────────────────────────────
+    function loadDemoData() {
+        
+        document.getElementById('pct_gravel').value = '15';
+        document.getElementById('pct_sand').value = '65';
+        document.getElementById('pct_fines').value = '20';
+        document.getElementById('ll').value = '38';
+        document.getElementById('pl').value = '22';
+        runClassification();
+        
+    }
+    function clearToolData() {
+        
+        document.querySelectorAll('input[type=number]').forEach(i => i.value = '');
+        const res = document.getElementById('results');
+        if (res) res.style.display = 'none';
+        
+    }
+    
 </script>
 
+
+    
+    
 <div class="legacy-footer" style="text-align: center; padding: 24px 12px; margin-top: 40px; border-top: 1px solid #e2e8f0; font-size: 13px; color: #64748b; font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px;">
   <span>Developed by <strong style="color: #1e293b;">Ali Gheysari, PhD</strong></span>
   <span style="color: #cbd5e1;">&bull;</span>

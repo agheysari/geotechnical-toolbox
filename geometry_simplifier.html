@@ -104,7 +104,101 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
-  </style>
+  
+  /* Standard Unified Action Bar & Coffee Link Styles */
+  .standard-actions-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0 8px;
+  }
+  .btn-primary-action {
+    background: #2563eb !important;
+    color: #ffffff !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 12px 24px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    box-shadow: 0 4px 12px rgba(37,99,235,0.25) !important;
+    transition: all 0.2s ease !important;
+  }
+  .btn-primary-action:hover {
+    background: #1d4ed8 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 16px rgba(37,99,235,0.35) !important;
+  }
+  .btn-demo-action {
+    background: #eff6ff !important;
+    color: #1d4ed8 !important;
+    border: 1px solid #bfdbfe !important;
+    border-radius: 10px !important;
+    padding: 12px 18px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    transition: all 0.2s ease !important;
+  }
+  .btn-demo-action:hover {
+    background: #dbeafe !important;
+    color: #1e40af !important;
+  }
+  .btn-clear-action {
+    background: transparent !important;
+    color: #64748b !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    padding: 12px 16px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    transition: all 0.2s ease !important;
+  }
+  .btn-clear-action:hover {
+    background: #fee2e2 !important;
+    border-color: #fca5a5 !important;
+    color: #b91c1c !important;
+  }
+  .coffee-link-under-calc {
+    display: flex;
+    align-items: center;
+    margin: 8px 0 28px;
+  }
+  .coffee-link-under-calc a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #b45309;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .coffee-link-under-calc a:hover {
+    background: #fde68a;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(217,119,6,0.15);
+  }
+
+</style>
 </head>
 <body>
 
@@ -137,7 +231,24 @@
         <small style="display:block; color:#666; margin-top:5px;">Higher tolerance means fewer vertices but less detail. Adjust the slider to see changes live.</small>
     </div>
 
-    <button id="downloadBtn" disabled>Download Optimized GeoJSON</button>
+    
+    <div class="standard-actions-bar">
+      <button type="button" class="btn-primary-action" onclick="document.getElementById('downloadBtn') ? document.getElementById('downloadBtn').click() : null">
+        <span>⚡ Optimize Geometry</span>
+      </button>
+      <button type="button" class="btn-demo-action" onclick="loadDemoData()">
+        <span>📋 Load Demo Data</span>
+      </button>
+      <button type="button" class="btn-clear-action" onclick="clearToolData()">
+        <span>🗑️ Clear</span>
+      </button>
+    </div>
+    <div class="coffee-link-under-calc">
+      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">
+        <span>☕ Enjoying this free tool? <u>Buy me a coffee</u></span>
+      </a>
+    </div>
+    
     <div id="log">Waiting for files...</div>
 </div>
 
@@ -287,9 +398,31 @@
         }
     });
 
+
+
+    
+    
+
+
+    // ── Standard Demo & Clear Helpers ─────────────────────────────────
+    function loadDemoData() {
+        
+        alert('Upload a GeoJSON or KML polygon file to apply Douglas-Peucker simplification.');
+        
+    }
+    function clearToolData() {
+        
+        const fi = document.getElementById('fileInput');
+        if (fi) fi.value = '';
+        
+    }
+    
 </script>
 
 
+
+    
+    
 <div class="legacy-footer" style="text-align: center; padding: 24px 12px; margin-top: 40px; border-top: 1px solid #e2e8f0; font-size: 13px; color: #64748b; font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px;">
   <span>Developed by <strong style="color: #1e293b;">Ali Gheysari, PhD</strong></span>
   <span style="color: #cbd5e1;">&bull;</span>
