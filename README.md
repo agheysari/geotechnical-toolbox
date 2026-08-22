@@ -2,18 +2,16 @@
 
 A comprehensive collection of **25+ standalone, client-side HTML/JavaScript calculation tools and utilities** developed by **Ali Gheysari, PhD** for geotechnical engineers, civil engineering researchers, and geospatial analysts.
 
-[![Made in Canada](https://img.shields.io/badge/Made%20with%20%E2%9D%A4%EF%B8%8F%20in-Canada-red.svg)](https://github.com/agheysari/geotechnical-tools)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Calculators](https://img.shields.io/badge/Calculators-25%2B-blue.svg)](https://github.com/agheysari/geotechnical-tools)
-[![Support](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Donate-orange.svg)](https://buymeacoffee.com/agheysari)
 
 ---
 
 ## ⚡ Key Features
 
 * **100% Client-Side:** No server execution or backend required; run directly in any modern web browser or host on GitHub Pages.
-* **Metric (SI) & Imperial (US) Unit Support:** Instant real-time unit conversions with automatic parameter scaling.
 * **Interactive Visualizations:** Canvas/SVG charts (Boussinesq stress isobars, P-y curves, 2:1 stress dispersion, Hoek-Brown failure envelopes, particle size distribution).
+* **Consistent Page Shell:** Every calculator shares an identical header, container, results and footer structure, so the whole set reads as one site on GitHub Pages.
 * **Easy Embedding:** Clean standalone HTML structures ready to be integrated into portals, educational courses, or intranet sites.
 
 ---
@@ -50,13 +48,12 @@ A comprehensive collection of **25+ standalone, client-side HTML/JavaScript calc
 
 ---
 
-## ☕ Support & Sponsorship
+## Support
 
-If these open-source calculation tools and charts help your engineering projects, practice, or academic research, consider supporting continued open-source development:
-
-👉 **[Buy Me a Coffee](https://buymeacoffee.com/agheysari)**
+These tools are free and open-source. If they save you time on a project or in the classroom, you can
+[buy me a coffee](https://buymeacoffee.com/agheysari) — entirely optional, and never required to use anything here.
 
 ---
 
 ## 📄 License
-This repository is open-sourced under the [MIT License](LICENSE).
+This repository is released under the [GNU General Public License v3.0](LICENSE).

@@ -1,149 +1,626 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pile Group Efficiency & Settlement Calculator - Geotechnical Tools</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Converse-Labarre and Sayed-Baker efficiency factors, block failure analysis in clay, and 2:1 equivalent raft immediate and 1D consolidation settlement.">
+<title>Pile Group Efficiency &amp; Settlement Calculator &mdash; Geotechnical Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+/* ==========================================================================
+   Geotechnical Tools — shared form guard
+   Forms load empty with placeholders as guidance. This reports what is still
+   missing rather than computing with blanks and printing NaN.
+   Hidden inputs (inactive tabs, collapsed groups) are ignored.
+   ========================================================================== */
+(function () {
+  function candidates(scope) {
+    return Array.prototype.slice
+      .call((scope || document).querySelectorAll('input[type="number"]'))
+      .filter(function (el) {
+        return el.offsetParent !== null && !el.disabled && !el.readOnly;
+      });
+  }
+
+  /* Inputs the user still has to fill in. */
+  window.geoMissingInputs = function (scope) {
+    return candidates(scope).filter(function (el) { return el.value.trim() === ''; });
+  };
+
+  /* Same, but highlights them. Returns the list. */
+  window.geoFlagMissing = function (scope) {
+    var missing = window.geoMissingInputs(scope);
+    Array.prototype.forEach.call(document.querySelectorAll('.input-error'), function (el) {
+      el.classList.remove('input-error');
+    });
+    missing.forEach(function (el) { el.classList.add('input-error'); });
+    if (missing.length) { missing[0].focus({ preventScroll: true }); }
+    return missing;
+  };
+
+  /* Blank every result slot — used by the live calculators before input. */
+  window.geoBlankOutputs = function (placeholder) {
+    var mark = placeholder || '—';
+    Array.prototype.forEach.call(
+      document.querySelectorAll('[id^="out_"], [id^="res_"]'),
+      function (el) { el.textContent = mark; }
+    );
+  };
+
+  /* A one-line prompt shown in place of results. */
+  window.geoPrompt = function (n) {
+    var box = document.getElementById('geo-input-prompt');
+    if (!box) {
+      box = document.createElement('p');
+      box.id = 'geo-input-prompt';
+      box.className = 'hint';
+      box.style.cssText = 'margin-top:14px;text-align:center;color:var(--warning);';
+      var btn = document.querySelector('.calc-btn');
+      if (btn && btn.parentNode) { btn.parentNode.insertBefore(box, btn.nextSibling); }
+      else { return; }
+    }
+    if (n > 0) {
+      box.textContent = 'Enter the ' + n + ' highlighted value' + (n === 1 ? '' : 's') + ' to calculate.';
+      box.style.display = '';
+    } else {
+      box.style.display = 'none';
+    }
+  };
+
+  /* Clear the highlight as soon as the field is filled. */
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t && t.classList && t.classList.contains('input-error') && t.value.trim() !== '') {
+      t.classList.remove('input-error');
+      if (!document.querySelectorAll('.input-error').length) { window.geoPrompt(0); }
+    }
+  });
+})();
+</script>
+<script>
+/* ==========================================================================
+   Geotechnical Tools — shared figure theme
+   Identical on every page that draws a plot. Gives all charts one look:
+   Inter type, muted slate ink, hairline grid, and a consistent series
+   palette, so a figure can be pasted straight into a report.
+   ========================================================================== */
+(function () {
+  var FONT  = "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  var INK   = '#0f172a';
+  var MUTED = '#475569';
+  var GRID  = '#e8edf3';
+  var AXIS  = '#cbd5e1';
+  var SERIES = ['#0284c7', '#dc2626', '#059669', '#d97706', '#7c3aed', '#0f766e', '#be185d', '#475569'];
+  window.GEO_SERIES = SERIES;
+
+  /* ---- Chart.js ---------------------------------------------------------- */
+  if (typeof Chart !== 'undefined') {
+    var d = Chart.defaults;
+    d.font.family = FONT;
+    d.font.size = 12;
+    d.color = MUTED;
+    d.responsive = true;
+    d.maintainAspectRatio = false;      /* fill the figure box, not a 2:1 slab */
+    d.layout.padding = 4;
+    d.elements.line.borderWidth = 2.25;
+    d.elements.point.hitRadius = 8;
+    d.elements.point.borderWidth = 1.5;
+
+    d.plugins.title.color = INK;
+    d.plugins.title.font = { family: FONT, size: 13, weight: '700' };
+    d.plugins.title.padding = { top: 2, bottom: 14 };
+    d.plugins.legend.labels.usePointStyle = true;
+    d.plugins.legend.labels.pointStyle = 'line';
+    d.plugins.legend.labels.boxWidth = 26;
+    d.plugins.legend.labels.padding = 14;
+    d.plugins.legend.labels.color = MUTED;
+    d.plugins.legend.labels.font = { family: FONT, size: 11 };
+    d.plugins.tooltip.backgroundColor = 'rgba(15,23,42,0.92)';
+    d.plugins.tooltip.padding = 10;
+    d.plugins.tooltip.cornerRadius = 8;
+    d.plugins.tooltip.titleFont = { family: FONT, size: 12, weight: '700' };
+    d.plugins.tooltip.bodyFont = { family: FONT, size: 12 };
+    d.plugins.tooltip.displayColors = false;
+
+    if (d.scale) {
+      d.scale.grid.color = GRID;
+      d.scale.grid.lineWidth = 1;
+      d.scale.grid.tickColor = AXIS;
+      d.scale.border = d.scale.border || {};
+      d.scale.border.color = AXIS;
+      d.scale.ticks.color = MUTED;
+      d.scale.ticks.padding = 6;
+      d.scale.ticks.font = { family: FONT, size: 11 };
+      d.scale.title.color = INK;
+      d.scale.title.font = { family: FONT, size: 12, weight: '600' };
+    }
+  }
+
+  /* ---- Plotly ------------------------------------------------------------ */
+  if (typeof Plotly !== 'undefined') {
+    var axisBase = {
+      gridcolor: GRID,
+      zerolinecolor: AXIS,
+      linecolor: AXIS,
+      linewidth: 1,
+      ticks: 'outside',
+      tickcolor: AXIS,
+      ticklen: 5,
+      tickfont: { family: FONT, size: 11, color: MUTED },
+      title: { font: { family: FONT, size: 12, color: INK } },
+      automargin: true
+    };
+    window.GEO_PLOTLY_LAYOUT = {
+      font: { family: FONT, size: 12, color: MUTED },
+      plot_bgcolor: '#ffffff',
+      paper_bgcolor: '#ffffff',
+      colorway: SERIES,
+      margin: { t: 54, b: 58, l: 72, r: 28 },
+      title: { font: { family: FONT, size: 13, color: INK }, x: 0, xanchor: 'left',
+               y: 0.96, yanchor: 'top', pad: { l: 16, t: 12 } },
+      legend: { font: { family: FONT, size: 11, color: MUTED },
+                bgcolor: 'rgba(255,255,255,0.88)', bordercolor: '#e2e8f0', borderwidth: 1 },
+      hoverlabel: { bgcolor: INK, bordercolor: INK,
+                    font: { family: FONT, size: 12, color: '#ffffff' } },
+      xaxis: axisBase,
+      yaxis: axisBase
+    };
+    window.GEO_PLOTLY_CONFIG = {
+      responsive: true,
+      displaylogo: false,
+      modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+      toImageButtonOptions: { format: 'png', scale: 2 }
+    };
+    function mergeTitle(base, t) {
+      if (typeof t === 'string') return Object.assign({}, base, { text: t });
+      if (t && typeof t === 'object') return Object.assign({}, base, t);
+      return Object.assign({}, base);
+    }
+    function mergeAxis(base, ax) {
+      var out = Object.assign({}, base, ax || {});
+      out.tickfont = Object.assign({}, base.tickfont, (ax || {}).tickfont);
+      out.title = mergeTitle(base.title, (ax || {}).title);
+      return out;
+    }
+    /* Merge a page's own layout over the shared theme, preserving its specifics. */
+    window.geoLayout = function (layout) {
+      layout = layout || {};
+      var B = window.GEO_PLOTLY_LAYOUT;
+      var out = Object.assign({}, B, layout);
+      out.font = Object.assign({}, B.font, layout.font);
+      out.margin = Object.assign({}, B.margin, layout.margin);
+      out.legend = Object.assign({}, B.legend, layout.legend);
+      out.hoverlabel = Object.assign({}, B.hoverlabel, layout.hoverlabel);
+      out.title = mergeTitle(B.title, layout.title);
+      ['xaxis', 'yaxis', 'xaxis2', 'yaxis2'].forEach(function (k) {
+        if (layout[k] || k === 'xaxis' || k === 'yaxis') {
+          out[k] = mergeAxis(k.charAt(0) === 'x' ? B.xaxis : B.yaxis, layout[k]);
+        }
+      });
+      return out;
+    };
+  }
+})();
+</script>
+<style>
+    /* ==========================================================================
+       Geotechnical Tools — shared shell
+       This block is identical on every page. Edit it in one page and mirror the
+       change to the rest; page-specific rules live in the section below it.
+       ========================================================================== */
     :root {
       --primary: #0284c7;
       --primary-dark: #0369a1;
       --primary-light: #e0f2fe;
       --surface: #ffffff;
       --background: #f8fafc;
+      --surface-alt: #f1f5f9;
       --text: #0f172a;
       --text-muted: #64748b;
       --border: #e2e8f0;
-      --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      --success: #059669;
+      --success-bg: #ecfdf5;
+      --warning: #b45309;
+      --warning-bg: #fffbeb;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-    body { background-color: var(--background); color: var(--text); line-height: 1.5; padding: 24px; }
-    .container { max-width: 1200px; margin: 0 auto; }
-    header { margin-bottom: 24px; }
-    h1 { font-size: 24px; font-weight: 800; color: var(--text); display: flex; align-items: center; gap: 8px; }
-    p.subtitle { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
-    .layout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; }
-    @media (max-width: 900px) { .layout-grid { grid-template-columns: 1fr; } }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--card-shadow); }
-    .card-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .form-group { display: flex; flex-direction: column; gap: 4px; }
-    label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
-    input, select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; background: #fff; font-family: inherit; }
-    input:focus, select:focus { outline: none; border-color: var(--primary); ring: 2px var(--primary-light); }
-    .results-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
-    @media (max-width: 600px) { .results-grid { grid-template-columns: 1fr 1fr; } }
-    .stat-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center; }
-    .stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
-    .stat-val { font-size: 18px; font-weight: 800; color: var(--primary-dark); margin: 4px 0; }
-    .stat-sub { font-size: 10px; color: var(--text-muted); }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 12px; }
-    th, td { padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; }
-    th { font-weight: 700; color: var(--text-muted); background: #f8fafc; }
-    .badge { display: inline-block; padding: 2px 6px; border-radius: 999px; font-size: 10px; font-weight: 700; }
-    .badge-blue { background: #e0f2fe; color: #0369a1; }
-    .badge-green { background: #dcfce7; color: #15803d; }
-    .badge-amber { background: #fef3c7; color: #b45309; }
-    .chart-container { position: relative; height: 260px; width: 100%; margin-top: 16px; }
-    .visualizer-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
-    .svg-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; align-items: center; }
-  
-    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
-    .legacy-top-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 28px 16px 8px;
+      background: var(--background);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
     }
-    .legacy-actions {
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    /* --- Page header ------------------------------------------------------- */
+    .tool-header { margin-bottom: 20px; }
+    .tool-header h1 {
+      margin: 0;
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: -0.015em;
+      line-height: 1.25;
+      color: var(--text);
       display: flex;
       align-items: center;
       gap: 10px;
-      flex-wrap: wrap;
     }
-    .bmc-btn {
-      display: inline-flex;
+    .tool-header .subtitle {
+      margin: 8px 0 0;
+      max-width: 90ch;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .tool-header .back-link {
+      display: inline-block;
+      margin-bottom: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .tool-header .back-link:hover { color: var(--primary); }
+    .tool-header h1 .tool-icon { flex: none; border-radius: 9px; }
+
+    /* --- Surfaces ---------------------------------------------------------- */
+    .card {
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+    .card + .card { margin-top: 16px; }
+    .card-title {
+      margin: 0 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
       align-items: center;
       gap: 6px;
-      background: #FFDD00;
-      color: #000000;
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-weight: 700;
+    }
+    .section-title {
+      margin: 26px 0 14px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--border);
       font-size: 12px;
-      text-decoration: none;
-      border: 1px solid #E6C800;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
     }
-    .bmc-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    .section-title:first-child { margin-top: 0; }
+
+    h1, h2, h3, h4 { font-family: var(--font); color: var(--text); }
+    h2 { font-size: 19px; font-weight: 700; margin: 0 0 12px; }
+    h3 { font-size: 15px; font-weight: 700; margin: 0 0 10px; }
+    h4 { font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+
+    /* --- Forms ------------------------------------------------------------- */
+    .form-row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .form-row > * { flex: 1 1 0; min-width: 0; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
     }
-    .demo-disclaimer-banner {
-      background: #fffbeb;
-      border: 1px solid #fef3c7;
-      border-left: 4px solid #f59e0b;
+    /* grid/flex children default to min-width:auto, which refuses to shrink and
+       pushes the page wider than the viewport on phones */
+    .layout-grid > *, .form-grid > *, .results-grid > *, .form-row > * { min-width: 0; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    @media (max-width: 768px) { .form-row { flex-direction: column; gap: 12px; } }
+
+    label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 11px;
-      color: #92400e;
-      line-height: 1.4;
-      margin-bottom: 20px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    input[type="checkbox"], input[type="radio"] { width: auto; }
+    input[type="range"] { padding: 0; }
+    .input-error { border-color: var(--danger) !important; background: var(--danger-bg) !important; }
+
+    .hint, .help-text, .note {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    /* block footnote under a results panel, not an inline field hint */
+    .note { display: block; margin-top: 18px; }
+
+    /* row of buttons that acts on the table above it */
+    .table-actions {
       display: flex;
-      align-items: flex-start;
-      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin: 16px 0 4px;
     }
-    .unit-switcher-group {
+    .table-actions .spacer { margin-left: auto; }
+
+    /* --- Buttons ----------------------------------------------------------- */
+    button, .btn {
       display: inline-flex;
-      background: #f1f5f9;
-      padding: 3px;
-      border-radius: 10px;
-      border: 1px solid #cbd5e1;
-    }
-    .unit-switcher-btn {
-      padding: 5px 12px;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 16px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--primary);
+      border: none;
       border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    button:hover:not(:disabled), .btn:hover:not(:disabled) { background: var(--primary-dark); }
+    button:disabled, .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+    .calc-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .btn-secondary { background: var(--surface-alt); color: #475569; border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { background: #e2e8f0; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; font-weight: 600; }
+    .btn-success { background: var(--success); }
+    .btn-success:hover:not(:disabled) { background: #047857; }
+    .btn-danger, .btn-clear { background: var(--danger); }
+    .btn-danger:hover:not(:disabled), .btn-clear:hover:not(:disabled) { background: #b91c1c; }
+
+    /* --- Tabs -------------------------------------------------------------- */
+    .tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      background: var(--surface-alt);
+      border-radius: 8px;
+    }
+    .tab-btn:hover:not(.active) { background: #e2e8f0; }
+    .tab-btn.active { background: var(--primary); color: #fff; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* --- Results ----------------------------------------------------------- */
+    .result-box {
+      margin-top: 20px;
+      padding: 18px 20px;
+      background: var(--primary-light);
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .result-box.success { background: var(--success-bg); border-color: #a7f3d0; border-left-color: var(--success); }
+    .result-box.warning { background: var(--warning-bg); border-color: #fde68a; border-left-color: #f59e0b; }
+    .result-box.danger  { background: var(--danger-bg);  border-color: #fecaca; border-left-color: var(--danger); }
+    .result-value {
+      margin: 6px 0 0;
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--primary-dark);
+    }
+    .success .result-value { color: var(--success); }
+    .warning .result-value { color: var(--warning); }
+    .danger  .result-value { color: var(--danger); }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .stat-box {
+      padding: 14px 12px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+    .stat-val {
+      margin: 5px 0 0;
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+    .stat-sub { font-size: 10px; color: var(--text-muted); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
       font-size: 11px;
       font-weight: 700;
-      border: none;
-      cursor: pointer;
-      background: transparent;
-      color: #64748b;
-      transition: all 0.2s;
-    }
-    .unit-switcher-btn.active {
-      background: #0284c7;
-      color: #ffffff;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      background: var(--primary-light);
+      color: var(--primary-dark);
     }
 
+    .formula-box {
+      margin: 18px 0;
+      padding: 16px 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-size: 13px;
+    }
+    .formula-box h3, .formula-box h4 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    /* --- Tables ------------------------------------------------------------ */
+    .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      background: var(--background);
+    }
+    td input, td select { padding: 6px 8px; font-size: 13px; }
+
+    /* --- Figures ------------------------------------------------------------ */
+    .chart-container, .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      margin: 22px 0 4px;
+      padding: 14px 14px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    @media (max-width: 600px) {
+      .chart-container, .chart-wrapper { height: 320px; padding: 10px 8px 6px; }
+    }
+
+    /* --- Uploads ------------------------------------------------------------ */
+    .upload-area {
+      margin-bottom: 16px;
+      padding: 24px;
+      text-align: center;
+      background: var(--background);
+      border: 2px dashed #cbd5e1;
+      border-radius: var(--radius);
+      transition: border-color 0.15s ease;
+    }
+    .upload-area:hover { border-color: var(--primary); }
+    .upload-area input { width: auto; max-width: 100%; }
+    .upload-area input[type="file"] { width: 100%; }
+
+    /* --- Support line & footer ---------------------------------------------- */
+    .support-note {
+      margin: 20px 0 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .support-note a {
+      color: var(--primary);
+      text-decoration: none;
+      border-bottom: 1px solid var(--primary-light);
+    }
+    .support-note a:hover { border-bottom-color: var(--primary); }
+
+    .site-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 32px;
+      padding: 22px 12px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .site-footer a { color: var(--text-muted); text-decoration: none; }
+    .site-footer a:hover { color: var(--primary); }
+    .site-footer .sep { color: #cbd5e1; }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 600px) {
+      body { padding: 20px 12px 8px; }
+      .card { padding: 18px 16px; }
+      th, td { padding: 8px 9px; }
+    }
+
+    /* ==========================================================================
+       Page-specific styles
+       ========================================================================== */
+    .layout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 20px; }
+    @media (max-width: 900px) {
+      .layout-grid { grid-template-columns: 1fr; }
+    }
+    .badge-blue { background: #e0f2fe; color: #0369a1; }
+    .badge-green { background: #dcfce7; color: #15803d; }
+    .badge-amber { background: #fef3c7; color: #b45309; }
+    .visualizer-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .svg-box { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; align-items: center; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <header>
-    <div class="legacy-top-bar">
-      <div></div>
-      <div class="legacy-actions">
-        <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
-      <span>Buy me a coffee</span>
-    </a>
-      </div>
-    </div>
-    <h1>🏢 Pile Group Efficiency & Settlement Calculator</h1>
-    <p class="subtitle">Converse-Labarre & Sayed-Baker efficiency factors, block failure analysis in clay, and 2:1 equivalent raft immediate & 1D consolidation settlement.</p>
+
+  <header class="tool-header">
+    <a class="back-link" href="index.html">&larr; All calculators</a>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F0F9FF" /> <line x1="6" y1="20" x2="58" y2="20" stroke="#94A3B8" stroke-width="2" stroke-dasharray="2 2" /> <rect x="10" y="12" width="44" height="8" rx="2" fill="#0284C7" /> <rect x="14" y="20" width="7" height="34" rx="1.5" fill="#0369A1" /> <path d="M14 54L17.5 58L21 54H14Z" fill="#075985" /> <rect x="28.5" y="20" width="7" height="34" rx="1.5" fill="#0369A1" /> <path d="M28.5 54L32 58L35.5 54H28.5Z" fill="#075985" /> <rect x="43" y="20" width="7" height="34" rx="1.5" fill="#0369A1" /> <path d="M43 54L46.5 58L50 54H43Z" fill="#075985" /> <path d="M10 42L2 60M54 42L62 60" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="3 2" /> <path d="M32 2V10M32 10L29 7M32 10L35 7" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /> </svg> Pile Group Efficiency &amp; Settlement Calculator</h1>
+    <p class="subtitle">Converse-Labarre and Sayed-Baker efficiency factors, block failure analysis in clay, and 2:1 equivalent raft immediate and 1D consolidation settlement.</p>
   </header>
+
+  <main>
+  
 
   <div class="layout-grid">
     <!-- Input Section -->
@@ -153,23 +630,23 @@
         <div class="form-grid">
           <div class="form-group">
             <label>Rows (m)</label>
-            <input type="number" id="in_rows" value="3" min="1" max="12" step="1">
+            <input type="number" id="in_rows" min="1" max="12" step="1" placeholder="e.g., 3">
           </div>
           <div class="form-group">
             <label>Columns (n)</label>
-            <input type="number" id="in_cols" value="3" min="1" max="12" step="1">
+            <input type="number" id="in_cols" min="1" max="12" step="1" placeholder="e.g., 3">
           </div>
           <div class="form-group">
             <label>Pile Diameter D (m)</label>
-            <input type="number" id="in_diameter" value="0.6" min="0.2" max="3.0" step="0.05">
+            <input type="number" id="in_diameter" min="0.2" max="3.0" step="0.05" placeholder="e.g., 0.6">
           </div>
           <div class="form-group">
             <label>Center-to-Center Spacing s (m)</label>
-            <input type="number" id="in_spacing" value="1.8" min="0.5" max="15.0" step="0.1">
+            <input type="number" id="in_spacing" min="0.5" max="15.0" step="0.1" placeholder="e.g., 1.8">
           </div>
           <div class="form-group">
             <label>Pile Length L (m)</label>
-            <input type="number" id="in_length" value="15.0" min="3.0" max="60.0" step="0.5">
+            <input type="number" id="in_length" min="3.0" max="60.0" step="0.5" placeholder="e.g., 15.0">
           </div>
           <div class="form-group">
             <label>Load Transfer Mode</label>
@@ -186,19 +663,19 @@
         <div class="form-grid">
           <div class="form-group">
             <label>Single Ult Capacity Qu (kN)</label>
-            <input type="number" id="in_qu" value="950" min="50" max="50000" step="50">
+            <input type="number" id="in_qu" min="50" max="50000" step="50" placeholder="e.g., 950">
           </div>
           <div class="form-group">
             <label>Total Group Load Qg (kN)</label>
-            <input type="number" id="in_qg" value="3200" min="50" max="500000" step="100">
+            <input type="number" id="in_qg" min="50" max="500000" step="100" placeholder="e.g., 3200">
           </div>
           <div class="form-group">
             <label>Avg Shaft Adhesion cu (kPa)</label>
-            <input type="number" id="in_cuAvg" value="60" min="0" max="500" step="5">
+            <input type="number" id="in_cuAvg" min="0" max="500" step="5" placeholder="e.g., 60">
           </div>
           <div class="form-group">
             <label>Tip Undrained Strength cub (kPa)</label>
-            <input type="number" id="in_cuTip" value="90" min="0" max="1000" step="5">
+            <input type="number" id="in_cuTip" min="0" max="1000" step="5" placeholder="e.g., 90">
           </div>
         </div>
       </div>
@@ -208,7 +685,7 @@
         <div class="form-grid">
           <div class="form-group">
             <label>Soil Modulus Es (MPa)</label>
-            <input type="number" id="in_es" value="25" min="1" max="500" step="1">
+            <input type="number" id="in_es" min="1" max="500" step="1" placeholder="e.g., 25">
           </div>
           <div class="form-group">
             <label>Poisson's Ratio ν</label>
@@ -216,31 +693,33 @@
           </div>
           <div class="form-group">
             <label>Compression Index Cc</label>
-            <input type="number" id="in_cc" value="0.28" min="0.01" max="1.5" step="0.01">
+            <input type="number" id="in_cc" min="0.01" max="1.5" step="0.01" placeholder="e.g., 0.28">
           </div>
           <div class="form-group">
             <label>Recompression Cr</label>
-            <input type="number" id="in_cr" value="0.045" min="0.001" max="0.3" step="0.005">
+            <input type="number" id="in_cr" min="0.001" max="0.3" step="0.005" placeholder="e.g., 0.045">
           </div>
           <div class="form-group">
             <label>Initial Void Ratio e0</label>
-            <input type="number" id="in_e0" value="0.82" min="0.3" max="3.0" step="0.05">
+            <input type="number" id="in_e0" min="0.3" max="3.0" step="0.05" placeholder="e.g., 0.82">
           </div>
           <div class="form-group">
             <label>Clay Thickness Hc (m)</label>
-            <input type="number" id="in_hclay" value="12.0" min="1" max="60" step="1">
+            <input type="number" id="in_hclay" min="1" max="60" step="1" placeholder="e.g., 12.0">
           </div>
           <div class="form-group">
             <label>Preconsolidation σ'p (kPa)</label>
-            <input type="number" id="in_pc" value="180" min="10" max="1500" step="10">
+            <input type="number" id="in_pc" min="10" max="1500" step="10" placeholder="e.g., 180">
           </div>
           <div class="form-group">
             <label>Overburden σ'v0 (kPa)</label>
-            <input type="number" id="in_p0" value="120" min="10" max="1500" step="10">
+            <input type="number" id="in_p0" min="10" max="1500" step="10" placeholder="e.g., 120">
           </div>
         </div>
       </div>
-    </div>
+    
+        <button type="button" id="calcBtn" class="calc-btn">Calculate Group Efficiency &amp; Settlement</button>
+      </div>
 
     <!-- Results Section -->
     <div style="display: flex; flex-direction: column; gap: 16px;">
@@ -283,6 +762,7 @@
         </div>
 
         <!-- Table -->
+        <div class="table-scroll">
         <table>
           <thead>
             <tr>
@@ -313,6 +793,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
 
         <!-- Stress Curve Chart -->
         <div class="chart-container">
@@ -321,29 +802,31 @@
       </div>
     </div>
   </div>
+
+    <p class="support-note">Free and open-source. If this tool saves you time, you can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a>.</p>
+  </main>
+
+  <footer class="site-footer">
+    <span>Developed by <strong>Ali Gheysari, PhD</strong></span>
+    <span class="sep">&bull;</span>
+    <a href="index.html">All calculators</a>
+    <span class="sep">&bull;</span>
+    <a href="https://github.com/agheysari/geotechnical-tools" target="_blank" rel="noopener noreferrer">Source</a>
+    <span class="sep">&bull;</span>
+    <span>GNU GPL v3.0</span>
+  </footer>
+
 </div>
 
 <script>
 
-  let currentUnitSystem = 'metric';
-  function setUnitSystem(system) {
-    currentUnitSystem = system;
-    const btnMetric = document.getElementById('btn_metric');
-    const btnImperial = document.getElementById('btn_imperial');
-    if (btnMetric && btnImperial) {
-      btnMetric.className = system === 'metric' ? 'unit-switcher-btn active' : 'unit-switcher-btn';
-      btnImperial.className = system === 'imperial' ? 'unit-switcher-btn active' : 'unit-switcher-btn';
-    }
-    if (typeof calculate === 'function') {
-      calculate();
-    } else if (typeof runCalc === 'function') {
-      runCalc();
-    }
-  }
-
   let stressChart = null;
 
   function calculate() {
+    /* Do not compute from a half-filled form. */
+    var missing = geoFlagMissing();
+    if (missing.length) { geoPrompt(missing.length); geoBlankOutputs(); return; }
+    geoPrompt(0);
     const m = parseInt(document.getElementById('in_rows').value) || 1;
     const n = parseInt(document.getElementById('in_cols').value) || 1;
     const D = parseFloat(document.getElementById('in_diameter').value) || 0.6;
@@ -514,23 +997,10 @@
     }
   }
 
-  document.querySelectorAll('input, select').forEach(el => {
-    el.addEventListener('input', calculate);
-  });
-
-  window.addEventListener('load', calculate);
+  /* Results are produced on demand, like the other calculators. */
+  document.getElementById('calcBtn').addEventListener('click', calculate);
+  window.addEventListener('load', function () { geoBlankOutputs(); });
 </script>
-
-
-<div class="legacy-footer" style="text-align: center; padding: 24px 12px; margin-top: 40px; border-top: 1px solid #e2e8f0; font-size: 13px; color: #64748b; font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px;">
-  <span>Developed by <strong style="color: #1e293b;">Ali Gheysari, PhD</strong></span>
-  <span style="color: #cbd5e1;">&bull;</span>
-  <span>Made with <span style="color: #ef4444;">❤️</span> in Canada</span>
-  <svg style="width: 20px; height: 12px; vertical-align: middle; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);" viewBox="0 0 9600 4800" xmlns="http://www.w3.org/2000/svg">
-    <path fill="#f00" d="m0 0h2400l99 99h4602l99-99h2400v4800h-2400l-99-99h-4602l-99 99H0z"/>
-    <path fill="#fff" d="m2400 0h4800v4800h-4800zm2490 4430-45-863a95 95 0 0 1 111-98l859 151-116-320a65 65 0 0 1 20-73l941-762-212-99a65 65 0 0 1-34-79l186-572-542 115a65 65 0 0 1-73-38l-105-247-423 454a65 65 0 0 1-111-57l204-1052-327 189a65 65 0 0 1-91-27l-332-652-332 652a65 65 0 0 1-91 27l-327-189 204 1052a65 65 0 0 1-111 57l-423-454-105 247a65 65 0 0 1-73 38l-542-115 186 572a65 65 0 0 1-34 79l-212 99 941 762a65 65 0 0 1 20 73l-116 320 859-151a95 95 0 0 1 111 98l-45 863z"/>
-  </svg>
-</div>
 
 </body>
 </html>

@@ -1,26 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Open-Source Geotechnical Engineering Calculators</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="25+ open-source geotechnical engineering and geospatial calculators that run entirely in your browser.">
+  <title>Geotechnical &amp; Geospatial Calculators &mdash; Geotechnical Tools</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --brand: #2563eb;
-      --brand-hover: #1d4ed8;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --surface: #ffffff;
+      --background: #f8fafc;
       --text: #0f172a;
       --text-muted: #64748b;
       --border: #e2e8f0;
+      --warning: #b45309;
+      --warning-bg: #fffbeb;
+      --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background: var(--bg);
+      font-family: var(--font);
+      background: var(--background);
       color: var(--text);
       line-height: 1.5;
       padding: 0 16px 48px;
@@ -37,9 +42,9 @@
       gap: 6px;
       padding: 4px 14px;
       border-radius: 9999px;
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      color: #1d4ed8;
+      background: var(--primary-light);
+      border: 1px solid #bae6fd;
+      color: var(--primary-dark);
       font-size: 12px;
       font-weight: 700;
       margin-bottom: 16px;
@@ -74,8 +79,8 @@
       transition: all 0.2s;
     }
     .search-box input:focus {
-      border-color: var(--brand);
-      box-shadow: 0 0 0 4px rgba(37,99,235,0.12);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--primary-light);
     }
     .search-box svg {
       position: absolute;
@@ -92,7 +97,7 @@
       margin: 0 auto;
     }
     .card {
-      background: var(--card-bg);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 20px;
       padding: 24px;
@@ -106,23 +111,27 @@
     }
     .card:hover {
       transform: translateY(-3px);
-      box-shadow: 0 12px 24px rgba(37,99,235,0.08);
-      border-color: #93c5fd;
+      box-shadow: 0 12px 24px rgba(2,132,199,0.10);
+      border-color: #7dd3fc;
     }
     .card-tag {
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.05em;
-      color: var(--brand);
+      color: var(--primary);
       margin-bottom: 6px;
     }
     .card h2 {
+      display: flex;
+      align-items: center;
+      gap: 9px;
       font-size: 1.15rem;
       font-weight: 700;
       margin-bottom: 8px;
       color: #0f172a;
     }
+    .card h2 .tool-icon { flex: none; border-radius: 7px; }
     .card p {
       font-size: 13px;
       color: var(--text-muted);
@@ -137,28 +146,63 @@
       padding-top: 14px;
       font-size: 12px;
       font-weight: 600;
-      color: var(--brand);
+      color: var(--primary);
     }
-    footer {
+    .notice {
       max-width: 1100px;
-      margin: 48px auto 0;
+      margin: 40px auto 0;
+      padding: 18px 20px;
+      background: var(--warning-bg);
+      border: 1px solid #fef3c7;
+      border-left: 4px solid #f59e0b;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #92400e;
+    }
+    .notice strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 14px;
+      color: #78350f;
+    }
+    .support-note {
+      max-width: 1100px;
+      margin: 24px auto 0;
       text-align: center;
-      padding-top: 24px;
-      border-top: 1px solid var(--border);
       font-size: 13px;
       color: var(--text-muted);
     }
+    .support-note a {
+      color: var(--primary);
+      text-decoration: none;
+      border-bottom: 1px solid var(--primary-light);
+    }
+    .support-note a:hover { border-bottom-color: var(--primary); }
+    .site-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      max-width: 1100px;
+      margin: 32px auto 0;
+      padding-top: 22px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .site-footer a { color: var(--text-muted); text-decoration: none; }
+    .site-footer a:hover { color: var(--primary); }
+    .site-footer .sep { color: #cbd5e1; }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="badge">
-      <span>🇨🇦 Open-Source Engineering Suite</span>
-    </div>
     <h1>Geotechnical & Geospatial Calculators</h1>
     <p class="subtitle">
-      25+ interactive, client-side calculation modules with metric/imperial conversion and instant visual feedback.
+      25+ interactive calculation modules with instant charts and visual feedback. Everything runs in your browser — nothing is uploaded.
     </p>
 
     <div class="search-box">
@@ -168,246 +212,221 @@
   </header>
 
   <main class="grid" id="toolsGrid">
-    <a href="axial_pile_capacity.html" class="card" data-title="axial pile capacity alpha beta lambda compressive uplift">
-      <div>
-        <div class="card-tag">Foundations & Piles</div>
-        <h2>🏗️ Axial Pile Capacity</h2>
-        <p>Calculates ultimate compressive and uplift axial capacity using Alpha, Beta, and Lambda static methods with multi-layer stratigraphy.</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
-    <a href="pile_group_efficiency.html" class="card" data-title="pile group efficiency settlement converse-labarre sayed-baker block failure equivalent raft">
-      <div>
-        <div class="card-tag">Foundations & Piles</div>
-        <h2>🏢 Pile Group Efficiency & Settlement</h2>
-        <p>Converse-Labarre, Sayed-Baker reduction efficiency, cohesive block shear check, and 2:1 equivalent raft 1D consolidation settlement.</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
-    <a href="bearing_capacity.html" class="card" data-title="bearing capacity shallow footings terzaghi meyerhof hansen vesic">
-      <div>
-        <div class="card-tag">Foundations & Piles</div>
-        <h2>📐 Shallow Bearing Capacity</h2>
-        <p>Ultimate and allowable bearing capacity for strip, square, circular, and rectangular footings via Terzaghi, Meyerhof, Hansen, and Vesic.</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
-    <a href="lateral_pile_py_curves.html" class="card" data-title="lateral pile py curves matlock api sand soft clay">
-      <div>
-        <div class="card-tag">Foundations & Piles</div>
-        <h2>🌊 Lateral Pile P-y Curves</h2>
-        <p>Generates non-linear p-y response curves for laterally loaded piles in soft clays (Matlock 1970) and sands (API RP 2A).</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
-    <a href="earth_pressure.html" class="card" data-title="lateral earth pressure rankine coulomb active passive at rest">
-      <div>
-        <div class="card-tag">Retaining Walls</div>
-        <h2>🧱 Lateral Earth Pressure</h2>
-        <p>Active (Ka), passive (Kp), and at-rest (Ko) lateral earth pressures using Rankine & Coulomb theories with slope, batter, and water table.</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
-    <a href="retaining_wall_stability.html" class="card" data-title="retaining wall stability sliding overturning eccentricity bearing pressure">
-      <div>
-        <div class="card-tag">Retaining Walls</div>
-        <h2>🛡️ Cantilever Wall Stability</h2>
-        <p>Analyzes sliding, overturning, eccentricity, middle-third check, and base contact pressure distributions for cantilever retaining walls.</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
     <a href="consolidation_calculator.html" class="card" data-title="1d consolidation settlement terzaghi overconsolidation secondary compression">
       <div>
         <div class="card-tag">Settlement</div>
-        <h2>📉 1D Consolidation Settlement</h2>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#EFF6FF" /> <rect x="12" y="10" width="40" height="6" rx="2" fill="#2563EB" /> <rect x="12" y="24" width="40" height="28" rx="3" fill="#3B82F6" fill-opacity="0.15" stroke="#3B82F6" stroke-width="1.5" /> <path d="M22 34C22 36 20.5 38 19 38C17.5 38 16 36 19 31C22 36 22 34 22 34Z" fill="#60A5FA" /> <path d="M45 34C45 36 43.5 38 42 38C40.5 38 39 36 42 31C45 36 45 34 45 34Z" fill="#60A5FA" /> <path d="M32 44V28M32 28L29 31M32 28L35 31" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /> </svg> 1D Consolidation Settlement</h2>
         <p>Primary consolidation settlement for normally consolidated (NC) and overconsolidated (OC) soils with secondary compression.</p>
       </div>
       <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
     </a>
-
-    <a href="terzaghi_consolidation.html" class="card" data-title="terzaghi time rate consolidation isochrones fourier series pore pressure">
+    <a href="axial_pile_capacity.html" class="card" data-title="axial pile capacity alpha beta lambda compressive uplift">
       <div>
-        <div class="card-tag">Settlement</div>
-        <h2>⏱️ Terzaghi Time Rate & Isochrones</h2>
-        <p>Bidirectional solver for time factor (Tv) vs U% and Fourier series excess pore pressure dissipation profiles for single/double drainage.</p>
+        <div class="card-tag">Foundations & Piles</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#EEF2FF" /> <line x1="8" y1="20" x2="56" y2="20" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="3 3" /> <rect x="8" y="20" width="48" height="36" rx="2" fill="#3B82F6" fill-opacity="0.08" /> <rect x="26" y="10" width="12" height="42" rx="2" fill="#4F46E5" /> <path d="M26 52L32 58L38 52H26Z" fill="#3730A3" /> <rect x="22" y="8" width="20" height="4" rx="1.5" fill="#6366F1" /> <path d="M32 2V7M32 7L29 4.5M32 7L35 4.5" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /> <path d="M23 26L23 30M23 26L21 28M23 26L25 28" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M41 26L41 30M41 26L39 28M41 26L43 28" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M23 38L23 42M23 38L21 40M23 38L25 40" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M41 38L41 42M41 38L39 40M41 38L43 40" stroke="#10B981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> </svg> Axial Pile Capacity</h2>
+        <p>Calculates ultimate compressive and uplift axial capacity using Alpha, Beta, and Lambda static methods with multi-layer stratigraphy.</p>
       </div>
       <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
     </a>
-
-    <a href="elastic_settlement.html" class="card" data-title="immediate elastic settlement schmertmann cpt boussinesq bowles">
+    <a href="retaining_wall_stability.html" class="card" data-title="retaining wall stability sliding overturning eccentricity bearing pressure">
       <div>
-        <div class="card-tag">Settlement</div>
-        <h2>🎯 Immediate Elastic Settlement</h2>
-        <p>Computes elastic settlement under flexible and rigid footings using Theory of Elasticity and Schmertmann (1978) CPT strain influence.</p>
+        <div class="card-tag">Retaining Walls</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F8FAFC" /> <path d="M28 14H52V46H28V14Z" fill="#3B82F6" fill-opacity="0.1" /> <path d="M14 46H52V52H14V46Z" fill="#475569" /> <path d="M22 14H28V46H22V14Z" fill="#64748B" /> <path d="M12 36C10 28 16 20 22 18" stroke="#EF4444" stroke-width="2" stroke-dasharray="3 2" /> <path d="M22 18L19 16M22 18L21 21" stroke="#EF4444" stroke-width="2" stroke-linecap="round" /> <circle cx="30" cy="49" r="2.5" fill="#10B981" /> </svg> Cantilever Wall Stability</h2>
+        <p>Analyzes sliding, overturning, eccentricity, middle-third check, and base contact pressure distributions for cantilever retaining walls.</p>
       </div>
       <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
     </a>
-
-    <a href="layered_settlement.html" class="card" data-title="multi layer settlement sublayer boussinesq stratigraphy">
-      <div>
-        <div class="card-tag">Settlement</div>
-        <h2>📊 Multi-Layer Settlement</h2>
-        <p>Multi-layer settlement combining sand elastic modulus, Schmertmann CPT, and non-linear clay consolidation with Boussinesq stress.</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
-    <a href="uscs_classifier.html" class="card" data-title="uscs soil classification astm d2487 casagrande plasticity chart">
-      <div>
-        <div class="card-tag">Lab & Soil Mechanics</div>
-        <h2>🏷️ USCS Soil Classifier</h2>
-        <p>Standard ASTM D2487 coarse/fine soil classification with dual symbols, organic checks, and interactive Casagrande plasticity chart.</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
-    <a href="gradation_plotter.html" class="card" data-title="particle size distribution psd gradation sieve curve d10 d30 d60 cu cc">
-      <div>
-        <div class="card-tag">Lab & Soil Mechanics</div>
-        <h2>📈 Particle Size Distribution (PSD)</h2>
-        <p>Semi-log gradation curve plotter with ASTM sieve presets, CSV import, boundary envelopes, D10/D30/D60, Cu, and Cc coefficients.</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
-    <a href="proctor_analyzer.html" class="card" data-title="proctor compaction curve omc mdd zero air voids zav">
-      <div>
-        <div class="card-tag">Lab & Soil Mechanics</div>
-        <h2>🧪 Proctor Compaction Analyzer</h2>
-        <p>Quadratic regression compaction fitting to determine Optimum Moisture Content (OMC), Maximum Dry Density (MDD), and ZAV curves.</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
-    <a href="stress_calculator.html" class="card" data-title="stress distribution boussinesq westergaard point line area load isobars">
-      <div>
-        <div class="card-tag">Stress Distribution</div>
-        <h2>🌐 Stress Distribution (Boussinesq)</h2>
-        <p>Vertical stress increase (Δσz) at any depth in semi-infinite soil masses under point, line, and rectangular loads with isobar bulbs.</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
-    <a href="rock_mass_classification.html" class="card" data-title="rock mass classification rmr89 q system gsi bieniawski barton hoek">
-      <div>
-        <div class="card-tag">Rock Engineering</div>
-        <h2>⛰️ Rock Mass Classification</h2>
-        <p>Determines rock mass engineering quality ratings using Bieniawski (1989) RMR89, Barton (1974) Q-System, and Hoek (2013) GSI.</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
-    <a href="hoek_brown_criterion.html" class="card" data-title="hoek brown criterion rock mass failure envelope mohr coulomb erm">
-      <div>
-        <div class="card-tag">Rock Engineering</div>
-        <h2>⛏️ Hoek-Brown Failure Criterion</h2>
-        <p>Generalized Hoek-Brown (2002/2019) with equivalent Mohr-Coulomb parameters (c', φ'), deformation modulus (Erm), and live plots.</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
-    <a href="seismic_site_classification.html" class="card" data-title="seismic site classification response spectrum asce 7 eurocode 8 vs30 n60">
-      <div>
-        <div class="card-tag">Seismic & Foundations</div>
-        <h2>⚡ Seismic Site Classification</h2>
-        <p>Assigns ASCE 7-16/22 and Eurocode 8 Site Class from 30m average Vs30, N60, and su with live Design Response Spectrum (Sa vs. T).</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
     <a href="cpt_soil_classification.html" class="card" data-title="cpt soil behavior type sbt robertson 1990 2016 su friction angle">
       <div>
         <div class="card-tag">Lab & Soil Mechanics</div>
-        <h2>🧭 CPT Soil Behavior Type (SBT)</h2>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F0FDFA" /> <rect x="8" y="16" width="48" height="12" fill="#FDE68A" fill-opacity="0.4" /> <rect x="8" y="28" width="48" height="14" fill="#93C5FD" fill-opacity="0.3" /> <rect x="8" y="42" width="48" height="14" fill="#FCA5A5" fill-opacity="0.3" /> <line x1="8" y1="16" x2="56" y2="16" stroke="#94A3B8" stroke-width="2" stroke-dasharray="3 3" /> <rect x="28" y="6" width="8" height="28" fill="#475569" rx="1" /> <rect x="27" y="34" width="10" height="12" fill="#0284C7" stroke="#0369A1" stroke-width="1" rx="1" /> <rect x="28.5" y="46" width="7" height="3" fill="#38BDF8" /> <path d="M27 49L32 58L37 49H27Z" fill="#0D9488" stroke="#0F766E" stroke-width="1" /> <path d="M22 40L25 40M25 40L23 38M25 40L23 42" stroke="#0284C7" stroke-width="1.5" stroke-linecap="round" /> <path d="M42 40L39 40M39 40L41 38M39 40L41 42" stroke="#0284C7" stroke-width="1.5" stroke-linecap="round" /> <circle cx="32" cy="53" r="1.5" fill="#FFFFFF" /> </svg> CPT Soil Behavior Type (SBT)</h2>
         <p>Robertson (1990/2016) CPT classification from cone resistance (qc), sleeve friction (fs), and pore pressure (u2) with live SBT charts.</p>
       </div>
       <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
     </a>
-
-    <a href="soil_permeability.html" class="card" data-title="soil permeability hydraulic conductivity constant head falling head hazen">
-      <div>
-        <div class="card-tag">Lab & Soil Mechanics</div>
-        <h2>💧 Soil Permeability Calculator</h2>
-        <p>Constant Head, Falling Head, and Hazen empirical hydraulic conductivity with void ratio and temperature corrections.</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
-    <a href="soil_phase_relationships.html" class="card" data-title="soil phase relationships void ratio porosity saturation unit weight 3 phase diagram">
-      <div>
-        <div class="card-tag">Lab & Soil Mechanics</div>
-        <h2>📦 Soil Phase Relationships</h2>
-        <p>Bidirectional solver for soil index and phase properties (w, e, n, Sr, Gs, γ, γd, γsat, γ') with interactive 3-phase soil block visualizer.</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
-    <a href="liquefaction_potential.html" class="card" data-title="liquefaction potential factor of safety idriss boulanger spt csr crr">
-      <div>
-        <div class="card-tag">Seismic & Foundations</div>
-        <h2>⚠️ Liquefaction Potential</h2>
-        <p>Factor of Safety (FS) against liquefaction triggering using Idriss & Boulanger (2008) SPT methodology with magnitude corrections.</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
-    <a href="spatial_converter.html" class="card" data-title="spatial converter geojson kml kmz gpx csv gis mapping">
-      <div>
-        <div class="card-tag">GIS & Spatial</div>
-        <h2>🗺️ Spatial & GIS Format Converter</h2>
-        <p>Converts and filters survey and map datasets between GeoJSON, KML, KMZ, GPX, and CSV formats with instant browser download.</p>
-      </div>
-      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
-    </a>
-
     <a href="csv_to_kml.html" class="card" data-title="csv to kml borehole coordinates placemarks google earth">
       <div>
         <div class="card-tag">GIS & Spatial</div>
-        <h2>📍 CSV to KML Placemark Converter</h2>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#EFF6FF" /> <rect x="10" y="14" width="22" height="36" rx="2" fill="#FFFFFF" stroke="#3B82F6" stroke-width="1.5" /> <line x1="10" y1="24" x2="32" y2="24" stroke="#93C5FD" stroke-width="1" /> <line x1="10" y1="34" x2="32" y2="34" stroke="#93C5FD" stroke-width="1" /> <line x1="20" y1="14" x2="20" y2="50" stroke="#93C5FD" stroke-width="1" /> <path d="M34 32H40M40 32L37 29M40 32L37 35" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /> <path d="M48 20C44.7 20 42 22.7 42 26C42 30.5 48 38 48 38C48 38 54 30.5 54 26C54 22.7 51.3 20 48 20Z" fill="#EF4444" stroke="#DC2626" stroke-width="1.5" /> <circle cx="48" cy="26" r="2" fill="#FFFFFF" /> </svg> CSV to KML Placemark Converter</h2>
         <p>Transforms tabular borehole and survey CSV files into styled Google Earth KML placemark files with custom field matching.</p>
       </div>
       <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
     </a>
-
     <a href="geometry_simplifier.html" class="card" data-title="geometry simplifier douglas peucker vertex reduction geojson kml">
       <div>
         <div class="card-tag">GIS & Spatial</div>
-        <h2>✂️ Geometry Simplifier & Optimizer</h2>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#FAF5FF" /> <path d="M12 24L20 14L32 18L44 12L52 26L48 44L36 52L22 48L12 36Z" stroke="#D8B4FE" stroke-width="1.5" stroke-dasharray="2 2" fill="#F3E8FF" fill-opacity="0.3" /> <path d="M14 26L32 16L50 26L44 46L20 44Z" stroke="#9333EA" stroke-width="2.5" fill="#A855F7" fill-opacity="0.15" stroke-linejoin="round" /> <circle cx="14" cy="26" r="3" fill="#9333EA" /> <circle cx="32" cy="16" r="3" fill="#9333EA" /> <circle cx="50" cy="26" r="3" fill="#9333EA" /> <circle cx="44" cy="46" r="3" fill="#9333EA" /> <circle cx="20" cy="44" r="3" fill="#9333EA" /> </svg> Geometry Simplifier & Optimizer</h2>
         <p>Reduces vertex count and file size of heavy spatial datasets using Douglas-Peucker optimization with interactive map comparison.</p>
       </div>
       <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
     </a>
-
+    <a href="hoek_brown_criterion.html" class="card" data-title="hoek brown criterion rock mass failure envelope mohr coulomb erm">
+      <div>
+        <div class="card-tag">Rock Engineering</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F1F5F9" /> <line x1="12" y1="52" x2="54" y2="52" stroke="#64748B" stroke-width="2" stroke-linecap="round" /> <line x1="12" y1="52" x2="12" y2="12" stroke="#64748B" stroke-width="2" stroke-linecap="round" /> <path d="M12 42C24 40 38 28 52 14" stroke="#0284C7" stroke-width="3" stroke-linecap="round" fill="none" /> <line x1="12" y1="36" x2="52" y2="16" stroke="#EF4444" stroke-width="2" stroke-dasharray="3 2" /> <path d="M12 42C24 40 38 28 52 14V52H12Z" fill="#0284C7" fill-opacity="0.1" /> <path d="M42 22L48 28M36 34L46 24" stroke="#D97706" stroke-width="2" stroke-linecap="round" /> </svg> Hoek-Brown Failure Criterion</h2>
+        <p>Generalized Hoek-Brown (2002/2019) with equivalent Mohr-Coulomb parameters (c', φ'), deformation modulus (Erm), and live plots.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="elastic_settlement.html" class="card" data-title="immediate elastic settlement schmertmann cpt boussinesq bowles">
+      <div>
+        <div class="card-tag">Settlement</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#FEF3C7" /> <rect x="20" y="12" width="24" height="8" rx="2" fill="#D97706" /> <path d="M10 24Q32 38 54 24" stroke="#B45309" stroke-width="2.5" fill="none" /> <path d="M20 20L32 50L44 20" stroke="#F59E0B" stroke-width="1.5" stroke-dasharray="3 3" fill="#F59E0B" fill-opacity="0.1" /> <path d="M32 20V32M32 32L29 29M32 32L35 29" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /> </svg> Immediate Elastic Settlement</h2>
+        <p>Computes elastic settlement under flexible and rigid footings using Theory of Elasticity and Schmertmann (1978) CPT strain influence.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="earth_pressure.html" class="card" data-title="lateral earth pressure rankine coulomb active passive at rest">
+      <div>
+        <div class="card-tag">Retaining Walls</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#FFFBEB" /> <rect x="18" y="12" width="6" height="42" rx="1.5" fill="#D97706" /> <path d="M24 16L48 54H24V16Z" fill="#F59E0B" fill-opacity="0.25" stroke="#F59E0B" stroke-width="2" /> <path d="M44 48H28M28 48L32 45M28 48L32 51" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M36 36H28M28 36L31 33.5M28 36L31 38.5" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M30 25H28M28 25L30 23M28 25L30 27" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> </svg> Lateral Earth Pressure</h2>
+        <p>Active (Ka), passive (Kp), and at-rest (Ko) lateral earth pressures using Rankine & Coulomb theories with slope, batter, and water table.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="lateral_pile_py_curves.html" class="card" data-title="lateral pile py curves matlock api sand soft clay">
+      <div>
+        <div class="card-tag">Foundations & Piles</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#FDF4FF" /> <line x1="8" y1="18" x2="56" y2="18" stroke="#94A3B8" stroke-width="2" /> <path d="M22 12Q25 32 30 54" stroke="#9333EA" stroke-width="5" stroke-linecap="round" /> <path d="M8 12H18M18 12L15 9M18 12L15 15" stroke="#EC4899" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M26 26C31 24 33 28 38 26" stroke="#A855F7" stroke-width="2" stroke-linecap="round" /> <path d="M28 36C33 34 35 38 40 36" stroke="#A855F7" stroke-width="2" stroke-linecap="round" /> <path d="M30 46C35 44 37 48 42 46" stroke="#A855F7" stroke-width="2" stroke-linecap="round" /> </svg> Lateral Pile P-y Curves</h2>
+        <p>Generates non-linear p-y response curves for laterally loaded piles in soft clays (Matlock 1970) and sands (API RP 2A).</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="liquefaction_potential.html" class="card" data-title="liquefaction potential factor of safety idriss boulanger spt csr crr">
+      <div>
+        <div class="card-tag">Seismic & Foundations</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#FEF2F2" /> <line x1="8" y1="20" x2="56" y2="20" stroke="#94A3B8" stroke-width="2" /> <rect x="8" y="32" width="48" height="24" rx="2" fill="#FCA5A5" fill-opacity="0.2" /> <path d="M8 50Q14 44 20 50T32 50T44 50T56 50" stroke="#EF4444" stroke-width="2.5" fill="none" /> <path d="M8 40Q14 34 20 40T32 40T44 40T56 40" stroke="#F87171" stroke-width="2" fill="none" stroke-dasharray="3 2" /> <circle cx="32" cy="20" r="3" fill="#3B82F6" /> <circle cx="20" cy="20" r="2" fill="#3B82F6" /> <circle cx="44" cy="20" r="2.5" fill="#3B82F6" /> </svg> Liquefaction Potential</h2>
+        <p>Factor of Safety (FS) against liquefaction triggering using Idriss & Boulanger (2008) SPT methodology with magnitude corrections.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="layered_settlement.html" class="card" data-title="multi layer settlement sublayer boussinesq stratigraphy">
+      <div>
+        <div class="card-tag">Settlement</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F1F5F9" /> <rect x="10" y="14" width="44" height="10" rx="2" fill="#E2E8F0" /> <rect x="10" y="27" width="44" height="11" rx="2" fill="#CBD5E1" /> <rect x="10" y="41" width="44" height="12" rx="2" fill="#94A3B8" /> <path d="M22 10C22 30 26 48 32 54C38 48 42 30 42 10" stroke="#3B82F6" stroke-width="2" stroke-dasharray="3 2" fill="none" /> <circle cx="32" cy="10" r="3" fill="#2563EB" /> </svg> Multi-Layer Settlement</h2>
+        <p>Multi-layer settlement combining sand elastic modulus, Schmertmann CPT, and non-linear clay consolidation with Boussinesq stress.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="gradation_plotter.html" class="card" data-title="particle size distribution psd gradation sieve curve d10 d30 d60 cu cc">
+      <div>
+        <div class="card-tag">Lab & Soil Mechanics</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F0F9FF" /> <line x1="12" y1="52" x2="52" y2="52" stroke="#64748B" stroke-width="2" /> <line x1="12" y1="12" x2="12" y2="52" stroke="#64748B" stroke-width="2" /> <line x1="24" y1="12" x2="24" y2="52" stroke="#E2E8F0" stroke-width="1" /> <line x1="38" y1="12" x2="38" y2="52" stroke="#E2E8F0" stroke-width="1" /> <path d="M12 50C22 48 26 36 34 26C40 18 46 14 52 14" stroke="#0284C7" stroke-width="3" fill="none" stroke-linecap="round" /> <circle cx="24" cy="40" r="3" fill="#38BDF8" stroke="#0284C7" stroke-width="1.5" /> <circle cx="34" cy="26" r="3" fill="#38BDF8" stroke="#0284C7" stroke-width="1.5" /> <circle cx="44" cy="16" r="3" fill="#38BDF8" stroke="#0284C7" stroke-width="1.5" /> </svg> Particle Size Distribution (PSD)</h2>
+        <p>Semi-log gradation curve plotter with ASTM sieve presets, CSV import, boundary envelopes, D10/D30/D60, Cu, and Cc coefficients.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="pile_group_efficiency.html" class="card" data-title="pile group efficiency settlement converse-labarre sayed-baker block failure equivalent raft">
+      <div>
+        <div class="card-tag">Foundations & Piles</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F0F9FF" /> <line x1="6" y1="20" x2="58" y2="20" stroke="#94A3B8" stroke-width="2" stroke-dasharray="2 2" /> <rect x="10" y="12" width="44" height="8" rx="2" fill="#0284C7" /> <rect x="14" y="20" width="7" height="34" rx="1.5" fill="#0369A1" /> <path d="M14 54L17.5 58L21 54H14Z" fill="#075985" /> <rect x="28.5" y="20" width="7" height="34" rx="1.5" fill="#0369A1" /> <path d="M28.5 54L32 58L35.5 54H28.5Z" fill="#075985" /> <rect x="43" y="20" width="7" height="34" rx="1.5" fill="#0369A1" /> <path d="M43 54L46.5 58L50 54H43Z" fill="#075985" /> <path d="M10 42L2 60M54 42L62 60" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="3 2" /> <path d="M32 2V10M32 10L29 7M32 10L35 7" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /> </svg> Pile Group Efficiency & Settlement</h2>
+        <p>Converse-Labarre, Sayed-Baker reduction efficiency, cohesive block shear check, and 2:1 equivalent raft 1D consolidation settlement.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="proctor_analyzer.html" class="card" data-title="proctor compaction curve omc mdd zero air voids zav">
+      <div>
+        <div class="card-tag">Lab & Soil Mechanics</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#EFF6FF" /> <line x1="12" y1="52" x2="54" y2="52" stroke="#64748B" stroke-width="2" /> <line x1="12" y1="12" x2="12" y2="52" stroke="#64748B" stroke-width="2" /> <path d="M18 16Q36 28 52 46" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="3 3" fill="none" /> <path d="M16 46Q34 16 50 46" stroke="#2563EB" stroke-width="3" fill="none" stroke-linecap="round" /> <circle cx="34" cy="23" r="3.5" fill="#EF4444" stroke="#FFFFFF" stroke-width="1.5" /> <line x1="34" y1="23" x2="34" y2="52" stroke="#EF4444" stroke-width="1" stroke-dasharray="2 2" /> </svg> Proctor Compaction Analyzer</h2>
+        <p>Quadratic regression compaction fitting to determine Optimum Moisture Content (OMC), Maximum Dry Density (MDD), and ZAV curves.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="rock_mass_classification.html" class="card" data-title="rock mass classification rmr89 q system gsi bieniawski barton hoek">
+      <div>
+        <div class="card-tag">Rock Engineering</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F8FAFC" /> <path d="M32 10L52 22V44L32 56L12 44V22L32 10Z" fill="#64748B" fill-opacity="0.15" stroke="#475569" stroke-width="2" stroke-linejoin="round" /> <path d="M32 10V34L52 22" stroke="#475569" stroke-width="2" /> <path d="M32 34L12 22" stroke="#475569" stroke-width="2" /> <path d="M32 34V56" stroke="#475569" stroke-width="2" /> <line x1="20" y1="16" x2="28" y2="38" stroke="#DC2626" stroke-width="1.5" stroke-dasharray="2 2" /> <line x1="36" y1="36" x2="48" y2="30" stroke="#DC2626" stroke-width="1.5" stroke-dasharray="2 2" /> </svg> Rock Mass Classification</h2>
+        <p>Determines rock mass engineering quality ratings using Bieniawski (1989) RMR89, Barton (1974) Q-System, and Hoek (2013) GSI.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="seismic_site_classification.html" class="card" data-title="seismic site classification response spectrum asce 7 eurocode 8 vs30 n60">
+      <div>
+        <div class="card-tag">Seismic & Foundations</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#FEF3C7" /> <rect x="10" y="36" width="44" height="6" fill="#FDE68A" /> <rect x="10" y="42" width="44" height="8" fill="#FCD34D" /> <rect x="10" y="50" width="44" height="6" rx="1" fill="#F59E0B" /> <path d="M10 26H22L26 14L32 38L38 20L42 30H54" stroke="#D97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M12 28C18 20 28 14 36 14C44 14 50 20 54 26" stroke="#2563EB" stroke-width="1.5" stroke-dasharray="3 2" fill="none" /> <path d="M32 4L26 14H32L30 22L38 12H32L34 4H32Z" fill="#DC2626" /> </svg> Seismic Site Classification</h2>
+        <p>Assigns ASCE 7-16/22 and Eurocode 8 Site Class from 30m average Vs30, N60, and su with live Design Response Spectrum (Sa vs. T).</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="bearing_capacity.html" class="card" data-title="bearing capacity shallow footings terzaghi meyerhof hansen vesic">
+      <div>
+        <div class="card-tag">Foundations & Piles</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F0FDF4" /> <line x1="8" y1="26" x2="56" y2="26" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="3 3" /> <path d="M16 34L32 54L48 34H16Z" fill="#10B981" fill-opacity="0.15" stroke="#10B981" stroke-width="1.5" stroke-dasharray="2 2" /> <rect x="18" y="24" width="28" height="10" rx="2" fill="#059669" /> <rect x="27" y="12" width="10" height="12" rx="1.5" fill="#34D399" /> <path d="M32 4V11M32 11L29 8M32 11L35 8" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /> </svg> Shallow Bearing Capacity</h2>
+        <p>Ultimate and allowable bearing capacity for strip, square, circular, and rectangular footings via Terzaghi, Meyerhof, Hansen, and Vesic.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="soil_permeability.html" class="card" data-title="soil permeability hydraulic conductivity constant head falling head hazen">
+      <div>
+        <div class="card-tag">Lab & Soil Mechanics</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F0FDF4" /> <rect x="20" y="24" width="24" height="32" rx="2" fill="#D97706" fill-opacity="0.2" stroke="#B45309" stroke-width="2" /> <circle cx="26" cy="30" r="2" fill="#92400E" /> <circle cx="34" cy="34" r="2" fill="#92400E" /> <circle cx="28" cy="40" r="2.5" fill="#92400E" /> <circle cx="36" cy="44" r="1.5" fill="#92400E" /> <circle cx="26" cy="50" r="2" fill="#92400E" /> <circle cx="38" cy="50" r="2" fill="#92400E" /> <rect x="28" y="8" width="8" height="16" fill="#3B82F6" fill-opacity="0.3" stroke="#2563EB" stroke-width="1.5" /> <line x1="28" y1="12" x2="36" y2="12" stroke="#2563EB" stroke-width="2" stroke-dasharray="2 2" /> <path d="M32 14V22M32 22L30 20M32 22L34 20" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M32 58V62M32 62L30 60M32 62L34 60" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> </svg> Soil Permeability Calculator</h2>
+        <p>Constant Head, Falling Head, and Hazen empirical hydraulic conductivity with void ratio and temperature corrections.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="soil_phase_relationships.html" class="card" data-title="soil phase relationships void ratio porosity saturation unit weight 3 phase diagram">
+      <div>
+        <div class="card-tag">Lab & Soil Mechanics</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F8FAFC" /> <rect x="14" y="10" width="36" height="44" rx="3" stroke="#475569" stroke-width="2" fill="#FFFFFF" /> <rect x="15" y="11" width="34" height="12" fill="#E2E8F0" /> <text x="32" y="20" fill="#64748B" fontSize="6" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">AIR</text> <rect x="15" y="23" width="34" height="14" fill="#60A5FA" /> <line x1="14" y1="23" x2="50" y2="23" stroke="#2563EB" stroke-width="1.5" /> <text x="32" y="32" fill="#FFFFFF" fontSize="6" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">WATER</text> <rect x="15" y="37" width="34" height="16" fill="#D97706" rx="0 0 2 2" /> <line x1="14" y1="37" x2="50" y2="37" stroke="#92400E" stroke-width="1.5" /> <text x="32" y="47" fill="#FFFFFF" fontSize="6" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">SOLID</text> <path d="M54 11V53" stroke="#64748B" stroke-width="1.5" /> <path d="M52 13L54 11L56 13M52 51L54 53L56 51" stroke="#64748B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> </svg> Soil Phase Relationships</h2>
+        <p>Bidirectional solver for soil index and phase properties (w, e, n, Sr, Gs, γ, γd, γsat, γ') with interactive 3-phase soil block visualizer.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="spatial_converter.html" class="card" data-title="spatial converter geojson kml kmz gpx csv gis mapping">
+      <div>
+        <div class="card-tag">GIS & Spatial</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F0FDF4" /> <circle cx="32" cy="32" r="18" stroke="#10B981" stroke-width="2.5" stroke-dasharray="18 8" /> <rect x="24" y="10" width="16" height="8" rx="2" fill="#059669" /> <text x="26" y="16" fill="#FFFFFF" fontSize="5" fontWeight="bold" fontFamily="sans-serif">JSON</text> <rect x="24" y="46" width="16" height="8" rx="2" fill="#2563EB" /> <text x="27" y="52" fill="#FFFFFF" fontSize="5" fontWeight="bold" fontFamily="sans-serif">KML</text> <circle cx="32" cy="32" r="4" fill="#10B981" /> <path d="M32 26V38M26 32H38" stroke="#FFFFFF" stroke-width="1.5" /> </svg> Spatial & GIS Format Converter</h2>
+        <p>Converts and filters survey and map datasets between GeoJSON, KML, KMZ, GPX, and CSV formats with instant browser download.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
     <a href="stress_calculator_simple.html" class="card" data-title="stress calculator simple point load boussinesq westergaard">
       <div>
         <div class="card-tag">Stress Distribution</div>
-        <h2>⚡ Stress Calculator (Simple)</h2>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#EEF2FF" /> <path d="M32 6V18M32 18L28 14M32 18L36 14" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /> <line x1="10" y1="18" x2="54" y2="18" stroke="#64748B" stroke-width="2" /> <path d="M26 18C26 26 30 30 32 30C34 30 38 26 38 18" stroke="#4F46E5" stroke-width="2" fill="none" /> <path d="M20 18C20 34 28 42 32 42C36 42 44 34 44 18" stroke="#6366F1" stroke-width="1.8" fill="none" /> <path d="M14 18C14 42 26 54 32 54C38 54 50 42 50 18" stroke="#818CF8" stroke-width="1.5" fill="none" stroke-dasharray="3 2" /> </svg> Stress Calculator (Simple)</h2>
         <p>Fast single-point vertical stress increase solver under point and line loads using Boussinesq & Westergaard formulations.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="stress_calculator.html" class="card" data-title="stress distribution boussinesq westergaard point line area load isobars">
+      <div>
+        <div class="card-tag">Stress Distribution</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#EEF2FF" /> <path d="M32 6V18M32 18L28 14M32 18L36 14" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /> <line x1="10" y1="18" x2="54" y2="18" stroke="#64748B" stroke-width="2" /> <path d="M26 18C26 26 30 30 32 30C34 30 38 26 38 18" stroke="#4F46E5" stroke-width="2" fill="none" /> <path d="M20 18C20 34 28 42 32 42C36 42 44 34 44 18" stroke="#6366F1" stroke-width="1.8" fill="none" /> <path d="M14 18C14 42 26 54 32 54C38 54 50 42 50 18" stroke="#818CF8" stroke-width="1.5" fill="none" stroke-dasharray="3 2" /> </svg> Stress Distribution (Boussinesq)</h2>
+        <p>Vertical stress increase (Δσz) at any depth in semi-infinite soil masses under point, line, and rectangular loads with isobar bulbs.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="terzaghi_consolidation.html" class="card" data-title="terzaghi time rate consolidation isochrones fourier series pore pressure">
+      <div>
+        <div class="card-tag">Settlement</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F0FDF4" /> <line x1="12" y1="12" x2="52" y2="12" stroke="#059669" stroke-width="2" stroke-dasharray="2 2" /> <line x1="12" y1="52" x2="52" y2="52" stroke="#059669" stroke-width="2" stroke-dasharray="2 2" /> <path d="M12 12Q48 32 12 52" stroke="#10B981" stroke-width="2.5" fill="none" /> <path d="M12 12Q36 32 12 52" stroke="#34D399" stroke-width="2" fill="none" stroke-dasharray="3 3" /> <path d="M12 12Q24 32 12 52" stroke="#6EE7B7" stroke-width="1.5" fill="none" /> <line x1="12" y1="10" x2="12" y2="54" stroke="#64748B" stroke-width="2" /> </svg> Terzaghi Time Rate & Isochrones</h2>
+        <p>Bidirectional solver for time factor (Tv) vs U% and Fourier series excess pore pressure dissipation profiles for single/double drainage.</p>
+      </div>
+      <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
+    </a>
+    <a href="uscs_classifier.html" class="card" data-title="uscs soil classification astm d2487 casagrande plasticity chart">
+      <div>
+        <div class="card-tag">Lab & Soil Mechanics</div>
+        <h2><svg width="32" height="32" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#ECFDF5" /> <line x1="12" y1="52" x2="54" y2="52" stroke="#64748B" stroke-width="2" /> <line x1="12" y1="12" x2="12" y2="52" stroke="#64748B" stroke-width="2" /> <line x1="18" y1="46" x2="52" y2="18" stroke="#10B981" stroke-width="2.5" /> <line x1="22" y1="50" x2="52" y2="12" stroke="#059669" stroke-width="1.5" stroke-dasharray="3 2" /> <line x1="38" y1="12" x2="38" y2="52" stroke="#94A3B8" stroke-width="1" stroke-dasharray="2 2" /> <rect x="22" y="24" width="12" height="8" rx="2" fill="#10B981" fill-opacity="0.2" /> <text x="24" y="30" fill="#047857" fontSize="6" fontWeight="bold" fontFamily="sans-serif">CL</text> <rect x="42" y="20" width="12" height="8" rx="2" fill="#3B82F6" fill-opacity="0.2" /> <text x="44" y="26" fill="#1D4ED8" fontSize="6" fontWeight="bold" fontFamily="sans-serif">CH</text> </svg> USCS Soil Classifier</h2>
+        <p>Standard ASTM D2487 coarse/fine soil classification with dual symbols, organic checks, and interactive Casagrande plasticity chart.</p>
       </div>
       <div class="card-footer"><span>Launch Calculator</span> <span>&rarr;</span></div>
     </a>
   </main>
 
-    <div style="max-width: 1100px; margin: 40px auto 0; background: #fffbeb; border: 1px solid #fef3c7; border-left: 4px solid #f59e0b; border-radius: 12px; padding: 18px 20px; font-size: 13px; color: #92400e; line-height: 1.6;">
-      <strong style="color: #78350f; display: block; margin-bottom: 4px; font-size: 14px;">⚠️ Engineering Notice & Professional Judgment Disclaimer</strong>
+    <div class="notice">
+      <strong>⚠️ Engineering Notice & Professional Judgment Disclaimer</strong>
       These open-source tools and calculation models are provided for preliminary screening, educational, and estimation purposes only. Geotechnical engineering problems inherently involve site-specific stratigraphy and uncertainty. All computational outputs must be independently validated by a qualified Professional Engineer (P.Eng. / PE) prior to final engineering design or construction implementation.
     </div>
 
-    <div style="max-width: 1100px; margin: 24px auto 0; text-align: center;">
-      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 8px; background: #FF813F; color: #ffffff; font-family: 'Inter', system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 700; padding: 12px 24px; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 12px rgba(255, 129, 63, 0.25);">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
-        <span>☕ Support Open-Source Development - Buy me a coffee</span>
-      </a>
-    </div>
+  <p class="support-note">Free and open-source. If these tools save you time, you can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a>.</p>
 
-  <footer>
-    <p>Developed by <strong>Ali Gheysari, PhD</strong> &bull; Made with <span style="color:#ef4444;">❤️</span> in Canada 🇨🇦 &bull; Licensed under GNU GPL v3.0</p>
+  <footer class="site-footer">
+    <span>Developed by <strong>Ali Gheysari, PhD</strong></span>
+    <span class="sep">&bull;</span>
+    <a href="https://github.com/agheysari/geotechnical-tools" target="_blank" rel="noopener noreferrer">Source</a>
+    <span class="sep">&bull;</span>
+    <span>GNU GPL v3.0</span>
   </footer>
 
   <script>

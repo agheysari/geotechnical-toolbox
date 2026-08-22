@@ -1,208 +1,421 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bearing Capacity Calculator</title>
-    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            max-width: 1000px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            color: #333;
-            line-height: 1.6;
-        }
-        .container {
-            background: #f9f9f9;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        h2 {
-            text-align: center;
-            margin-top: 0;
-            color: #2c3e50;
-        }
-        .form-row {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-        @media (max-width: 768px) {
-            .form-row {
-                flex-direction: column;
-            }
-        }
-        .form-group {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        label {
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-            font-size: 0.9rem;
-        }
-        input, select {
-            padding: 0.5rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 1rem;
-        }
-        .hidden {
-            display: none !important;
-        }
-        button {
-            width: 100%;
-            background: #0066cc;
-            color: white;
-            border: none;
-            padding: 12px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 1rem;
-            transition: background 0.2s;
-        }
-        button:hover {
-            background: #0052a3;
-        }
-        .result-box {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            background: #eef7ff;
-            border-left: 5px solid #0066cc;
-            border-radius: 4px;
-            text-align: center;
-        }
-        .result-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #004080;
-        }
-        .factors-row {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-top: 0.5rem;
-            font-size: 0.95rem;
-            color: #444;
-        }
-        .note {
-            font-size: 0.8rem;
-            color: #666;
-            margin-top: 0.5rem;
-            text-align: center;
-        }
-        .formula-box {
-            text-align: center;
-            margin: 1.5rem 0;
-            overflow-x: auto;
-        }
-        .input-error {
-            border: 2px solid #e74c3c !important;
-            background-color: #fdf2f2 !important;
-        }
-        /* Unit Toggle Styles */
-        .unit-toggle-bar { display:flex; justify-content:flex-end; margin-bottom:1rem; }
-        .unit-toggle-btn { width:auto !important; padding:7px 16px; font-size:0.85rem;
-            border-radius:8px; background:#0066cc; color:white; border:none; cursor:pointer;
-            font-weight:600; transition:background 0.2s; }
-        .unit-toggle-btn:hover { background:#004fa3; }
-        .unit-toggle-btn.imperial { background:#7c3aed; }    
-    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
-    .legacy-top-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Terzaghi, Meyerhof, Hansen and Vesic general formulations with shape, depth, load inclination and groundwater corrections.">
+<title>Shallow Bearing Capacity Calculator &mdash; Geotechnical Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+    /* ==========================================================================
+       Geotechnical Tools — shared shell
+       This block is identical on every page. Edit it in one page and mirror the
+       change to the rest; page-specific rules live in the section below it.
+       ========================================================================== */
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --surface: #ffffff;
+      --background: #f8fafc;
+      --surface-alt: #f1f5f9;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #059669;
+      --success-bg: #ecfdf5;
+      --warning: #b45309;
+      --warning-bg: #fffbeb;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
-    .legacy-actions {
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 28px 16px 8px;
+      background: var(--background);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    /* --- Page header ------------------------------------------------------- */
+    .tool-header { margin-bottom: 20px; }
+    .tool-header h1 {
+      margin: 0;
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: -0.015em;
+      line-height: 1.25;
+      color: var(--text);
       display: flex;
       align-items: center;
       gap: 10px;
-      flex-wrap: wrap;
     }
-    .bmc-btn {
-      display: inline-flex;
+    .tool-header .subtitle {
+      margin: 8px 0 0;
+      max-width: 90ch;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .tool-header .back-link {
+      display: inline-block;
+      margin-bottom: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .tool-header .back-link:hover { color: var(--primary); }
+    .tool-header h1 .tool-icon { flex: none; border-radius: 9px; }
+
+    /* --- Surfaces ---------------------------------------------------------- */
+    .card {
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+    .card + .card { margin-top: 16px; }
+    .card-title {
+      margin: 0 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
       align-items: center;
       gap: 6px;
-      background: #FFDD00;
-      color: #000000;
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-weight: 700;
+    }
+    .section-title {
+      margin: 26px 0 14px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--border);
       font-size: 12px;
-      text-decoration: none;
-      border: 1px solid #E6C800;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
     }
-    .bmc-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    .section-title:first-child { margin-top: 0; }
+
+    h1, h2, h3, h4 { font-family: var(--font); color: var(--text); }
+    h2 { font-size: 19px; font-weight: 700; margin: 0 0 12px; }
+    h3 { font-size: 15px; font-weight: 700; margin: 0 0 10px; }
+    h4 { font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+
+    /* --- Forms ------------------------------------------------------------- */
+    .form-row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .form-row > * { flex: 1 1 0; min-width: 0; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
     }
-    .demo-disclaimer-banner {
-      background: #fffbeb;
-      border: 1px solid #fef3c7;
-      border-left: 4px solid #f59e0b;
+    /* grid/flex children default to min-width:auto, which refuses to shrink and
+       pushes the page wider than the viewport on phones */
+    .layout-grid > *, .form-grid > *, .results-grid > *, .form-row > * { min-width: 0; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    @media (max-width: 768px) { .form-row { flex-direction: column; gap: 12px; } }
+
+    label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 11px;
-      color: #92400e;
-      line-height: 1.4;
-      margin-bottom: 20px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    input[type="checkbox"], input[type="radio"] { width: auto; }
+    input[type="range"] { padding: 0; }
+    .input-error { border-color: var(--danger) !important; background: var(--danger-bg) !important; }
+
+    .hint, .help-text, .note {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    /* block footnote under a results panel, not an inline field hint */
+    .note { display: block; margin-top: 18px; }
+
+    /* row of buttons that acts on the table above it */
+    .table-actions {
       display: flex;
-      align-items: flex-start;
-      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin: 16px 0 4px;
     }
-    .unit-switcher-group {
+    .table-actions .spacer { margin-left: auto; }
+
+    /* --- Buttons ----------------------------------------------------------- */
+    button, .btn {
       display: inline-flex;
-      background: #f1f5f9;
-      padding: 3px;
-      border-radius: 10px;
-      border: 1px solid #cbd5e1;
-    }
-    .unit-switcher-btn {
-      padding: 5px 12px;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 16px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--primary);
+      border: none;
       border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    button:hover:not(:disabled), .btn:hover:not(:disabled) { background: var(--primary-dark); }
+    button:disabled, .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+    .calc-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .btn-secondary { background: var(--surface-alt); color: #475569; border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { background: #e2e8f0; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; font-weight: 600; }
+    .btn-success { background: var(--success); }
+    .btn-success:hover:not(:disabled) { background: #047857; }
+    .btn-danger, .btn-clear { background: var(--danger); }
+    .btn-danger:hover:not(:disabled), .btn-clear:hover:not(:disabled) { background: #b91c1c; }
+
+    /* --- Tabs -------------------------------------------------------------- */
+    .tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      background: var(--surface-alt);
+      border-radius: 8px;
+    }
+    .tab-btn:hover:not(.active) { background: #e2e8f0; }
+    .tab-btn.active { background: var(--primary); color: #fff; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* --- Results ----------------------------------------------------------- */
+    .result-box {
+      margin-top: 20px;
+      padding: 18px 20px;
+      background: var(--primary-light);
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .result-box.success { background: var(--success-bg); border-color: #a7f3d0; border-left-color: var(--success); }
+    .result-box.warning { background: var(--warning-bg); border-color: #fde68a; border-left-color: #f59e0b; }
+    .result-box.danger  { background: var(--danger-bg);  border-color: #fecaca; border-left-color: var(--danger); }
+    .result-value {
+      margin: 6px 0 0;
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--primary-dark);
+    }
+    .success .result-value { color: var(--success); }
+    .warning .result-value { color: var(--warning); }
+    .danger  .result-value { color: var(--danger); }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .stat-box {
+      padding: 14px 12px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+    .stat-val {
+      margin: 5px 0 0;
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+    .stat-sub { font-size: 10px; color: var(--text-muted); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
       font-size: 11px;
       font-weight: 700;
-      border: none;
-      cursor: pointer;
-      background: transparent;
-      color: #64748b;
-      transition: all 0.2s;
-    }
-    .unit-switcher-btn.active {
-      background: #0284c7;
-      color: #ffffff;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      background: var(--primary-light);
+      color: var(--primary-dark);
     }
 
+    .formula-box {
+      margin: 18px 0;
+      padding: 16px 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-size: 13px;
+    }
+    .formula-box h3, .formula-box h4 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    /* --- Tables ------------------------------------------------------------ */
+    .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      background: var(--background);
+    }
+    td input, td select { padding: 6px 8px; font-size: 13px; }
+
+    /* --- Figures ------------------------------------------------------------ */
+    .chart-container, .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      margin: 22px 0 4px;
+      padding: 14px 14px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    @media (max-width: 600px) {
+      .chart-container, .chart-wrapper { height: 320px; padding: 10px 8px 6px; }
+    }
+
+    /* --- Uploads ------------------------------------------------------------ */
+    .upload-area {
+      margin-bottom: 16px;
+      padding: 24px;
+      text-align: center;
+      background: var(--background);
+      border: 2px dashed #cbd5e1;
+      border-radius: var(--radius);
+      transition: border-color 0.15s ease;
+    }
+    .upload-area:hover { border-color: var(--primary); }
+    .upload-area input { width: auto; max-width: 100%; }
+    .upload-area input[type="file"] { width: 100%; }
+
+    /* --- Support line & footer ---------------------------------------------- */
+    .support-note {
+      margin: 20px 0 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .support-note a {
+      color: var(--primary);
+      text-decoration: none;
+      border-bottom: 1px solid var(--primary-light);
+    }
+    .support-note a:hover { border-bottom-color: var(--primary); }
+
+    .site-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 32px;
+      padding: 22px 12px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .site-footer a { color: var(--text-muted); text-decoration: none; }
+    .site-footer a:hover { color: var(--primary); }
+    .site-footer .sep { color: #cbd5e1; }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 600px) {
+      body { padding: 20px 12px 8px; }
+      .card { padding: 18px 16px; }
+      th, td { padding: 8px 9px; }
+    }
+
+    /* ==========================================================================
+       Page-specific styles
+       ========================================================================== */
+    .factors-row { display: flex; justify-content: center; gap: 2rem; margin-top: 0.5rem; font-size: 0.95rem; color: #444; }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <div class="legacy-top-bar">
-    <div class="legacy-actions">
-      <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
-      <span>Buy me a coffee</span>
-    </a>
-    </div>
-  </div>
-    <h2>Bearing Capacity Calculator</h2>
-    
+
+  <header class="tool-header">
+    <a class="back-link" href="index.html">&larr; All calculators</a>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F0FDF4" /> <line x1="8" y1="26" x2="56" y2="26" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="3 3" /> <path d="M16 34L32 54L48 34H16Z" fill="#10B981" fill-opacity="0.15" stroke="#10B981" stroke-width="1.5" stroke-dasharray="2 2" /> <rect x="18" y="24" width="28" height="10" rx="2" fill="#059669" /> <rect x="27" y="12" width="10" height="12" rx="1.5" fill="#34D399" /> <path d="M32 4V11M32 11L29 8M32 11L35 8" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /> </svg> Shallow Bearing Capacity Calculator</h1>
+    <p class="subtitle">Terzaghi, Meyerhof, Hansen and Vesic general formulations with shape, depth, load inclination and groundwater corrections.</p>
+  </header>
+
+  <main class="card">
+  
     <div class="form-row" style="background: #e8f4fd; padding: 10px; border-radius: 6px; justify-content: flex-start; gap: 1.5rem; margin-bottom: 1.5rem;">
         <label style="margin: 0; display: flex; align-items: center; gap: 5px; cursor: pointer;">
             <input type="checkbox" id="toggleGW" onchange="updateToggles()"> Groundwater Effects
@@ -235,22 +448,22 @@
 
     <div class="form-row">
         <div class="form-group">
-            <label id="labelB" for="widthB">Width / Diameter (B) [<span data-unit="length">m</span>]</label>
+            <label id="labelB" for="widthB">Width / Diameter (B) [m]</label>
             <input type="number" id="widthB" step="any" placeholder="e.g., 2.0 m">
         </div>
         <div class="form-group hidden" id="length-group">
-            <label for="lengthL">Length (L) [<span data-unit="length">m</span>]</label>
+            <label for="lengthL">Length (L) [m]</label>
             <input type="number" id="lengthL" step="any" placeholder="e.g., 3.0 m">
         </div>
         <div class="form-group">
-            <label for="embedD">Embedment Depth (D<sub>f</sub>) [<span data-unit="length">m</span>]</label>
+            <label for="embedD">Embedment Depth (D<sub>f</sub>) [m]</label>
             <input type="number" id="embedD" step="any" placeholder="e.g., 1.5 m">
         </div>
     </div>
 
     <div class="form-row">
         <div class="form-group">
-            <label for="cohesionC">Cohesion (c') [<span data-unit="pressure">kPa</span>]</label>
+            <label for="cohesionC">Cohesion (c') [kPa]</label>
             <input type="number" id="cohesionC" step="any" placeholder="e.g., 15 kPa">
         </div>
         <div class="form-group">
@@ -258,7 +471,7 @@
             <input type="number" id="anglePhi" step="any" min="0" max="50" placeholder="e.g., 30">
         </div>
         <div class="form-group">
-            <label for="gamma">Unit Weight (γ) [<span data-unit="unitweight">kN/m³</span>]</label>
+            <label for="gamma">Unit Weight (γ) [kN/m³]</label>
             <input type="number" id="gamma" step="any" placeholder="e.g., 18 kN/m³">
         </div>
     </div>
@@ -276,15 +489,15 @@
 
     <div class="form-row hidden" id="gw-row">
         <div class="form-group">
-            <label for="waterTableDw">Depth to Water Table (D<sub>w</sub>) [<span data-unit="length">m</span>]</label>
+            <label for="waterTableDw">Depth to Water Table (D<sub>w</sub>) [m]</label>
             <input type="number" id="waterTableDw" step="any" placeholder="e.g., 1.0 m (blank if none)">
         </div>
         <div class="form-group">
-            <label for="gammaSat">Sat. Unit Weight (γ<sub>sat</sub>) [<span data-unit="unitweight">kN/m³</span>]</label>
+            <label for="gammaSat">Sat. Unit Weight (γ<sub>sat</sub>) [kN/m³]</label>
             <input type="number" id="gammaSat" step="any" placeholder="e.g., 20 kN/m³">
         </div>
         <div class="form-group">
-            <label for="gammaW">Unit Wt. Water (γ<sub>w</sub>)</label>
+            <label for="gammaW">Unit Wt. Water (γ<sub>w</sub>) [kN/m³]</label>
             <input type="number" id="gammaW" step="any" value="9.81">
         </div>
     </div>
@@ -298,7 +511,7 @@
     <div class="formula-box" id="formula-container">
     </div>
 
-    <button onclick="calculateCapacity()">Calculate Bearing Capacity</button>
+    <button onclick="calculateCapacity()" class="calc-btn">Calculate Bearing Capacity</button>
 
     <div class="result-box hidden" id="resultBox">
         <div>Allowable Bearing Capacity (q<sub>all</sub>)</div>
@@ -311,9 +524,22 @@
         </div>
     </div>
     <div class="note">
-        * Ensure units are consistent (e.g., c in kPa, γ in kN/m³, B/D in m -> q in kPa). <br>
         <i>Note: Terzaghi's method conventionally incorporates shape factors into the main equation and assumes depth factors are 1.0.</i>
     </div>
+
+    <p class="support-note">Free and open-source. If this tool saves you time, you can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a>.</p>
+  </main>
+
+  <footer class="site-footer">
+    <span>Developed by <strong>Ali Gheysari, PhD</strong></span>
+    <span class="sep">&bull;</span>
+    <a href="index.html">All calculators</a>
+    <span class="sep">&bull;</span>
+    <a href="https://github.com/agheysari/geotechnical-tools" target="_blank" rel="noopener noreferrer">Source</a>
+    <span class="sep">&bull;</span>
+    <span>GNU GPL v3.0</span>
+  </footer>
+
 </div>
 
 <script>
@@ -331,13 +557,13 @@
 
         if (shape === 'rectangular') {
             lengthGroup.classList.remove('hidden');
-            labelB.innerHTML = "Width (B)";
+            labelB.innerHTML = "Width (B) [m]";
         } else if (shape === 'circular') {
             lengthGroup.classList.add('hidden');
-            labelB.innerHTML = "Diameter (B)";
+            labelB.innerHTML = "Diameter (B) [m]";
         } else {
             lengthGroup.classList.add('hidden');
-            labelB.innerHTML = "Width (B)";
+            labelB.innerHTML = "Width (B) [m]";
         }
         
         updateFormula(method);
@@ -641,47 +867,7 @@
         }
     });
 
-    // ── Unit System ────────────────────────────────────────────────────
-    const TO_IMP_BC = {length:3.28084,settlement:0.0393701,pressure:0.020885,unitweight:6.36587,force:0.224809,forcelength:0.0685218,cv:10.7639,pymodulus:0.003684};
-    const TO_MET_BC = Object.fromEntries(Object.entries(TO_IMP_BC).map(([k,v])=>[k,1/v]));
-    const LABELS_BC = {length:{metric:'m',imperial:'ft'},settlement:{metric:'mm',imperial:'in'},pressure:{metric:'kPa',imperial:'ksf'},unitweight:{metric:'kN/m³',imperial:'pcf'},force:{metric:'kN',imperial:'kip'},forcelength:{metric:'kN/m',imperial:'kip/ft'},cv:{metric:'m²/yr',imperial:'ft²/yr'},pymodulus:{metric:'kN/m³',imperial:'pci'}};
-    let unitSystem = 'metric';
-    function toDisp(v,qty){return unitSystem==='metric'?v:(TO_IMP_BC[qty]?v*TO_IMP_BC[qty]:v);}
-    function toMet(v,qty) {return unitSystem==='metric'?v:(TO_MET_BC[qty]?v*TO_MET_BC[qty]:v);}
-    function unitLbl(qty) {const e=LABELS_BC[qty];return e?(unitSystem==='metric'?e.metric:e.imperial):'';}
-    function toggleUnitSystem(){
-        const old=unitSystem;
-        unitSystem=unitSystem==='metric'?'imperial':'metric';
-        localStorage.setItem('geotools-units',unitSystem);
-        const btn=document.getElementById('unit-toggle-btn');
-        btn.textContent=unitSystem==='metric'?'🌐 Switch to Imperial (US)':'📏 Switch to Metric (SI)';
-        btn.classList.toggle('imperial',unitSystem==='imperial');
-        document.querySelectorAll('[data-unit]').forEach(el=>{el.textContent=unitLbl(el.dataset.unit);});
-        onUnitSwitch(old);
-    }
-    const UNIT_FIELDS=[
-        {id:'widthB',qty:'length'},{id:'lengthL',qty:'length'},{id:'embedD',qty:'length'},
-        {id:'cohesionC',qty:'pressure'},{id:'gamma',qty:'unitweight'},
-        {id:'waterTableDw',qty:'length'},{id:'gammaSat',qty:'unitweight'},
-    ];
-    function onUnitSwitch(old){
-        const f=unitSystem==='imperial'?TO_IMP_BC;
-        UNIT_FIELDS.forEach(({id,qty})=>{const el=document.getElementById(id);if(!el||el.value.trim()==='')return;const v=parseFloat(el.value);if(!isNaN(v)&&f[qty])el.value=parseFloat((v*f[qty]).toFixed(5));});
-    }
-    (function(){const s=localStorage.getItem('geotools-units');if(s==='imperial'){unitSystem='imperial';const btn=document.getElementById('unit-toggle-btn');if(btn){btn.textContent='📏 Switch to Metric (SI)';btn.classList.add('imperial');}document.querySelectorAll('[data-unit]').forEach(el=>{el.textContent=unitLbl(el.dataset.unit);});}})();
-    // ── End Unit System ────────────────────────────────────────────────
 </script>
-
-
-<div class="legacy-footer" style="text-align: center; padding: 24px 12px; margin-top: 40px; border-top: 1px solid #e2e8f0; font-size: 13px; color: #64748b; font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px;">
-  <span>Developed by <strong style="color: #1e293b;">Ali Gheysari, PhD</strong></span>
-  <span style="color: #cbd5e1;">&bull;</span>
-  <span>Made with <span style="color: #ef4444;">❤️</span> in Canada</span>
-  <svg style="width: 20px; height: 12px; vertical-align: middle; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);" viewBox="0 0 9600 4800" xmlns="http://www.w3.org/2000/svg">
-    <path fill="#f00" d="m0 0h2400l99 99h4602l99-99h2400v4800h-2400l-99-99h-4602l-99 99H0z"/>
-    <path fill="#fff" d="m2400 0h4800v4800h-4800zm2490 4430-45-863a95 95 0 0 1 111-98l859 151-116-320a65 65 0 0 1 20-73l941-762-212-99a65 65 0 0 1-34-79l186-572-542 115a65 65 0 0 1-73-38l-105-247-423 454a65 65 0 0 1-111-57l204-1052-327 189a65 65 0 0 1-91-27l-332-652-332 652a65 65 0 0 1-91 27l-327-189 204 1052a65 65 0 0 1-111 57l-423-454-105 247a65 65 0 0 1-73 38l-542-115 186 572a65 65 0 0 1-34 79l-212 99 941 762a65 65 0 0 1 20 73l-116 320 859-151a95 95 0 0 1 111 98l-45 863z"/>
-  </svg>
-</div>
 
 </body>
 </html>

@@ -1,210 +1,648 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proctor Compaction Curve Analyzer</title>
-    
-    <!-- Chart.js for visualization -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Regression.js for 2nd-degree polynomial curve fitting -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/regression/2.0.1/regression.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Quadratic regression for optimum moisture content (OMC), maximum dry density (MDD) and the zero air voids (ZAV) curve.">
+<title>Proctor Compaction Curve Analyzer &mdash; Geotechnical Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: #f0f2f5;
-            color: #333;
-            padding: 2rem;
-        }
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: #fff;
-            padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        h1 { margin-top: 0; }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 1rem;
-        }
-        .button-group {
-            display: flex;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-        label { font-weight: bold; margin-bottom: 0.5rem; }
-        textarea {
-            width: 100%;
-            height: 140px;
-            padding: 0.5rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-family: monospace;
-            box-sizing: border-box;
-        }
-        input[type="number"] {
-            padding: 0.5rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            background: #0066cc;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            font-size: 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            font-weight: bold;
-        }
-        button:hover { background: #005bb5; }
-        .btn-clear { background: #cc0000; }
-        .btn-clear:hover { background: #a30000; }
-        .results {
-            background: #e6f2ff;
-            padding: 1rem;
-            border-radius: 4px;
-            border-left: 4px solid #0066cc;
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: space-around;
-            font-size: 1.2rem;
-        }
-        .chart-wrapper {
-            position: relative;
-            height: 400px;
-            width: 100%;
-        }
-        @media (max-width: 600px) {
-            .grid { grid-template-columns: 1fr; }
-            .button-group { flex-direction: column; gap: 1rem; }
-        }
-    
-    /* --- Standard Header Actions, Disclaimer & Buy Me a Coffee --- */
-    .legacy-top-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/regression/2.0.1/regression.min.js"></script>
+<script>
+/* ==========================================================================
+   Geotechnical Tools — shared form guard
+   Forms load empty with placeholders as guidance. This reports what is still
+   missing rather than computing with blanks and printing NaN.
+   Hidden inputs (inactive tabs, collapsed groups) are ignored.
+   ========================================================================== */
+(function () {
+  function candidates(scope) {
+    return Array.prototype.slice
+      .call((scope || document).querySelectorAll('input[type="number"]'))
+      .filter(function (el) {
+        return el.offsetParent !== null && !el.disabled && !el.readOnly;
+      });
+  }
+
+  /* Inputs the user still has to fill in. */
+  window.geoMissingInputs = function (scope) {
+    return candidates(scope).filter(function (el) { return el.value.trim() === ''; });
+  };
+
+  /* Same, but highlights them. Returns the list. */
+  window.geoFlagMissing = function (scope) {
+    var missing = window.geoMissingInputs(scope);
+    Array.prototype.forEach.call(document.querySelectorAll('.input-error'), function (el) {
+      el.classList.remove('input-error');
+    });
+    missing.forEach(function (el) { el.classList.add('input-error'); });
+    if (missing.length) { missing[0].focus({ preventScroll: true }); }
+    return missing;
+  };
+
+  /* Blank every result slot — used by the live calculators before input. */
+  window.geoBlankOutputs = function (placeholder) {
+    var mark = placeholder || '—';
+    Array.prototype.forEach.call(
+      document.querySelectorAll('[id^="out_"], [id^="res_"]'),
+      function (el) { el.textContent = mark; }
+    );
+  };
+
+  /* A one-line prompt shown in place of results. */
+  window.geoPrompt = function (n) {
+    var box = document.getElementById('geo-input-prompt');
+    if (!box) {
+      box = document.createElement('p');
+      box.id = 'geo-input-prompt';
+      box.className = 'hint';
+      box.style.cssText = 'margin-top:14px;text-align:center;color:var(--warning);';
+      var btn = document.querySelector('.calc-btn');
+      if (btn && btn.parentNode) { btn.parentNode.insertBefore(box, btn.nextSibling); }
+      else { return; }
     }
-    .legacy-actions {
+    if (n > 0) {
+      box.textContent = 'Enter the ' + n + ' highlighted value' + (n === 1 ? '' : 's') + ' to calculate.';
+      box.style.display = '';
+    } else {
+      box.style.display = 'none';
+    }
+  };
+
+  /* Clear the highlight as soon as the field is filled. */
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t && t.classList && t.classList.contains('input-error') && t.value.trim() !== '') {
+      t.classList.remove('input-error');
+      if (!document.querySelectorAll('.input-error').length) { window.geoPrompt(0); }
+    }
+  });
+})();
+</script>
+<script>
+/* ==========================================================================
+   Geotechnical Tools — shared figure theme
+   Identical on every page that draws a plot. Gives all charts one look:
+   Inter type, muted slate ink, hairline grid, and a consistent series
+   palette, so a figure can be pasted straight into a report.
+   ========================================================================== */
+(function () {
+  var FONT  = "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  var INK   = '#0f172a';
+  var MUTED = '#475569';
+  var GRID  = '#e8edf3';
+  var AXIS  = '#cbd5e1';
+  var SERIES = ['#0284c7', '#dc2626', '#059669', '#d97706', '#7c3aed', '#0f766e', '#be185d', '#475569'];
+  window.GEO_SERIES = SERIES;
+
+  /* ---- Chart.js ---------------------------------------------------------- */
+  if (typeof Chart !== 'undefined') {
+    var d = Chart.defaults;
+    d.font.family = FONT;
+    d.font.size = 12;
+    d.color = MUTED;
+    d.responsive = true;
+    d.maintainAspectRatio = false;      /* fill the figure box, not a 2:1 slab */
+    d.layout.padding = 4;
+    d.elements.line.borderWidth = 2.25;
+    d.elements.point.hitRadius = 8;
+    d.elements.point.borderWidth = 1.5;
+
+    d.plugins.title.color = INK;
+    d.plugins.title.font = { family: FONT, size: 13, weight: '700' };
+    d.plugins.title.padding = { top: 2, bottom: 14 };
+    d.plugins.legend.labels.usePointStyle = true;
+    d.plugins.legend.labels.pointStyle = 'line';
+    d.plugins.legend.labels.boxWidth = 26;
+    d.plugins.legend.labels.padding = 14;
+    d.plugins.legend.labels.color = MUTED;
+    d.plugins.legend.labels.font = { family: FONT, size: 11 };
+    d.plugins.tooltip.backgroundColor = 'rgba(15,23,42,0.92)';
+    d.plugins.tooltip.padding = 10;
+    d.plugins.tooltip.cornerRadius = 8;
+    d.plugins.tooltip.titleFont = { family: FONT, size: 12, weight: '700' };
+    d.plugins.tooltip.bodyFont = { family: FONT, size: 12 };
+    d.plugins.tooltip.displayColors = false;
+
+    if (d.scale) {
+      d.scale.grid.color = GRID;
+      d.scale.grid.lineWidth = 1;
+      d.scale.grid.tickColor = AXIS;
+      d.scale.border = d.scale.border || {};
+      d.scale.border.color = AXIS;
+      d.scale.ticks.color = MUTED;
+      d.scale.ticks.padding = 6;
+      d.scale.ticks.font = { family: FONT, size: 11 };
+      d.scale.title.color = INK;
+      d.scale.title.font = { family: FONT, size: 12, weight: '600' };
+    }
+  }
+
+  /* ---- Plotly ------------------------------------------------------------ */
+  if (typeof Plotly !== 'undefined') {
+    var axisBase = {
+      gridcolor: GRID,
+      zerolinecolor: AXIS,
+      linecolor: AXIS,
+      linewidth: 1,
+      ticks: 'outside',
+      tickcolor: AXIS,
+      ticklen: 5,
+      tickfont: { family: FONT, size: 11, color: MUTED },
+      title: { font: { family: FONT, size: 12, color: INK } },
+      automargin: true
+    };
+    window.GEO_PLOTLY_LAYOUT = {
+      font: { family: FONT, size: 12, color: MUTED },
+      plot_bgcolor: '#ffffff',
+      paper_bgcolor: '#ffffff',
+      colorway: SERIES,
+      margin: { t: 54, b: 58, l: 72, r: 28 },
+      title: { font: { family: FONT, size: 13, color: INK }, x: 0, xanchor: 'left',
+               y: 0.96, yanchor: 'top', pad: { l: 16, t: 12 } },
+      legend: { font: { family: FONT, size: 11, color: MUTED },
+                bgcolor: 'rgba(255,255,255,0.88)', bordercolor: '#e2e8f0', borderwidth: 1 },
+      hoverlabel: { bgcolor: INK, bordercolor: INK,
+                    font: { family: FONT, size: 12, color: '#ffffff' } },
+      xaxis: axisBase,
+      yaxis: axisBase
+    };
+    window.GEO_PLOTLY_CONFIG = {
+      responsive: true,
+      displaylogo: false,
+      modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+      toImageButtonOptions: { format: 'png', scale: 2 }
+    };
+    function mergeTitle(base, t) {
+      if (typeof t === 'string') return Object.assign({}, base, { text: t });
+      if (t && typeof t === 'object') return Object.assign({}, base, t);
+      return Object.assign({}, base);
+    }
+    function mergeAxis(base, ax) {
+      var out = Object.assign({}, base, ax || {});
+      out.tickfont = Object.assign({}, base.tickfont, (ax || {}).tickfont);
+      out.title = mergeTitle(base.title, (ax || {}).title);
+      return out;
+    }
+    /* Merge a page's own layout over the shared theme, preserving its specifics. */
+    window.geoLayout = function (layout) {
+      layout = layout || {};
+      var B = window.GEO_PLOTLY_LAYOUT;
+      var out = Object.assign({}, B, layout);
+      out.font = Object.assign({}, B.font, layout.font);
+      out.margin = Object.assign({}, B.margin, layout.margin);
+      out.legend = Object.assign({}, B.legend, layout.legend);
+      out.hoverlabel = Object.assign({}, B.hoverlabel, layout.hoverlabel);
+      out.title = mergeTitle(B.title, layout.title);
+      ['xaxis', 'yaxis', 'xaxis2', 'yaxis2'].forEach(function (k) {
+        if (layout[k] || k === 'xaxis' || k === 'yaxis') {
+          out[k] = mergeAxis(k.charAt(0) === 'x' ? B.xaxis : B.yaxis, layout[k]);
+        }
+      });
+      return out;
+    };
+  }
+})();
+</script>
+<style>
+    /* ==========================================================================
+       Geotechnical Tools — shared shell
+       This block is identical on every page. Edit it in one page and mirror the
+       change to the rest; page-specific rules live in the section below it.
+       ========================================================================== */
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --surface: #ffffff;
+      --background: #f8fafc;
+      --surface-alt: #f1f5f9;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #059669;
+      --success-bg: #ecfdf5;
+      --warning: #b45309;
+      --warning-bg: #fffbeb;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 28px 16px 8px;
+      background: var(--background);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    /* --- Page header ------------------------------------------------------- */
+    .tool-header { margin-bottom: 20px; }
+    .tool-header h1 {
+      margin: 0;
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: -0.015em;
+      line-height: 1.25;
+      color: var(--text);
       display: flex;
       align-items: center;
       gap: 10px;
-      flex-wrap: wrap;
     }
-    .bmc-btn {
-      display: inline-flex;
+    .tool-header .subtitle {
+      margin: 8px 0 0;
+      max-width: 90ch;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .tool-header .back-link {
+      display: inline-block;
+      margin-bottom: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .tool-header .back-link:hover { color: var(--primary); }
+    .tool-header h1 .tool-icon { flex: none; border-radius: 9px; }
+
+    /* --- Surfaces ---------------------------------------------------------- */
+    .card {
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+    .card + .card { margin-top: 16px; }
+    .card-title {
+      margin: 0 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
       align-items: center;
       gap: 6px;
-      background: #FFDD00;
-      color: #000000;
-      padding: 6px 14px;
-      border-radius: 999px;
-      font-weight: 700;
+    }
+    .section-title {
+      margin: 26px 0 14px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--border);
       font-size: 12px;
-      text-decoration: none;
-      border: 1px solid #E6C800;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
     }
-    .bmc-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+    .section-title:first-child { margin-top: 0; }
+
+    h1, h2, h3, h4 { font-family: var(--font); color: var(--text); }
+    h2 { font-size: 19px; font-weight: 700; margin: 0 0 12px; }
+    h3 { font-size: 15px; font-weight: 700; margin: 0 0 10px; }
+    h4 { font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+
+    /* --- Forms ------------------------------------------------------------- */
+    .form-row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .form-row > * { flex: 1 1 0; min-width: 0; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
     }
-    .demo-disclaimer-banner {
-      background: #fffbeb;
-      border: 1px solid #fef3c7;
-      border-left: 4px solid #f59e0b;
+    /* grid/flex children default to min-width:auto, which refuses to shrink and
+       pushes the page wider than the viewport on phones */
+    .layout-grid > *, .form-grid > *, .results-grid > *, .form-row > * { min-width: 0; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    @media (max-width: 768px) { .form-row { flex-direction: column; gap: 12px; } }
+
+    label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--border);
       border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 11px;
-      color: #92400e;
-      line-height: 1.4;
-      margin-bottom: 20px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    input[type="checkbox"], input[type="radio"] { width: auto; }
+    input[type="range"] { padding: 0; }
+    .input-error { border-color: var(--danger) !important; background: var(--danger-bg) !important; }
+
+    .hint, .help-text, .note {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    /* block footnote under a results panel, not an inline field hint */
+    .note { display: block; margin-top: 18px; }
+
+    /* row of buttons that acts on the table above it */
+    .table-actions {
       display: flex;
-      align-items: flex-start;
-      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin: 16px 0 4px;
     }
-    .unit-switcher-group {
+    .table-actions .spacer { margin-left: auto; }
+
+    /* --- Buttons ----------------------------------------------------------- */
+    button, .btn {
       display: inline-flex;
-      background: #f1f5f9;
-      padding: 3px;
-      border-radius: 10px;
-      border: 1px solid #cbd5e1;
-    }
-    .unit-switcher-btn {
-      padding: 5px 12px;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 16px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--primary);
+      border: none;
       border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    button:hover:not(:disabled), .btn:hover:not(:disabled) { background: var(--primary-dark); }
+    button:disabled, .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+    .calc-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .btn-secondary { background: var(--surface-alt); color: #475569; border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { background: #e2e8f0; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; font-weight: 600; }
+    .btn-success { background: var(--success); }
+    .btn-success:hover:not(:disabled) { background: #047857; }
+    .btn-danger, .btn-clear { background: var(--danger); }
+    .btn-danger:hover:not(:disabled), .btn-clear:hover:not(:disabled) { background: #b91c1c; }
+
+    /* --- Tabs -------------------------------------------------------------- */
+    .tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      background: var(--surface-alt);
+      border-radius: 8px;
+    }
+    .tab-btn:hover:not(.active) { background: #e2e8f0; }
+    .tab-btn.active { background: var(--primary); color: #fff; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* --- Results ----------------------------------------------------------- */
+    .result-box {
+      margin-top: 20px;
+      padding: 18px 20px;
+      background: var(--primary-light);
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .result-box.success { background: var(--success-bg); border-color: #a7f3d0; border-left-color: var(--success); }
+    .result-box.warning { background: var(--warning-bg); border-color: #fde68a; border-left-color: #f59e0b; }
+    .result-box.danger  { background: var(--danger-bg);  border-color: #fecaca; border-left-color: var(--danger); }
+    .result-value {
+      margin: 6px 0 0;
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--primary-dark);
+    }
+    .success .result-value { color: var(--success); }
+    .warning .result-value { color: var(--warning); }
+    .danger  .result-value { color: var(--danger); }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .stat-box {
+      padding: 14px 12px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+    .stat-val {
+      margin: 5px 0 0;
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+    .stat-sub { font-size: 10px; color: var(--text-muted); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
       font-size: 11px;
       font-weight: 700;
-      border: none;
-      cursor: pointer;
-      background: transparent;
-      color: #64748b;
-      transition: all 0.2s;
-    }
-    .unit-switcher-btn.active {
-      background: #0284c7;
-      color: #ffffff;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      background: var(--primary-light);
+      color: var(--primary-dark);
     }
 
+    .formula-box {
+      margin: 18px 0;
+      padding: 16px 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-size: 13px;
+    }
+    .formula-box h3, .formula-box h4 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    /* --- Tables ------------------------------------------------------------ */
+    .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      background: var(--background);
+    }
+    td input, td select { padding: 6px 8px; font-size: 13px; }
+
+    /* --- Figures ------------------------------------------------------------ */
+    .chart-container, .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      margin: 22px 0 4px;
+      padding: 14px 14px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    @media (max-width: 600px) {
+      .chart-container, .chart-wrapper { height: 320px; padding: 10px 8px 6px; }
+    }
+
+    /* --- Uploads ------------------------------------------------------------ */
+    .upload-area {
+      margin-bottom: 16px;
+      padding: 24px;
+      text-align: center;
+      background: var(--background);
+      border: 2px dashed #cbd5e1;
+      border-radius: var(--radius);
+      transition: border-color 0.15s ease;
+    }
+    .upload-area:hover { border-color: var(--primary); }
+    .upload-area input { width: auto; max-width: 100%; }
+    .upload-area input[type="file"] { width: 100%; }
+
+    /* --- Support line & footer ---------------------------------------------- */
+    .support-note {
+      margin: 20px 0 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .support-note a {
+      color: var(--primary);
+      text-decoration: none;
+      border-bottom: 1px solid var(--primary-light);
+    }
+    .support-note a:hover { border-bottom-color: var(--primary); }
+
+    .site-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 32px;
+      padding: 22px 12px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .site-footer a { color: var(--text-muted); text-decoration: none; }
+    .site-footer a:hover { color: var(--primary); }
+    .site-footer .sep { color: #cbd5e1; }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 600px) {
+      body { padding: 20px 12px 8px; }
+      .card { padding: 18px 16px; }
+      th, td { padding: 8px 9px; }
+    }
+
+    /* ==========================================================================
+       Page-specific styles
+       ========================================================================== */
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .input-group { display: flex; flex-direction: column; margin-bottom: 1rem; }
+    .button-group { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; }
+    .results { background: #e6f2ff; padding: 1rem; border-radius: 4px; border-left: 4px solid #0066cc; margin-bottom: 1.5rem; display: flex; justify-content: space-around; font-size: 1.2rem; }
+    @media (max-width: 600px) {
+      .grid { grid-template-columns: 1fr; }
+      .button-group { flex-direction: column; gap: 1rem; }
+    }
   </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="legacy-top-bar">
-      <div></div>
-      <div class="legacy-actions">
-        <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer" class="bmc-btn">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.216 6.415l-.132-.666c-.119-.597-.384-1.152-.771-1.614-.388-.461-.88-.813-1.433-1.025-.552-.211-1.147-.282-1.733-.205-.586.076-1.146.297-1.633.643l-.707.505-.707-.505c-.487-.346-1.047-.567-1.633-.643-.586-.077-1.181-.006-1.733.205-.553.212-1.045.564-1.433 1.025-.387.462-.652 1.017-.771 1.614l-.132.666H4.5v10.5c0 .796.316 1.559.879 2.121.562.563 1.325.879 2.121.879h9c.796 0 1.559-.316 2.121-.879.563-.562.879-1.325.879-2.121V6.415h.716zm-3.5 0h.716l.132.666c.071.358.029.728-.12 1.054-.15.326-.402.589-.723.75-.32.16-.687.214-1.046.153-.359-.06-.682-.234-.921-.497l-.462-.51.684-.488c.517-.37 1.11-.634 1.74-.728zm-9.432 0c.63.094 1.223.358 1.74.728l.684.488-.462.51c-.239.263-.562.437-.921.497-.359.061-.726.007-1.046-.153-.321-.161-.573-.424-.723-.75-.149-.326-.191-.696-.12-1.054l.132-.666h.716zM17 16.915c0 .398-.158.779-.439 1.061-.282.281-.663.439-1.061.439H6.5c-.398 0-.779-.158-1.061-.439C5.158 17.694 5 17.313 5 16.915V7.915h12v9z"/></svg>
-      <span>Buy me a coffee</span>
-    </a>
-      </div>
-    </div>
-    <h1>📈 Proctor Compaction Curve Analyzer</h1>
+
+  <header class="tool-header">
+    <a class="back-link" href="index.html">&larr; All calculators</a>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#EFF6FF" /> <line x1="12" y1="52" x2="54" y2="52" stroke="#64748B" stroke-width="2" /> <line x1="12" y1="12" x2="12" y2="52" stroke="#64748B" stroke-width="2" /> <path d="M18 16Q36 28 52 46" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="3 3" fill="none" /> <path d="M16 46Q34 16 50 46" stroke="#2563EB" stroke-width="3" fill="none" stroke-linecap="round" /> <circle cx="34" cy="23" r="3.5" fill="#EF4444" stroke="#FFFFFF" stroke-width="1.5" /> <line x1="34" y1="23" x2="34" y2="52" stroke="#EF4444" stroke-width="1" stroke-dasharray="2 2" /> </svg> Proctor Compaction Curve Analyzer</h1>
+    <p class="subtitle">Quadratic regression for optimum moisture content (OMC), maximum dry density (MDD) and the zero air voids (ZAV) curve.</p>
+  </header>
+
+  <main class="card">
+    
     <p>Input your laboratory moisture-density data points below. The tool will fit a quadratic curve to determine the <strong>Optimum Moisture Content (OMC)</strong> and <strong>Maximum Dry Density (MDD)</strong>, and plot the Zero Air Voids (ZAV) line.</p>
 
     <div class="grid">
         <div>
             <div class="input-group">
                 <label for="gsInput">Specific Gravity (G<sub>s</sub>)</label>
-                <input type="number" step="0.01" id="gsInput" value="2.65" />
+                <input type="number" step="0.01" id="gsInput" / placeholder="e.g., 2.65">
             </div>
             <div class="input-group">
-                <label for="gwInput">Water Density (same units as dry density, e.g. 9.81 kN/m³, 62.4 pcf, 1.0 g/cm³)</label>
+                <label for="gwInput">Water Unit Weight, &gamma;<sub>w</sub> (kN/m³)</label>
                 <input type="number" step="0.01" id="gwInput" value="9.81" />
             </div>
         </div>
         <div>
             <div class="input-group">
-                <label for="dataInput">Moisture (%) & Dry Density Data (comma or space separated, one data point per line)</label>
+                <label for="dataInput">Moisture (%) &amp; Dry Density (kN/m³) — comma or space separated, one point per line</label>
                 <textarea id="dataInput" placeholder="e.g.&#10;8.5, 18.2&#10;10.2, 19.5&#10;12.1, 20.3&#10;14.0, 19.8&#10;15.5, 18.9"></textarea>
             </div>
         </div>
     </div>
 
     <div class="button-group">
-        <button onclick="analyzeProctor()">Analyze & Plot</button>
+        <button onclick="analyzeProctor()" class="calc-btn">Analyze & Plot</button>
         <button onclick="clearData()" class="btn-clear">Clear Data</button>
     </div>
 
@@ -216,25 +654,23 @@
     <div class="chart-wrapper">
         <canvas id="compactionChart"></canvas>
     </div>
+
+    <p class="support-note">Free and open-source. If this tool saves you time, you can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a>.</p>
+  </main>
+
+  <footer class="site-footer">
+    <span>Developed by <strong>Ali Gheysari, PhD</strong></span>
+    <span class="sep">&bull;</span>
+    <a href="index.html">All calculators</a>
+    <span class="sep">&bull;</span>
+    <a href="https://github.com/agheysari/geotechnical-tools" target="_blank" rel="noopener noreferrer">Source</a>
+    <span class="sep">&bull;</span>
+    <span>GNU GPL v3.0</span>
+  </footer>
+
 </div>
 
 <script>
-
-  let currentUnitSystem = 'metric';
-  function setUnitSystem(system) {
-    currentUnitSystem = system;
-    const btnMetric = document.getElementById('btn_metric');
-    const btnImperial = document.getElementById('btn_imperial');
-    if (btnMetric && btnImperial) {
-      btnMetric.className = system === 'metric' ? 'unit-switcher-btn active' : 'unit-switcher-btn';
-      btnImperial.className = system === 'imperial' ? 'unit-switcher-btn active' : 'unit-switcher-btn';
-    }
-    if (typeof calculate === 'function') {
-      calculate();
-    } else if (typeof runCalc === 'function') {
-      runCalc();
-    }
-  }
 
     let chartInstance = null;
 
@@ -364,24 +800,13 @@
                         title: { display: true, text: 'Moisture Content (%)', font: { weight: 'bold' } }
                     },
                     y: {
-                        title: { display: true, text: 'Dry Density', font: { weight: 'bold' } }
+                        title: { display: true, text: 'Dry Density (kN/m³)', font: { weight: 'bold' } }
                     }
                 }
             }
         });
     }
 </script>
-
-
-<div class="legacy-footer" style="text-align: center; padding: 24px 12px; margin-top: 40px; border-top: 1px solid #e2e8f0; font-size: 13px; color: #64748b; font-family: 'Inter', system-ui, -apple-system, sans-serif; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px;">
-  <span>Developed by <strong style="color: #1e293b;">Ali Gheysari, PhD</strong></span>
-  <span style="color: #cbd5e1;">&bull;</span>
-  <span>Made with <span style="color: #ef4444;">❤️</span> in Canada</span>
-  <svg style="width: 20px; height: 12px; vertical-align: middle; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);" viewBox="0 0 9600 4800" xmlns="http://www.w3.org/2000/svg">
-    <path fill="#f00" d="m0 0h2400l99 99h4602l99-99h2400v4800h-2400l-99-99h-4602l-99 99H0z"/>
-    <path fill="#fff" d="m2400 0h4800v4800h-4800zm2490 4430-45-863a95 95 0 0 1 111-98l859 151-116-320a65 65 0 0 1 20-73l941-762-212-99a65 65 0 0 1-34-79l186-572-542 115a65 65 0 0 1-73-38l-105-247-423 454a65 65 0 0 1-111-57l204-1052-327 189a65 65 0 0 1-91-27l-332-652-332 652a65 65 0 0 1-91 27l-327-189 204 1052a65 65 0 0 1-111 57l-423-454-105 247a65 65 0 0 1-73 38l-542-115 186 572a65 65 0 0 1-34 79l-212 99 941 762a65 65 0 0 1 20 73l-116 320 859-151a95 95 0 0 1 111 98l-45 863z"/>
-  </svg>
-</div>
 
 </body>
 </html>
