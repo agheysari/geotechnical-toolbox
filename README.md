@@ -20,8 +20,8 @@ engineers, civil engineering researchers, and geospatial analysts, developed by
   inline, so it can be dropped into a portal, a course, or an intranet as-is.
 * **Consistent SI units.** Every input label, result and chart axis states its unit explicitly
   (m, kPa, kN/m³, mm, years). Settlements are reported in mm, times in years.
-* **Report-ready figures.** Charts share one theme — consistent type, palette, gridlines and
-  axis labelling — so a figure can be pasted straight into a report.
+* **Report-ready figures.** Charts share one theme, with consistent type, palette, gridlines and
+  axis labelling, so a figure can be pasted straight into a report.
 * **Consistent page shell.** All 25 pages share the same header, container, results and footer
   structure, and validate your inputs the same way before calculating.
 
@@ -59,14 +59,14 @@ engineers, civil engineering researchers, and geospatial analysts, developed by
 
 ---
 
-## ⚠️ Engineering disclaimer
+## Disclaimer
 
 > **These tools are for preliminary estimation, screening, educational and verification purposes
 > only.**
 >
 > Geotechnical engineering involves site-specific ground conditions, stratigraphy, soil-structure
 > interaction and subsurface uncertainty. All results, methods and charts produced by these
-> calculators **must be reviewed and validated by a licensed Professional Engineer (P.Eng. / PE)**
+> calculators **must be reviewed and validated by a licensed Professional Engineer**
 > before use in final design, construction documents, or safety-critical decisions.
 >
 > The author assumes no liability for errors, omissions, or damages arising from the use or
@@ -77,7 +77,7 @@ engineers, civil engineering researchers, and geospatial analysts, developed by
 ## Support
 
 These tools are free and open-source. If they save you time on a project or in the classroom, you
-can [buy me a coffee](https://buymeacoffee.com/agheysari) — entirely optional, and never required
+can [buy me a coffee](https://buymeacoffee.com/agheysari). Entirely optional, and never required
 to use anything here.
 
 ---

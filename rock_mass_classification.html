@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Bieniawski RMR89, Barton Q-system and Hoek GSI matrix ratings with correlated rock mass quality descriptions.">
-<title>Rock Mass Classification Tool &mdash; Geotechnical Tools</title>
+<title>Rock Mass Classification Tool | Geotechnical Tools</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
     /* ==========================================================================
-       Geotechnical Tools — shared shell
+       Geotechnical Tools: shared shell
        This block is identical on every page. Edit it in one page and mirror the
        change to the rest; page-specific rules live in the section below it.
        ========================================================================== */
@@ -94,6 +94,10 @@
       box-shadow: var(--shadow);
     }
     .card + .card { margin-top: 16px; }
+    /* the two-column pages stack several components inside one card; give them
+       an even rhythm instead of whatever margins each component brings */
+    .layout-grid .card > * { margin-top: 0; margin-bottom: 0; }
+    .layout-grid .card > * + * { margin-top: 18px; }
     .card-title {
       margin: 0 0 16px;
       padding-bottom: 8px;
@@ -115,6 +119,48 @@
       color: var(--text-muted);
     }
     .section-title:first-child { margin-top: 0; }
+
+    /* --- Input groups -------------------------------------------------------
+       Convention: a grey bordered panel is something you fill in; a white or
+       tinted box is a result the tool gives back. Legacy group names below are
+       aliases so older markup picks up the same treatment. */
+    .field-set,
+    .panel, .control-group, .settings-panel, .manual-entry {
+      margin: 0 0 18px;
+      padding: 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .field-set > :first-child,
+    .panel > :first-child, .control-group > :first-child,
+    .settings-panel > :first-child, .manual-entry > :first-child { margin-top: 0; }
+    .field-set > :last-child,
+    .panel > :last-child, .control-group > :last-child,
+    .settings-panel > :last-child, .manual-entry > :last-child { margin-bottom: 0; }
+
+    /* legacy grid names share the responsive form grid */
+    .grid-2, .grid-3, .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .grid-2 > *, .grid-3 > *, .grid-container > * { min-width: 0; }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 10px;
+    }
+    .checkbox-group:last-child { margin-bottom: 0; }
+    .checkbox-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+    }
 
     h1, h2, h3, h4 { font-family: var(--font); color: var(--text); }
     h2 { font-size: 19px; font-weight: 700; margin: 0 0 12px; }
@@ -155,6 +201,13 @@
       box-shadow: 0 0 0 3px var(--primary-light);
     }
     input[type="checkbox"], input[type="radio"] { width: auto; }
+    textarea {
+      min-height: 170px;
+      resize: none;
+      line-height: 1.55;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
     input[type="range"] { padding: 0; }
     .input-error { border-color: var(--danger) !important; background: var(--danger-bg) !important; }
 
@@ -231,7 +284,16 @@
     .tab-btn:hover:not(.active) { background: #e2e8f0; }
     .tab-btn.active { background: var(--primary); color: #fff; }
     .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
+    .tab-panel.active {
+      display: block;
+      margin-bottom: 18px;
+      padding: 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .tab-panel.active > :first-child { margin-top: 0; }
+    .tab-panel.active > :last-child { margin-bottom: 0; }
 
     /* --- Results ----------------------------------------------------------- */
     .result-box {
@@ -389,6 +451,9 @@
     .site-footer a { color: var(--text-muted); text-decoration: none; }
     .site-footer a:hover { color: var(--primary); }
     .site-footer .sep { color: #cbd5e1; }
+    .site-footer .social { display: inline-flex; align-items: center; gap: 9px; }
+    .site-footer .social a { display: inline-flex; color: var(--text-muted); }
+    .site-footer .social a:hover { color: var(--primary); }
 
     .hidden { display: none !important; }
 
@@ -415,190 +480,176 @@
   </header>
 
   <main class="card">
-  
-    <div class="form-row">
-        <div class="form-group">
-            <label for="classMethod">Classification System</label>
-            <select id="classMethod" onchange="updateUI()">
-                <option value="rmr">Rock Mass Rating (RMR - Bieniawski 1989)</option>
-                <option value="q">Q-System (Barton et al. 1974)</option>
-                <option value="gsi">Geological Strength Index (GSI - Hoek 2013)</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- RMR INPUTS -->
-    <div id="rmr-group">
-        <div class="form-row">
-            <div class="form-group">
-                <label for="rmr-ucs">Uniaxial Compressive Strength (UCS)</label>
-                <select id="rmr-ucs">
-                    <option value="15">> 250 MPa (Exceptionally Strong)</option>
-                    <option value="12">100 - 250 MPa (Very Strong)</option>
-                    <option value="7">50 - 100 MPa (Strong)</option>
-                    <option value="4">25 - 50 MPa (Average)</option>
-                    <option value="2">5 - 25 MPa (Weak)</option>
-                    <option value="1">1 - 5 MPa (Very Weak)</option>
-                    <option value="0">< 1 MPa (Extremely Weak)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="rmr-rqd">Rock Quality Designation (RQD)</label>
-                <select id="rmr-rqd">
-                    <option value="20">90 - 100 % (Excellent)</option>
-                    <option value="17">75 - 90 % (Good)</option>
-                    <option value="13">50 - 75 % (Fair)</option>
-                    <option value="8">25 - 50 % (Poor)</option>
-                    <option value="3">< 25 % (Very Poor)</option>
-                </select>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="rmr-spacing">Spacing of Discontinuities</label>
-                <select id="rmr-spacing">
-                    <option value="20">> 2.0 m</option>
-                    <option value="15">0.6 - 2.0 m</option>
-                    <option value="10">0.2 - 0.6 m</option>
-                    <option value="8">0.06 - 0.2 m</option>
-                    <option value="5">< 0.06 m</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="rmr-condition">Condition of Discontinuities</label>
-                <select id="rmr-condition">
-                    <option value="30">Very rough, unweathered, tight (< 1mm)</option>
-                    <option value="25">Slightly rough, separation < 1mm, hard wall</option>
-                    <option value="20">Slightly rough, separation < 1mm, soft wall</option>
-                    <option value="10">Slickensided or gouge < 5mm or separation 1-5mm</option>
-                    <option value="0">Soft gouge > 5mm or separation > 5mm</option>
-                </select>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="rmr-gw">Groundwater Conditions</label>
-                <select id="rmr-gw">
-                    <option value="15">Completely dry</option>
-                    <option value="10">Damp</option>
-                    <option value="7">Wet</option>
-                    <option value="4">Dripping</option>
-                    <option value="0">Flowing</option>
-                </select>
-            </div>
-        </div>
-    </div>
-
-    <!-- Q-SYSTEM INPUTS -->
-    <div id="q-group" class="hidden">
-        <div class="form-row">
-            <div class="form-group">
-                <label for="q-rqd">Rock Quality Designation (RQD %)</label>
-                <input type="number" id="q-rqd" min="0" max="100" placeholder="e.g., 75 (defaults to 10 if <10)">
-            </div>
-            <div class="form-group">
-                <label for="q-jn">Joint Set Number (Jn)</label>
-                <select id="q-jn">
-                    <option value="0.5">Massive, no or few joints (0.5)</option>
-                    <option value="2">One joint set (2.0)</option>
-                    <option value="3">One set plus random (3.0)</option>
-                    <option value="4">Two joint sets (4.0)</option>
-                    <option value="6">Two sets plus random (6.0)</option>
-                    <option value="9">Three joint sets (9.0)</option>
-                    <option value="12">Three sets plus random (12.0)</option>
-                    <option value="15">Four or more sets, heavily jointed (15.0)</option>
-                    <option value="20">Crushed rock, earthlike (20.0)</option>
-                </select>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="q-jr">Joint Roughness Number (Jr)</label>
-                <select id="q-jr">
-                    <option value="4">Discontinuous joints (4.0)</option>
-                    <option value="3">Rough or irregular, undulating (3.0)</option>
-                    <option value="2">Smooth, undulating (2.0)</option>
-                    <option value="1.5">Slickensided, undulating (1.5)</option>
-                    <option value="1.5">Rough or irregular, planar (1.5)</option>
-                    <option value="1">Smooth, planar (1.0)</option>
-                    <option value="0.5">Slickensided, planar (0.5)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="q-ja">Joint Alteration Number (Ja)</label>
-                <select id="q-ja">
-                    <option value="0.75">Tightly healed, hard, non-softening (0.75)</option>
-                    <option value="1">Unaltered joint walls, surface staining (1.0)</option>
-                    <option value="2">Slightly altered joint walls (2.0)</option>
-                    <option value="3">Silty or sandy coatings (3.0)</option>
-                    <option value="4">Clay coatings (4.0)</option>
-                    <option value="6">Sand/silt/clay filled, no wall contact (6.0)</option>
-                    <option value="8">Thick clay fillings (8.0)</option>
-                </select>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group">
-                <label for="q-jw">Joint Water Reduction Factor (Jw)</label>
-                <select id="q-jw">
-                    <option value="1">Dry excavations or minor inflow (1.0)</option>
-                    <option value="0.66">Medium inflow or pressure (0.66)</option>
-                    <option value="0.5">Large inflow or high pressure (0.5)</option>
-                    <option value="0.33">Exceptionally high inflow/pressure (0.33)</option>
-                    <option value="0.1">Exceptionally high inflow, un-decaying (0.1)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="q-srf">Stress Reduction Factor (SRF)</label>
-                <select id="q-srf">
-                    <option value="2.5">Low stress, near surface (2.5)</option>
-                    <option value="1">Medium stress, favorable (1.0)</option>
-                    <option value="0.5">High stress, tight structure (0.5)</option>
-                    <option value="2">Mild rock burst (2.0)</option>
-                    <option value="5">Heavy rock burst / Squeezing moderate (5.0)</option>
-                    <option value="10">Squeezing rock, heavy (10.0)</option>
-                </select>
-            </div>
-        </div>
-    </div>
-
-    <!-- GSI INPUTS -->
-    <div id="gsi-group" class="hidden">
-        <div class="form-row">
-            <div class="form-group">
-                <label for="gsi-structure">Rock Mass Structure</label>
-                <select id="gsi-structure">
-                    <option value="0">Intact or Massive (A)</option>
-                    <option value="1">Blocky (B)</option>
-                    <option value="2">Very Blocky (C)</option>
-                    <option value="3">Blocky / Disturbed / Seamy (D)</option>
-                    <option value="4">Disintegrated (E)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="gsi-surface">Discontinuity Surface Conditions</label>
-                <select id="gsi-surface">
-                    <option value="0">Very Good (rough, unweathered)</option>
-                    <option value="1">Good (rough, slightly weathered)</option>
-                    <option value="2">Fair (smooth, moderately weathered)</option>
-                    <option value="3">Poor (slickensided, highly weathered)</option>
-                    <option value="4">Very Poor (soft gouge, sheared)</option>
-                </select>
-            </div>
-        </div>
-    </div>
-
-    <div style="text-align: left; margin-bottom: 1rem;">
-        <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
-            <input type="checkbox" id="toggleFormula" onchange="updateToggles()"> Show Formulas
-        </label>
-    </div>
-
-    <div class="formula-box" id="formula-container">
+    <section class="field-set">  <div class="form-row">
+          <div class="form-group">
+              <label for="classMethod">Classification System</label>
+              <select id="classMethod" onchange="updateUI()">
+                  <option value="rmr">Rock Mass Rating (RMR - Bieniawski 1989)</option>
+                  <option value="q">Q-System (Barton et al. 1974)</option>
+                  <option value="gsi">Geological Strength Index (GSI - Hoek 2013)</option>
+              </select>
+          </div>
+      </div><div id="rmr-group">
+          <div class="form-row">
+              <div class="form-group">
+                  <label for="rmr-ucs">Uniaxial Compressive Strength (UCS)</label>
+                  <select id="rmr-ucs">
+                      <option value="15">> 250 MPa (Exceptionally Strong)</option>
+                      <option value="12">100 - 250 MPa (Very Strong)</option>
+                      <option value="7">50 - 100 MPa (Strong)</option>
+                      <option value="4">25 - 50 MPa (Average)</option>
+                      <option value="2">5 - 25 MPa (Weak)</option>
+                      <option value="1">1 - 5 MPa (Very Weak)</option>
+                      <option value="0">< 1 MPa (Extremely Weak)</option>
+                  </select>
+              </div>
+              <div class="form-group">
+                  <label for="rmr-rqd">Rock Quality Designation (RQD)</label>
+                  <select id="rmr-rqd">
+                      <option value="20">90 - 100 % (Excellent)</option>
+                      <option value="17">75 - 90 % (Good)</option>
+                      <option value="13">50 - 75 % (Fair)</option>
+                      <option value="8">25 - 50 % (Poor)</option>
+                      <option value="3">< 25 % (Very Poor)</option>
+                  </select>
+              </div>
+          </div>
+          <div class="form-row">
+              <div class="form-group">
+                  <label for="rmr-spacing">Spacing of Discontinuities</label>
+                  <select id="rmr-spacing">
+                      <option value="20">> 2.0 m</option>
+                      <option value="15">0.6 - 2.0 m</option>
+                      <option value="10">0.2 - 0.6 m</option>
+                      <option value="8">0.06 - 0.2 m</option>
+                      <option value="5">< 0.06 m</option>
+                  </select>
+              </div>
+              <div class="form-group">
+                  <label for="rmr-condition">Condition of Discontinuities</label>
+                  <select id="rmr-condition">
+                      <option value="30">Very rough, unweathered, tight (< 1mm)</option>
+                      <option value="25">Slightly rough, separation < 1mm, hard wall</option>
+                      <option value="20">Slightly rough, separation < 1mm, soft wall</option>
+                      <option value="10">Slickensided or gouge < 5mm or separation 1-5mm</option>
+                      <option value="0">Soft gouge > 5mm or separation > 5mm</option>
+                  </select>
+              </div>
+          </div>
+          <div class="form-row">
+              <div class="form-group">
+                  <label for="rmr-gw">Groundwater Conditions</label>
+                  <select id="rmr-gw">
+                      <option value="15">Completely dry</option>
+                      <option value="10">Damp</option>
+                      <option value="7">Wet</option>
+                      <option value="4">Dripping</option>
+                      <option value="0">Flowing</option>
+                  </select>
+              </div>
+          </div>
+      </div><div id="q-group" class="hidden">
+          <div class="form-row">
+              <div class="form-group">
+                  <label for="q-rqd">Rock Quality Designation (RQD %)</label>
+                  <input type="number" id="q-rqd" min="0" max="100" placeholder="e.g., 75 (defaults to 10 if <10)">
+              </div>
+              <div class="form-group">
+                  <label for="q-jn">Joint Set Number (Jn)</label>
+                  <select id="q-jn">
+                      <option value="0.5">Massive, no or few joints (0.5)</option>
+                      <option value="2">One joint set (2.0)</option>
+                      <option value="3">One set plus random (3.0)</option>
+                      <option value="4">Two joint sets (4.0)</option>
+                      <option value="6">Two sets plus random (6.0)</option>
+                      <option value="9">Three joint sets (9.0)</option>
+                      <option value="12">Three sets plus random (12.0)</option>
+                      <option value="15">Four or more sets, heavily jointed (15.0)</option>
+                      <option value="20">Crushed rock, earthlike (20.0)</option>
+                  </select>
+              </div>
+          </div>
+          <div class="form-row">
+              <div class="form-group">
+                  <label for="q-jr">Joint Roughness Number (Jr)</label>
+                  <select id="q-jr">
+                      <option value="4">Discontinuous joints (4.0)</option>
+                      <option value="3">Rough or irregular, undulating (3.0)</option>
+                      <option value="2">Smooth, undulating (2.0)</option>
+                      <option value="1.5">Slickensided, undulating (1.5)</option>
+                      <option value="1.5">Rough or irregular, planar (1.5)</option>
+                      <option value="1">Smooth, planar (1.0)</option>
+                      <option value="0.5">Slickensided, planar (0.5)</option>
+                  </select>
+              </div>
+              <div class="form-group">
+                  <label for="q-ja">Joint Alteration Number (Ja)</label>
+                  <select id="q-ja">
+                      <option value="0.75">Tightly healed, hard, non-softening (0.75)</option>
+                      <option value="1">Unaltered joint walls, surface staining (1.0)</option>
+                      <option value="2">Slightly altered joint walls (2.0)</option>
+                      <option value="3">Silty or sandy coatings (3.0)</option>
+                      <option value="4">Clay coatings (4.0)</option>
+                      <option value="6">Sand/silt/clay filled, no wall contact (6.0)</option>
+                      <option value="8">Thick clay fillings (8.0)</option>
+                  </select>
+              </div>
+          </div>
+          <div class="form-row">
+              <div class="form-group">
+                  <label for="q-jw">Joint Water Reduction Factor (Jw)</label>
+                  <select id="q-jw">
+                      <option value="1">Dry excavations or minor inflow (1.0)</option>
+                      <option value="0.66">Medium inflow or pressure (0.66)</option>
+                      <option value="0.5">Large inflow or high pressure (0.5)</option>
+                      <option value="0.33">Exceptionally high inflow/pressure (0.33)</option>
+                      <option value="0.1">Exceptionally high inflow, un-decaying (0.1)</option>
+                  </select>
+              </div>
+              <div class="form-group">
+                  <label for="q-srf">Stress Reduction Factor (SRF)</label>
+                  <select id="q-srf">
+                      <option value="2.5">Low stress, near surface (2.5)</option>
+                      <option value="1">Medium stress, favorable (1.0)</option>
+                      <option value="0.5">High stress, tight structure (0.5)</option>
+                      <option value="2">Mild rock burst (2.0)</option>
+                      <option value="5">Heavy rock burst / Squeezing moderate (5.0)</option>
+                      <option value="10">Squeezing rock, heavy (10.0)</option>
+                  </select>
+              </div>
+          </div>
+      </div><div id="gsi-group" class="hidden">
+          <div class="form-row">
+              <div class="form-group">
+                  <label for="gsi-structure">Rock Mass Structure</label>
+                  <select id="gsi-structure">
+                      <option value="0">Intact or Massive (A)</option>
+                      <option value="1">Blocky (B)</option>
+                      <option value="2">Very Blocky (C)</option>
+                      <option value="3">Blocky / Disturbed / Seamy (D)</option>
+                      <option value="4">Disintegrated (E)</option>
+                  </select>
+              </div>
+              <div class="form-group">
+                  <label for="gsi-surface">Discontinuity Surface Conditions</label>
+                  <select id="gsi-surface">
+                      <option value="0">Very Good (rough, unweathered)</option>
+                      <option value="1">Good (rough, slightly weathered)</option>
+                      <option value="2">Fair (smooth, moderately weathered)</option>
+                      <option value="3">Poor (slickensided, highly weathered)</option>
+                      <option value="4">Very Poor (soft gouge, sheared)</option>
+                  </select>
+              </div>
+          </div>
+      </div><div style="text-align: left; margin-bottom: 1rem;">
+          <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+              <input type="checkbox" id="toggleFormula" onchange="updateToggles()"> Show Formulas
+          </label>
+      </div>
+    </section>
+<div class="formula-box" id="formula-container">
         <!-- LaTeX formula injected here -->
-    </div>
-
-    <button onclick="calculateClassification()" class="calc-btn">Calculate Classification</button>
+    </div><button onclick="calculateClassification()" class="calc-btn">Calculate Classification</button>
 
     <div class="result-box hidden" id="resultBox">
         <div id="resultLabel">Result</div>
@@ -608,17 +659,23 @@
         </div>
     </div>
 
-    <p class="support-note">Free and open-source. If this tool saves you time, you can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a>.</p>
+    <p class="support-note">Free and open-source. You can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a> to support this project.</p>
   </main>
 
   <footer class="site-footer">
-    <span>Developed by <strong>Ali Gheysari, PhD</strong></span>
+    <span>&copy; 2026 <strong>Ali Gheysari, PhD</strong></span>
+    <span class="social">
+      <a href="https://github.com/agheysari" target="_blank" rel="noopener noreferrer" aria-label="Ali Gheysari on GitHub" title="GitHub"><svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+      <a href="https://www.linkedin.com/in/aligheysari/" target="_blank" rel="noopener noreferrer" aria-label="Ali Gheysari on LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.55V9h3.57v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg></a>
+    </span>
     <span class="sep">&bull;</span>
     <a href="index.html">All calculators</a>
     <span class="sep">&bull;</span>
     <a href="https://github.com/agheysari/geotechnical-tools" target="_blank" rel="noopener noreferrer">Source</a>
     <span class="sep">&bull;</span>
-    <span>GNU GPL v3.0</span>
+    <a href="index.html#disclaimer">Disclaimer</a>
+    <span class="sep">&bull;</span>
+    <a href="LICENSE">GNU GPL v3.0</a>
   </footer>
 
 </div>

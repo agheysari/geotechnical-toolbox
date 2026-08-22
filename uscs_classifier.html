@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="ASTM D2487 coarse and fine-grained decision tree with Casagrande plasticity chart classification and group symbols.">
-<title>USCS Soil Classifier &mdash; Geotechnical Tools</title>
+<title>USCS Soil Classifier | Geotechnical Tools</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
     /* ==========================================================================
-       Geotechnical Tools — shared shell
+       Geotechnical Tools: shared shell
        This block is identical on every page. Edit it in one page and mirror the
        change to the rest; page-specific rules live in the section below it.
        ========================================================================== */
@@ -92,6 +92,10 @@
       box-shadow: var(--shadow);
     }
     .card + .card { margin-top: 16px; }
+    /* the two-column pages stack several components inside one card; give them
+       an even rhythm instead of whatever margins each component brings */
+    .layout-grid .card > * { margin-top: 0; margin-bottom: 0; }
+    .layout-grid .card > * + * { margin-top: 18px; }
     .card-title {
       margin: 0 0 16px;
       padding-bottom: 8px;
@@ -113,6 +117,48 @@
       color: var(--text-muted);
     }
     .section-title:first-child { margin-top: 0; }
+
+    /* --- Input groups -------------------------------------------------------
+       Convention: a grey bordered panel is something you fill in; a white or
+       tinted box is a result the tool gives back. Legacy group names below are
+       aliases so older markup picks up the same treatment. */
+    .field-set,
+    .panel, .control-group, .settings-panel, .manual-entry {
+      margin: 0 0 18px;
+      padding: 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .field-set > :first-child,
+    .panel > :first-child, .control-group > :first-child,
+    .settings-panel > :first-child, .manual-entry > :first-child { margin-top: 0; }
+    .field-set > :last-child,
+    .panel > :last-child, .control-group > :last-child,
+    .settings-panel > :last-child, .manual-entry > :last-child { margin-bottom: 0; }
+
+    /* legacy grid names share the responsive form grid */
+    .grid-2, .grid-3, .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .grid-2 > *, .grid-3 > *, .grid-container > * { min-width: 0; }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 10px;
+    }
+    .checkbox-group:last-child { margin-bottom: 0; }
+    .checkbox-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+    }
 
     h1, h2, h3, h4 { font-family: var(--font); color: var(--text); }
     h2 { font-size: 19px; font-weight: 700; margin: 0 0 12px; }
@@ -153,6 +199,13 @@
       box-shadow: 0 0 0 3px var(--primary-light);
     }
     input[type="checkbox"], input[type="radio"] { width: auto; }
+    textarea {
+      min-height: 170px;
+      resize: none;
+      line-height: 1.55;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
     input[type="range"] { padding: 0; }
     .input-error { border-color: var(--danger) !important; background: var(--danger-bg) !important; }
 
@@ -229,7 +282,16 @@
     .tab-btn:hover:not(.active) { background: #e2e8f0; }
     .tab-btn.active { background: var(--primary); color: #fff; }
     .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
+    .tab-panel.active {
+      display: block;
+      margin-bottom: 18px;
+      padding: 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .tab-panel.active > :first-child { margin-top: 0; }
+    .tab-panel.active > :last-child { margin-bottom: 0; }
 
     /* --- Results ----------------------------------------------------------- */
     .result-box {
@@ -387,6 +449,9 @@
     .site-footer a { color: var(--text-muted); text-decoration: none; }
     .site-footer a:hover { color: var(--primary); }
     .site-footer .sep { color: #cbd5e1; }
+    .site-footer .social { display: inline-flex; align-items: center; gap: 9px; }
+    .site-footer .social a { display: inline-flex; color: var(--text-muted); }
+    .site-footer .social a:hover { color: var(--primary); }
 
     .hidden { display: none !important; }
 
@@ -399,12 +464,6 @@
     /* ==========================================================================
        Page-specific styles
        ========================================================================== */
-    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
-    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
-    .checkbox-group { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
-    .checkbox-group label { margin-bottom: 0; font-weight: normal; }
-    .fallback-box { background: #fff3e0; border: 1px solid #ffe0b2; padding: 1rem; border-radius: 4px; margin-top: 1rem; }
-    .fallback-box h4 { margin: 0 0 10px 0; color: #e65100; }
     #resultBox { margin-top: 2rem; padding: 1.5rem; border-radius: 8px; display: none; }
     .success { background: #e8f5e9; border: 1px solid #c8e6c9; color: #2e7d32; }
     .error { background: #ffebee; border: 1px solid #ffcdd2; color: #c62828; }
@@ -414,9 +473,9 @@
   </style>
 <script>
 /* ==========================================================================
-   Geotechnical Tools — shared form guard
-   Forms load empty with placeholders as guidance. This reports what is still
-   missing rather than computing with blanks and printing NaN.
+   Geotechnical Tools: shared form guard
+   Forms load empty with placeholders as guidance. Missing fields are
+   highlighted on Calculate rather than computing with blanks and printing NaN.
    Hidden inputs (inactive tabs, collapsed groups) are ignored.
    ========================================================================== */
 (function () {
@@ -444,33 +503,13 @@
     return missing;
   };
 
-  /* Blank every result slot — used by the live calculators before input. */
+  /* Blank every result slot, used by the live calculators before input. */
   window.geoBlankOutputs = function (placeholder) {
-    var mark = placeholder || '—';
+    var mark = placeholder || '–';   /* en dash: 'no value yet' */
     Array.prototype.forEach.call(
       document.querySelectorAll('[id^="out_"], [id^="res_"]'),
       function (el) { el.textContent = mark; }
     );
-  };
-
-  /* A one-line prompt shown in place of results. */
-  window.geoPrompt = function (n) {
-    var box = document.getElementById('geo-input-prompt');
-    if (!box) {
-      box = document.createElement('p');
-      box.id = 'geo-input-prompt';
-      box.className = 'hint';
-      box.style.cssText = 'margin-top:14px;text-align:center;color:var(--warning);';
-      var btn = document.querySelector('.calc-btn');
-      if (btn && btn.parentNode) { btn.parentNode.insertBefore(box, btn.nextSibling); }
-      else { return; }
-    }
-    if (n > 0) {
-      box.textContent = 'Enter the ' + n + ' highlighted value' + (n === 1 ? '' : 's') + ' to calculate.';
-      box.style.display = '';
-    } else {
-      box.style.display = 'none';
-    }
   };
 
   /* Clear the highlight as soon as the field is filled. */
@@ -478,7 +517,6 @@
     var t = e.target;
     if (t && t.classList && t.classList.contains('input-error') && t.value.trim() !== '') {
       t.classList.remove('input-error');
-      if (!document.querySelectorAll('.input-error').length) { window.geoPrompt(0); }
     }
   });
 })();
@@ -496,86 +534,96 @@
 
   <main class="card">
     
-    <p>Enter soil properties below to classify according to the Unified Soil Classification System (ASTM D2487).</p>
+    <p class="hint" style="margin-bottom:18px;">Enter the soil properties below to classify according to the
+      Unified Soil Classification System (ASTM D2487).</p>
 
-    <h3>1. Soil Composition (Required: Must sum to 100%)</h3>
-    <div class="grid-3">
+    <section class="field-set">
+      <div class="section-title">1. Soil composition (must sum to 100%)</div>
+      <div class="form-grid">
         <div class="form-group">
-            <label for="pct_gravel">% Gravel (Retained No. 4)</label>
-            <input type="number" id="pct_gravel" step="0.1" min="0" max="100" placeholder="e.g., 20">
+          <label for="pct_gravel">Gravel, retained No. 4 (%)</label>
+          <input type="number" id="pct_gravel" step="0.1" min="0" max="100" placeholder="e.g., 20">
         </div>
         <div class="form-group">
-            <label for="pct_sand">% Sand (Pass No. 4, Ret. No. 200)</label>
-            <input type="number" id="pct_sand" step="0.1" min="0" max="100" placeholder="e.g., 55">
+          <label for="pct_sand">Sand, passing No. 4 / retained No. 200 (%)</label>
+          <input type="number" id="pct_sand" step="0.1" min="0" max="100" placeholder="e.g., 55">
         </div>
         <div class="form-group">
-            <label for="pct_fines">% Fines (Pass No. 200)</label>
-            <input type="number" id="pct_fines" step="0.1" min="0" max="100" placeholder="e.g., 25">
+          <label for="pct_fines">Fines, passing No. 200 (%)</label>
+          <input type="number" id="pct_fines" step="0.1" min="0" max="100" placeholder="e.g., 25">
         </div>
-    </div>
+      </div>
+    </section>
 
-    <h3>2. Gradation Parameters (Coarse Soils)</h3>
-    <div class="grid-2">
+    <section class="field-set">
+      <div class="section-title">2. Gradation parameters (coarse soils)</div>
+      <div class="form-grid">
         <div class="form-group">
-            <label for="cu">Cu (Coefficient of Uniformity)</label>
-            <input type="number" id="cu" step="0.1" min="0" placeholder="e.g., 8.5">
+          <label for="cu">Coefficient of uniformity, C<sub>u</sub></label>
+          <input type="number" id="cu" step="0.1" min="0" placeholder="e.g., 8.5">
         </div>
         <div class="form-group">
-            <label for="cc">Cc (Coefficient of Curvature)</label>
-            <input type="number" id="cc" step="0.1" min="0" placeholder="e.g., 1.6">
+          <label for="cc">Coefficient of curvature, C<sub>c</sub></label>
+          <input type="number" id="cc" step="0.1" min="0" placeholder="e.g., 1.6">
         </div>
-    </div>
+      </div>
+    </section>
 
-    <h3>3. Atterberg Limits & Organics (Fine/Plastic Soils)</h3>
-    <div class="grid-3">
+    <section class="field-set">
+      <div class="section-title">3. Atterberg limits (fine and plastic soils)</div>
+      <div class="form-grid">
         <div class="form-group">
-            <label for="ll">LL &mdash; Liquid Limit (%)</label>
-            <input type="number" id="ll" step="0.1" min="0" placeholder="e.g., 42">
+          <label for="ll">Liquid limit, LL (%)</label>
+          <input type="number" id="ll" step="0.1" min="0" placeholder="e.g., 42">
         </div>
         <div class="form-group">
-            <label for="pl">PL &mdash; Plastic Limit (%)</label>
-            <input type="number" id="pl" step="0.1" min="0" placeholder="e.g., 22">
+          <label for="pl">Plastic limit, PL (%)</label>
+          <input type="number" id="pl" step="0.1" min="0" placeholder="e.g., 22">
         </div>
         <div class="form-group">
-            <label for="ll_dry">LL after Oven Dry (%)</label>
-            <input type="number" id="ll_dry" step="0.1" min="0" placeholder="e.g., 30">
+          <label for="ll_dry">Liquid limit after oven drying (%)</label>
+          <input type="number" id="ll_dry" step="0.1" min="0" placeholder="e.g., 30">
         </div>
-    </div>
+      </div>
+    </section>
 
-    <h3>4. Modifiers</h3>
-    <div class="checkbox-group">
+    <section class="field-set">
+      <div class="section-title">4. Modifiers</div>
+      <div class="checkbox-group">
         <input type="checkbox" id="cobbles">
-        <label for="cobbles">Contains Cobbles</label>
-    </div>
-    <div class="checkbox-group">
+        <label for="cobbles">Contains cobbles</label>
+      </div>
+      <div class="checkbox-group">
         <input type="checkbox" id="boulders">
-        <label for="boulders">Contains Boulders</label>
-    </div>
-
-    <h3>5. Advanced Settings</h3>
-    <div class="checkbox-group">
+        <label for="boulders">Contains boulders</label>
+      </div>
+      <div class="checkbox-group">
         <input type="checkbox" id="check_u_line">
-        <label for="check_u_line">Verify Atterberg limits against U-line</label>
-    </div>
-    <div class="fallback-box">
-        <h4>⚠️ Missing Data Fallbacks</h4>
-        <div class="checkbox-group">
-            <input type="checkbox" id="allow_organic_fallback">
-            <label for="allow_organic_fallback">Assume Organic if Org. Content > 5% (When LL_dry missing)</label>
-        </div>
-        <div class="form-group" style="margin-top: 0.5rem; margin-bottom: 1rem;">
-            <label for="organic_content">Organic Content (%)</label>
-            <input type="number" id="organic_content" step="0.1" min="0" max="100" placeholder="e.g., 2">
-        </div>
-        <div class="checkbox-group">
-            <input type="checkbox" id="allow_coarse_np_fallback">
-            <label for="allow_coarse_np_fallback">Assume NP (M) for Coarse Soils (When LL/PL missing)</label>
-        </div>
-        <div class="checkbox-group">
-            <input type="checkbox" id="allow_fine_np_fallback">
-            <label for="allow_fine_np_fallback">Assume NP (ML) for Fine Soils (When LL/PL missing)</label>
-        </div>
-    </div>
+        <label for="check_u_line">Verify Atterberg limits against the U-line</label>
+      </div>
+    </section>
+
+    <section class="field-set">
+      <div class="section-title">5. Missing-data fallbacks</div>
+      <p class="hint" style="margin: -4px 0 12px;">Optional assumptions applied only when the
+        corresponding laboratory data is unavailable.</p>
+      <div class="checkbox-group">
+        <input type="checkbox" id="allow_organic_fallback">
+        <label for="allow_organic_fallback">Assume organic when organic content &gt; 5% (if oven-dry LL is missing)</label>
+      </div>
+      <div class="form-group" style="max-width: 260px; margin: 12px 0;">
+        <label for="organic_content">Organic content (%)</label>
+        <input type="number" id="organic_content" step="0.1" min="0" max="100" placeholder="e.g., 2">
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="allow_coarse_np_fallback">
+        <label for="allow_coarse_np_fallback">Assume non-plastic (M) for coarse soils when LL/PL are missing</label>
+      </div>
+      <div class="checkbox-group">
+        <input type="checkbox" id="allow_fine_np_fallback">
+        <label for="allow_fine_np_fallback">Assume non-plastic (ML) for fine soils when LL/PL are missing</label>
+      </div>
+    </section>
 
     <button onclick="runClassification()" class="calc-btn">Classify Soil</button>
 
@@ -585,17 +633,23 @@
         <p class="notes" id="outNotes"></p>
     </div>
 
-    <p class="support-note">Free and open-source. If this tool saves you time, you can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a>.</p>
+    <p class="support-note">Free and open-source. You can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a> to support this project.</p>
   </main>
 
   <footer class="site-footer">
-    <span>Developed by <strong>Ali Gheysari, PhD</strong></span>
+    <span>&copy; 2026 <strong>Ali Gheysari, PhD</strong></span>
+    <span class="social">
+      <a href="https://github.com/agheysari" target="_blank" rel="noopener noreferrer" aria-label="Ali Gheysari on GitHub" title="GitHub"><svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+      <a href="https://www.linkedin.com/in/aligheysari/" target="_blank" rel="noopener noreferrer" aria-label="Ali Gheysari on LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.55V9h3.57v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg></a>
+    </span>
     <span class="sep">&bull;</span>
     <a href="index.html">All calculators</a>
     <span class="sep">&bull;</span>
     <a href="https://github.com/agheysari/geotechnical-tools" target="_blank" rel="noopener noreferrer">Source</a>
     <span class="sep">&bull;</span>
-    <span>GNU GPL v3.0</span>
+    <a href="index.html#disclaimer">Disclaimer</a>
+    <span class="sep">&bull;</span>
+    <a href="LICENSE">GNU GPL v3.0</a>
   </footer>
 
 </div>
