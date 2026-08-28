@@ -540,6 +540,18 @@
           </div>
       </div>
     </section>
+
+    <section class="field-set">  <div class="section-title">4. Groundwater Properties</div><div class="form-row">
+          <div class="form-group">
+              <label for="rw-gwDepth">Water Table Depth [m]</label>
+              <input type="number" id="rw-gwDepth" step="any" placeholder="From top of wall (optional)">
+          </div>
+          <div class="form-group">
+              <label for="rw-gammaSat">Saturated &gamma; [kN/m³]</label>
+              <input type="number" id="rw-gammaSat" step="any" placeholder="e.g., 20.0">
+          </div>
+      </div>
+    </section>
 <div class="section-title">Cross-Section Sketch</div><div style="text-align: center; margin-bottom: 1.5rem;">
         <canvas id="rw-diagram" width="800" height="350" style="max-width: 100%; height: auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; box-shadow: inset 0 0 5px rgba(0,0,0,0.05);"></canvas>
     </div><button id="rw-calc-btn" class="calc-btn">Calculate Stability</button>
@@ -648,6 +660,40 @@
         drawDim(B + 0.3, 0, B + 0.3, tBase, 't_base', 8, 4);
         drawDim(B + 0.3, tBase, B + 0.3, H, 'H_stem', 8, 4);
         drawDim(-0.3, 0, -0.3, H, 'H', -8, 4);
+
+        // Water Table (Generic)
+        const gwY = H * 0.4; // generic WT depth
+        ctx.strokeStyle = '#0ea5e9'; ctx.fillStyle = '#0ea5e9'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(cx(toe+tStem+0.1), cy(gwY)); ctx.lineTo(cx(maxX-0.1), cy(gwY)); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx((toe+tStem+maxX)/2), cy(gwY)); ctx.lineTo(cx((toe+tStem+maxX)/2 + 0.1), cy(gwY)); ctx.lineTo(cx((toe+tStem+maxX)/2 + 0.05), cy(gwY-0.2)); ctx.closePath(); ctx.fill();
+
+        // Lateral Pressures (Generic)
+        // Pa (orange)
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.1)'; ctx.strokeStyle = '#f59e0b';
+        ctx.beginPath(); ctx.moveTo(cx(B), cy(H)); ctx.lineTo(cx(B+0.5), cy(0)); ctx.lineTo(cx(B), cy(0)); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#d97706'; ctx.font = '12px Arial'; ctx.fillText('Pa', cx(B+0.2), cy(0.5));
+        
+        // Pw (blue)
+        ctx.fillStyle = 'rgba(14, 165, 233, 0.1)'; ctx.strokeStyle = '#0ea5e9';
+        ctx.beginPath(); ctx.moveTo(cx(B+0.5), cy(gwY)); ctx.lineTo(cx(B+0.5+0.3), cy(0)); ctx.lineTo(cx(B+0.5), cy(0)); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#0369a1'; ctx.fillText('Pw', cx(B+0.6), cy(0.2));
+
+        // Uplift U
+        ctx.fillStyle = 'rgba(14, 165, 233, 0.1)'; ctx.strokeStyle = '#0ea5e9';
+        ctx.beginPath(); ctx.rect(cx(0), cy(0), cx(B) - cx(0), cy(-0.3) - cy(0)); ctx.fill();
+        ctx.setLineDash([4,4]); ctx.strokeRect(cx(0), cy(0), cx(B) - cx(0), cy(-0.3) - cy(0)); ctx.setLineDash([]);
+        ctx.fillText('U', cx(B/2), cy(-0.2));
+
+        // Sliding and Resisting Forces
+        ctx.strokeStyle = '#dc2626'; ctx.fillStyle = '#dc2626'; ctx.lineWidth = 2; // Fd (Red, left)
+        ctx.beginPath(); ctx.moveTo(cx(B+1.0), cy(-0.1)); ctx.lineTo(cx(B+0.1), cy(-0.1)); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx(B+0.1), cy(-0.1)); ctx.lineTo(cx(B+0.2), cy(-0.05)); ctx.lineTo(cx(B+0.2), cy(-0.15)); ctx.fill();
+        ctx.fillText('Fd', cx(B+1.1), cy(-0.1));
+
+        ctx.strokeStyle = '#16a34a'; ctx.fillStyle = '#16a34a'; ctx.lineWidth = 2; // Fr (Green, right)
+        ctx.beginPath(); ctx.moveTo(cx(0.1), cy(-0.1)); ctx.lineTo(cx(B-0.1), cy(-0.1)); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx(B-0.1), cy(-0.1)); ctx.lineTo(cx(B-0.2), cy(-0.05)); ctx.lineTo(cx(B-0.2), cy(-0.15)); ctx.fill();
+        ctx.fillText('Fr', cx(B/2), cy(0.1));
     }
 
     drawDiagram();
@@ -687,6 +733,11 @@
         const phi2 = parseFloat(document.getElementById('rw-phi2').value);
         const c2 = parseFloat(document.getElementById('rw-c2').value) || 0;
         const k = parseFloat(document.getElementById('rw-k').value) || 0.67;
+        const gwDepthStr = document.getElementById('rw-gwDepth').value;
+        const gwDepth = gwDepthStr.trim() !== '' ? parseFloat(gwDepthStr) : undefined;
+        const gammaSatStr = document.getElementById('rw-gammaSat').value;
+        const gammaSat = gammaSatStr.trim() !== '' ? parseFloat(gammaSatStr) : undefined;
+        const gammaW = 9.81;
 
         const heel = B - toe - tStem;
         if (0 > heel) {
@@ -699,28 +750,59 @@
         }
 
         const H = hStem + tBase;
-        const Ka = Math.pow(Math.tan((45 - phi1/2) * Math.PI/180), 2);
+        const phi1Rad = phi1 * Math.PI / 180;
+        const Ka = Math.pow(Math.tan(Math.PI/4 - phi1Rad/2), 2);
 
-        const Pa = 0.5 * Ka * gamma1 * H * H;
+        const hw = gwDepth !== undefined ? Math.max(0, H - gwDepth) : 0;
+        const hDry = H - hw;
+        const effectiveGammaSat = gammaSat !== undefined ? gammaSat : gamma1;
+        const gammaBuoyant = effectiveGammaSat - gammaW;
+
+        const Pa1 = 0.5 * Ka * gamma1 * hDry * hDry;
+        const y_Pa1 = hw + hDry / 3;
+        const q_soil = gamma1 * hDry;
+        const Pa2_rect = Ka * q_soil * hw;
+        const y_Pa2_rect = hw / 2;
+        const Pa2_tri = 0.5 * Ka * gammaBuoyant * hw * hw;
+        const y_Pa2_tri = hw / 3;
+        const Pa2 = Pa2_rect + Pa2_tri;
+        const Pa = Pa1 + Pa2;
+
         const Pq = q * Ka * H;
-        const totalDriving = Pa + Pq;
-        const Mo = Pa * (H / 3) + Pq * (H / 2);
+        const y_Pq = H / 2;
+
+        const Pw = 0.5 * gammaW * hw * hw;
+        const y_Pw = hw / 3;
+
+        const totalDriving = Pa + Pq + Pw;
+        const Mo = (Pa1 * y_Pa1) + (Pa2_rect * y_Pa2_rect) + (Pa2_tri * y_Pa2_tri) + (Pq * y_Pq) + (Pw * y_Pw);
 
         const W_stem = hStem * tStem * gammaC;
         const x_stem = toe + tStem / 2;
         const W_base = B * tBase * gammaC;
         const x_base = B / 2;
-        const W_soil = hStem * heel * gamma1;
+        
+        const hw_soil = gwDepth !== undefined ? Math.max(0, hStem - gwDepth) : 0;
+        const hDry_soil = hStem - hw_soil;
+        const W_soil_dry = hDry_soil * heel * gamma1;
+        const W_soil_sat = hw_soil * heel * effectiveGammaSat;
+        const W_soil = W_soil_dry + W_soil_sat;
         const x_soil = toe + tStem + heel / 2;
+        
         const W_sur = q * heel;
         const x_sur = x_soil;
 
-        const V = W_stem + W_base + W_soil + W_sur;
-        const Mr = W_stem * x_stem + W_base * x_base + W_soil * x_soil + W_sur * x_sur;
+        const U = gammaW * hw * B;
+        const x_U = B / 2;
+
+        const V = W_stem + W_base + W_soil + W_sur - U;
+        let Mr = W_stem * x_stem + W_base * x_base + W_soil * x_soil + W_sur * x_sur;
+        Mr = Mr - (U * x_U);
 
         const delta = k * phi2 * Math.PI/180;
         const ca = k * c2;
-        const Fr = V * Math.tan(delta) + ca * B;
+        const Fr = Math.max(0, V) * Math.tan(delta) + ca * B;
+        
         const FS_sliding = totalDriving > 0 ? Fr / totalDriving : 999;
         const FS_overturning = Mo > 0 ? Mr / Mo : 999;
 
@@ -745,7 +827,7 @@
         const eccColor = b_over_6 >= Math.abs(e) ? '#27ae60' : '#e67e22';
         const eccText = b_over_6 >= Math.abs(e) ? 'Resultant is within the middle third (No tension).' : 'Resultant is outside the middle third! (Tension at heel)';
 
-        const resultHtml = `
+        let resultHtml = `
             <div class="result-grid">
                 <div class="result-item">
                     <div style="font-size:0.9rem; color:#555;">FS Sliding</div>
@@ -758,17 +840,47 @@
                     <div style="font-size: 0.8rem; color:#888;">Typically &ge; 2.0</div>
                 </div>
                 <div class="result-item">
+                    <div style="font-size:0.9rem; color:#555;">Sliding Force (Fd)</div>
+                    <div class="result-value">${totalDriving.toFixed(1)}</div>
+                    <div style="font-size: 0.8rem; color:#888;">Force/length</div>
+                </div>
+                <div class="result-item">
+                    <div style="font-size:0.9rem; color:#555;">Resisting Force (Fr)</div>
+                    <div class="result-value">${Fr.toFixed(1)}</div>
+                    <div style="font-size: 0.8rem; color:#888;">Force/length</div>
+                </div>
+                <div class="result-item">
                     <div style="font-size:0.9rem; color:#555;">Toe Pressure (q<sub>toe</sub>)</div>
                     <div class="result-value">${q_toe.toFixed(1)}</div>
-                    <div style="font-size: 0.8rem; color:#888;">Pressure Units</div>
+                    <div style="font-size: 0.8rem; color:#888;">Pressure</div>
                 </div>
                 <div class="result-item">
                     <div style="font-size:0.9rem; color:#555;">Heel Pressure (q<sub>heel</sub>)</div>
                     <div class="result-value">${q_heel.toFixed(1)}</div>
-                    <div style="font-size: 0.8rem; color:#888;">Pressure Units</div>
+                    <div style="font-size: 0.8rem; color:#888;">Pressure</div>
                 </div>
             </div>
-            <div style="margin-top: 1rem; font-weight: 500; color: ${eccColor}; background: #fff; padding: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        `;
+        
+        if (hw > 0) {
+            resultHtml += `
+            <div class="result-grid" style="margin-top: 1rem;">
+                <div class="result-item" style="border-left: 4px solid #0ea5e9;">
+                    <div style="font-size:0.9rem; color:#555;">Hydrostatic Thrust (Pw)</div>
+                    <div class="result-value" style="color: #0ea5e9;">${Pw.toFixed(1)}</div>
+                    <div style="font-size: 0.8rem; color:#888;">Force/length</div>
+                </div>
+                <div class="result-item" style="border-left: 4px solid #0ea5e9;">
+                    <div style="font-size:0.9rem; color:#555;">Base Uplift (U)</div>
+                    <div class="result-value" style="color: #0ea5e9;">${U.toFixed(1)}</div>
+                    <div style="font-size: 0.8rem; color:#888;">Force/length</div>
+                </div>
+            </div>
+            `;
+        }
+
+        resultHtml += `
+            <div style="margin-top: 1rem; font-weight: 500; color: ${eccColor}; background: #fff; padding: 10px; border-radius: 4px; border-left: 4px solid ${eccColor}; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
                 Eccentricity (e) = ${e.toFixed(3)} units <br>
                 (B/6 = ${b_over_6.toFixed(3)} units) <br>
                 <small>${eccText}</small>
