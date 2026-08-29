@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="AASHTO 1993 empirical method for flexible pavement design. Calculate required structural number (SN) and pavement thickness.">
+<title>AASHTO 1993 Flexible Pavement Design Calculator | Geotechnical Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+    /* ==========================================================================
+       Geotechnical Tools: shared shell
+       This block is identical on every page. Edit it in one page and mirror the
+       change to the rest; page-specific rules live in the section below it.
+       ========================================================================== */
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --surface: #ffffff;
+      --background: #f8fafc;
+      --surface-alt: #f1f5f9;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #059669;
+      --success-bg: #ecfdf5;
+      --warning: #b45309;
+      --warning-bg: #fffbeb;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 28px 16px 8px;
+      background: var(--background);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    /* --- Page header ------------------------------------------------------- */
+    .tool-header { margin-bottom: 20px; }
+    .tool-header h1 {
+      margin: 0;
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: -0.015em;
+      line-height: 1.25;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tool-header .subtitle {
+      margin: 8px 0 0;
+      max-width: 90ch;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .tool-header .back-link {
+      display: inline-block;
+      margin-bottom: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .tool-header .back-link:hover { color: var(--primary); }
+    .tool-header h1 .tool-icon { flex: none; border-radius: 9px; }
+
+    /* --- Surfaces ---------------------------------------------------------- */
+    .card {
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+    .card + .card { margin-top: 16px; }
+    /* the two-column pages stack several components inside one card; give them
+       an even rhythm instead of whatever margins each component brings */
+    .layout-grid .card > * { margin-top: 0; margin-bottom: 0; }
+    .layout-grid .card > * + * { margin-top: 18px; }
+    .card-title {
+      margin: 0 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-title {
+      margin: 26px 0 14px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+    .section-title:first-child { margin-top: 0; }
+
+    /* --- Input groups -------------------------------------------------------
+       Convention: a grey bordered panel is something you fill in; a white or
+       tinted box is a result the tool gives back. Legacy group names below are
+       aliases so older markup picks up the same treatment. */
+    .field-set,
+    .panel, .control-group, .settings-panel, .manual-entry {
+      margin: 0 0 18px;
+      padding: 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .field-set > :first-child,
+    .panel > :first-child, .control-group > :first-child,
+    .settings-panel > :first-child, .manual-entry > :first-child { margin-top: 0; }
+    .field-set > :last-child,
+    .panel > :last-child, .control-group > :last-child,
+    .settings-panel > :last-child, .manual-entry > :last-child { margin-bottom: 0; }
+
+    /* legacy grid names share the responsive form grid */
+    .grid-2, .grid-3, .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .grid-2 > *, .grid-3 > *, .grid-container > * { min-width: 0; }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 10px;
+    }
+    .checkbox-group:last-child { margin-bottom: 0; }
+    .checkbox-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    h1, h2, h3, h4 { font-family: var(--font); color: var(--text); }
+    h2 { font-size: 19px; font-weight: 700; margin: 0 0 12px; }
+    h3 { font-size: 15px; font-weight: 700; margin: 0 0 10px; }
+    h4 { font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+
+    /* --- Forms ------------------------------------------------------------- */
+    .form-row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .form-row > * { flex: 1 1 0; min-width: 0; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    /* grid/flex children default to min-width:auto, which refuses to shrink and
+       pushes the page wider than the viewport on phones */
+    .layout-grid > *, .form-grid > *, .results-grid > *, .form-row > * { min-width: 0; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    @media (max-width: 768px) { .form-row { flex-direction: column; gap: 12px; } }
+
+    label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    input[type="checkbox"], input[type="radio"] { width: auto; }
+    textarea {
+      min-height: 170px;
+      resize: none;
+      line-height: 1.55;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+    input[type="range"] { padding: 0; }
+    .input-error { border-color: var(--danger) !important; background: var(--danger-bg) !important; }
+
+    .hint, .help-text, .note {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    /* block footnote under a results panel, not an inline field hint */
+    .note { display: block; margin-top: 18px; }
+
+    /* row of buttons that acts on the table above it */
+    .table-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin: 16px 0 4px;
+    }
+    .table-actions .spacer { margin-left: auto; }
+
+    /* --- Buttons ----------------------------------------------------------- */
+    button, .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 16px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--primary);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    button:hover:not(:disabled), .btn:hover:not(:disabled) { background: var(--primary-dark); }
+    button:disabled, .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+    .calc-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .btn-secondary { background: var(--surface-alt); color: #475569; border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { background: #e2e8f0; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; font-weight: 600; }
+    .btn-success { background: var(--success); }
+    .btn-success:hover:not(:disabled) { background: #047857; }
+    .btn-danger, .btn-clear { background: var(--danger); }
+    .btn-danger:hover:not(:disabled), .btn-clear:hover:not(:disabled) { background: #b91c1c; }
+
+    /* --- Tabs -------------------------------------------------------------- */
+    .tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      background: var(--surface-alt);
+      border-radius: 8px;
+    }
+    .tab-btn:hover:not(.active) { background: #e2e8f0; }
+    .tab-btn.active { background: var(--primary); color: #fff; }
+    .tab-panel { display: none; }
+    .tab-panel.active {
+      display: block;
+      margin-bottom: 18px;
+      padding: 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .tab-panel.active > :first-child { margin-top: 0; }
+    .tab-panel.active > :last-child { margin-bottom: 0; }
+
+    /* --- Results ----------------------------------------------------------- */
+    .result-box {
+      margin-top: 20px;
+      padding: 18px 20px;
+      background: var(--primary-light);
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .result-box.success { background: var(--success-bg); border-color: #a7f3d0; border-left-color: var(--success); }
+    .result-box.warning { background: var(--warning-bg); border-color: #fde68a; border-left-color: #f59e0b; }
+    .result-box.danger  { background: var(--danger-bg);  border-color: #fecaca; border-left-color: var(--danger); }
+    .result-value {
+      margin: 6px 0 0;
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--primary-dark);
+    }
+    .success .result-value { color: var(--success); }
+    .warning .result-value { color: var(--warning); }
+    .danger  .result-value { color: var(--danger); }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .stat-box {
+      padding: 14px 12px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+    .stat-val {
+      margin: 5px 0 0;
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+    .stat-sub { font-size: 10px; color: var(--text-muted); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+    }
+
+    .formula-box {
+      margin: 18px 0;
+      padding: 16px 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-size: 13px;
+    }
+    .formula-box h3, .formula-box h4 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    /* --- Tables ------------------------------------------------------------ */
+    .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      background: var(--background);
+    }
+    td input, td select { padding: 6px 8px; font-size: 13px; }
+
+    /* --- Figures ------------------------------------------------------------ */
+    .chart-container, .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      margin: 22px 0 4px;
+      padding: 14px 14px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    @media (max-width: 600px) {
+      .chart-container, .chart-wrapper { height: 320px; padding: 10px 8px 6px; }
+    }
+
+    /* --- Uploads ------------------------------------------------------------ */
+    .upload-area {
+      margin-bottom: 16px;
+      padding: 24px;
+      text-align: center;
+      background: var(--background);
+      border: 2px dashed #cbd5e1;
+      border-radius: var(--radius);
+      transition: border-color 0.15s ease;
+    }
+    .upload-area:hover { border-color: var(--primary); }
+    .upload-area input { width: auto; max-width: 100%; }
+    .upload-area input[type="file"] { width: 100%; }
+
+    /* --- Support line & footer ---------------------------------------------- */
+    .support-note {
+      margin: 20px 0 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .support-note a {
+      color: var(--primary);
+      text-decoration: none;
+      border-bottom: 1px solid var(--primary-light);
+    }
+    .support-note a:hover { border-bottom-color: var(--primary); }
+
+    .site-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 32px;
+      padding: 22px 12px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .site-footer a { color: var(--text-muted); text-decoration: none; }
+    .site-footer a:hover { color: var(--primary); }
+    .site-footer .sep { color: #cbd5e1; }
+    .site-footer .social { display: inline-flex; align-items: center; gap: 9px; }
+    .site-footer .social a { display: inline-flex; color: var(--text-muted); }
+    .site-footer .social a:hover { color: var(--primary); }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 600px) {
+      body { padding: 20px 12px 8px; }
+      .card { padding: 18px 16px; }
+      th, td { padding: 8px 9px; }
+    }
+
+    /* ==========================================================================
+       Page-specific styles
+       ========================================================================== */
+    .factors-row { display: flex; justify-content: center; gap: 2rem; margin-top: 0.5rem; font-size: 0.95rem; color: #444; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <header class="tool-header">
+    <a class="back-link" href="index.html">&larr; All calculators</a>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="64" height="64" rx="14" fill="#F1F5F9" /> <path d="M12 24L52 24" stroke="#475569" stroke-width="4" stroke-dasharray="8 4" /> <rect x="12" y="32" width="40" height="12" fill="#94A3B8" /> <rect x="12" y="44" width="40" height="12" fill="#CBD5E1" /> <path d="M26 12L26 20M38 12L38 20" stroke="#3B82F6" stroke-width="3" stroke-linecap="round" /> <path d="M26 18L23 15M26 18L29 15" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" /> <path d="M38 18L35 15M38 18L41 15" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" /> </svg> AASHTO 1993 Flexible Pavement Design</h1>
+    <p class="subtitle">Empirical method for flexible pavement design to calculate required structural number (SN) and layer thicknesses.</p>
+  </header>
+
+  <main class="card">
+    <section class="field-set">
+      <div class="section-title">Design Parameters</div>
+      <div class="form-row">
+          <div class="form-group">
+              <label for="w18">Design ESALs (W<sub>18</sub>)</label>
+              <input type="number" id="w18" step="any" placeholder="e.g. 2000000">
+          </div>
+          <div class="form-group">
+              <label for="reliability">Reliability (R) [%]</label>
+              <input type="number" id="reliability" step="any" placeholder="e.g. 95">
+          </div>
+      </div>
+      <div class="form-row">
+          <div class="form-group">
+              <label for="so">Overall Standard Deviation (S<sub>o</sub>)</label>
+              <input type="number" id="so" step="any" placeholder="e.g. 0.45">
+          </div>
+          <div class="form-group">
+              <label for="pi">Initial Serviceability (p<sub>i</sub>)</label>
+              <input type="number" id="pi" step="any" placeholder="e.g. 4.2">
+          </div>
+          <div class="form-group">
+              <label for="pt">Terminal Serviceability (p<sub>t</sub>)</label>
+              <input type="number" id="pt" step="any" placeholder="e.g. 2.5">
+          </div>
+      </div>
+      <div class="form-row">
+          <div class="form-group">
+              <label for="mr">Subgrade Resilient Modulus (M<sub>R</sub>) [psi]</label>
+              <input type="number" id="mr" step="any" placeholder="e.g. 5000">
+          </div>
+      </div>
+
+      <div class="section-title">Structural Layer Coefficients</div>
+      <div class="form-row">
+          <div class="form-group">
+              <label for="a1">Surface Layer (a<sub>1</sub>)</label>
+              <input type="number" id="a1" step="any" placeholder="e.g. 0.44">
+          </div>
+          <div class="form-group">
+              <label for="d1">Surface Depth (D<sub>1</sub>) [in]</label>
+              <input type="number" id="d1" step="any" placeholder="e.g. 4.0">
+          </div>
+      </div>
+      <div class="form-row">
+          <div class="form-group">
+              <label for="a2">Base Layer (a<sub>2</sub>)</label>
+              <input type="number" id="a2" step="any" placeholder="e.g. 0.14">
+          </div>
+          <div class="form-group">
+              <label for="m2">Base Drainage (m<sub>2</sub>)</label>
+              <input type="number" id="m2" step="any" placeholder="e.g. 1.0">
+          </div>
+          <div class="form-group">
+              <label for="d2">Base Depth (D<sub>2</sub>) [in]</label>
+              <input type="number" id="d2" step="any" placeholder="e.g. 6.0">
+          </div>
+      </div>
+      <div class="form-row">
+          <div class="form-group">
+              <label for="a3">Subbase Layer (a<sub>3</sub>)</label>
+              <input type="number" id="a3" step="any" placeholder="e.g. 0.11">
+          </div>
+          <div class="form-group">
+              <label for="m3">Subbase Drainage (m<sub>3</sub>)</label>
+              <input type="number" id="m3" step="any" placeholder="e.g. 1.0">
+          </div>
+      </div>
+    </section>
+
+    <button onclick="calculateCapacity()" class="calc-btn">Calculate Design</button>
+
+    <div class="result-box hidden" id="resultBox">
+        <div>Required Structural Number (SN<sub>req</sub>)</div>
+        <div class="result-value" id="resultSN">---</div>
+        <div style="margin-top: 10px; color: #555;">Design &Delta;PSI: <span id="resultDeltaPsi">---</span></div>
+        <div class="factors-row" id="d3Row" style="margin-top: 15px; font-weight: bold; color: var(--primary-dark);">
+            <span id="resultD3">Required Subbase Depth (D<sub>3</sub>) = --- in</span>
+        </div>
+        <div class="factors-row" id="snProvidedRow" style="margin-top: 5px; font-size: 13px; color: #666;">
+            <span id="resultSNprov">Provided SN = ---</span>
+        </div>
+    </div>
+    
+    <div class="note">
+        <i>Note: The required SN is solved using the Bisection method to find the root of the AASHTO 1993 empirical equation. The required subbase depth (D<sub>3</sub>) is computed so that the provided SN equals the required SN.</i>
+    </div>
+
+    <p class="support-note">Free and open-source. You can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a> to support this project.</p>
+  </main>
+
+  <footer class="site-footer">
+    <span>&copy; 2026 <strong>Ali Gheysari, PhD</strong></span>
+    <span class="social">
+      <a href="https://github.com/agheysari" target="_blank" rel="noopener noreferrer" aria-label="Ali Gheysari on GitHub" title="GitHub"><svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+      <a href="https://www.linkedin.com/in/aligheysari/" target="_blank" rel="noopener noreferrer" aria-label="Ali Gheysari on LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.55V9h3.57v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg></a>
+    </span>
+    <span class="sep">&bull;</span>
+    <a href="index.html">All calculators</a>
+    <span class="sep">&bull;</span>
+    <a href="https://github.com/agheysari/geotechnical-toolbox" target="_blank" rel="noopener noreferrer">Source</a>
+    <span class="sep">&bull;</span>
+    <a href="index.html#disclaimer">Disclaimer</a>
+    <span class="sep">&bull;</span>
+    <a href="LICENSE">GNU GPL v3.0</a>
+  </footer>
+</div>
+
+<script>
+/**
+ * Calculates the standard normal deviate (Z_R) for a given reliability level.
+ */
+function getZrFromReliability(R) {
+    if (R <= 50) return 0.000;
+    if (R <= 60) return -0.253;
+    if (R <= 70) return -0.524;
+    if (R <= 75) return -0.674;
+    if (R <= 80) return -0.841;
+    if (R <= 85) return -1.037;
+    if (R <= 90) return -1.282;
+    if (R <= 95) return -1.645;
+    if (R <= 99) return -2.327;
+    if (R <= 99.9) return -3.090;
+    if (R <= 99.99) return -3.719;
+    return -3.719; // Cap at 99.99%
+}
+
+/**
+ * AASHTO 1993 empirical equation for flexible pavement
+ * Evaluates the difference between the LHS (log10(W18)) and the RHS of the AASHTO equation.
+ */
+function aashtoEquation(SN, w18, zr, so, deltaPsi, mr) {
+    const logW18 = Math.log10(w18);
+    
+    // The terms on the right hand side
+    const term1 = zr * so;
+    const term2 = 9.36 * Math.log10(SN + 1) - 0.20;
+    const term3Num = Math.log10(deltaPsi / 2.7); // (4.2 - 1.5) = 2.7
+    const term3Den = 1.0 + (1094.0 / Math.pow(SN + 1, 5.19));
+    const term3 = term3Num / term3Den;
+    const term4 = 2.32 * Math.log10(mr) - 8.07;
+    
+    const rhs = term1 + term2 + term3 + term4;
+    
+    return logW18 - rhs; // Should be 0 when solved
+}
+
+function calculateFlexiblePavement(inputs) {
+    const deltaPsi = inputs.pi - inputs.pt;
+    if (deltaPsi <= 0) {
+        throw new Error("Initial serviceability must be greater than terminal serviceability.");
+    }
+
+    const zr = getZrFromReliability(inputs.reliability);
+
+    // Bisection method to find SN
+    let lowSN = 0.1;
+    let highSN = 40.0; // Unlikely to exceed 40
+    let midSN = (lowSN + highSN) / 2.0;
+    const tolerance = 0.001;
+    let iterations = 0;
+    const maxIterations = 100;
+
+    let fLow = aashtoEquation(lowSN, inputs.w18, zr, inputs.so, deltaPsi, inputs.mr);
+    
+    while ((highSN - lowSN) / 2.0 > tolerance && iterations < maxIterations) {
+        midSN = (lowSN + highSN) / 2.0;
+        const fMid = aashtoEquation(midSN, inputs.w18, zr, inputs.so, deltaPsi, inputs.mr);
+        
+        if (fMid === 0.0) {
+            break;
+        } else if ((fLow * fMid) < 0) {
+            highSN = midSN;
+        } else {
+            lowSN = midSN;
+            fLow = fMid; // Update fLow for the next iteration
+        }
+        iterations++;
+    }
+
+    const requiredSN = midSN;
+
+    // Calculate required D3 (Subbase depth)
+    const snProvidedBy1And2 = (inputs.a1 * inputs.d1) + (inputs.a2 * inputs.d2 * inputs.m2);
+    const remainingSN = requiredSN - snProvidedBy1And2;
+
+    let requiredD3 = 0;
+    if (remainingSN > 0 && inputs.a3 > 0 && inputs.m3 > 0) {
+        requiredD3 = remainingSN / (inputs.a3 * inputs.m3);
+    }
+
+    // Recalculate provided SN based on the (possibly 0) requiredD3
+    const providedSN = snProvidedBy1And2 + (inputs.a3 * inputs.m3 * requiredD3);
+
+    return {
+        requiredSN: requiredSN,
+        deltaPsi: deltaPsi,
+        requiredD3: requiredD3,
+        providedSN: providedSN,
+        zr: zr,
+    };
+}
+
+function calculateCapacity() {
+    const getVal = (id) => parseFloat(document.getElementById(id).value);
+    
+    const w18 = getVal("w18");
+    const reliability = getVal("reliability");
+    const so = getVal("so");
+    const pi = getVal("pi");
+    const pt = getVal("pt");
+    const mr = getVal("mr");
+    const a1 = getVal("a1");
+    const d1 = getVal("d1");
+    const a2 = getVal("a2");
+    const m2 = getVal("m2");
+    const d2 = getVal("d2");
+    const a3 = getVal("a3");
+    const m3 = getVal("m3");
+
+    // Basic validation
+    if ([w18, reliability, so, pi, pt, mr, a1, d1, a2, m2, d2, a3, m3].some(isNaN)) {
+        alert("Please fill in all input fields with valid numbers.");
+        return;
+    }
+
+    try {
+        const results = calculateFlexiblePavement({
+            w18, reliability, so, pi, pt, mr,
+            a1, d1, a2, m2, d2,
+            a3, m3
+        });
+
+        // Show results
+        const resBox = document.getElementById("resultBox");
+        resBox.classList.remove("hidden", "warning", "danger");
+        resBox.classList.add("success");
+
+        document.getElementById("resultSN").textContent = results.requiredSN.toFixed(3);
+        document.getElementById("resultDeltaPsi").textContent = results.deltaPsi.toFixed(2);
+        document.getElementById("resultD3").innerHTML = `Required Subbase Depth (D<sub>3</sub>) = ${results.requiredD3.toFixed(2)} in`;
+        document.getElementById("resultSNprov").textContent = `Provided SN = ${results.providedSN.toFixed(3)}`;
+        
+    } catch (e) {
+        alert(e.message);
+    }
+}
+</script>
+</body>
+</html>
