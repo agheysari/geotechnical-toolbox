@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Calculate the required concrete slab thickness (D) according to the AASHTO 1993 rigid pavement design guide.">
+<title>AASHTO 1993 Rigid Pavement Design | Geotechnical Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+    /* ==========================================================================
+       Geotechnical Tools: shared shell
+       ========================================================================== */
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --surface: #ffffff;
+      --background: #f8fafc;
+      --surface-alt: #f1f5f9;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #059669;
+      --success-bg: #ecfdf5;
+      --warning: #b45309;
+      --warning-bg: #fffbeb;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 28px 16px 8px;
+      background: var(--background); color: var(--text);
+      font-family: var(--font); font-size: 14px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .tool-header { margin-bottom: 20px; }
+    .tool-header h1 {
+      margin: 0; font-size: 25px; font-weight: 800; letter-spacing: -0.015em; line-height: 1.25;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .tool-header .subtitle { margin: 8px 0 0; max-width: 90ch; font-size: 13px; color: var(--text-muted); }
+    .tool-header .back-link {
+      display: inline-block; margin-bottom: 10px; font-size: 12px; font-weight: 600;
+      color: var(--text-muted); text-decoration: none;
+    }
+    .tool-header .back-link:hover { color: var(--primary); }
+    
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow); }
+    .card-title { margin: 0 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .section-title { margin: 26px 0 14px; padding-bottom: 7px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+    .section-title:first-child { margin-top: 0; }
+    
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); gap: 16px; margin-bottom: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)); gap: 16px; margin-bottom: 16px; }
+    .layout-grid { display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 24px; align-items: start; }
+    @media (max-width: 900px) { .layout-grid { grid-template-columns: 1fr; } }
+    
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    input, select { width: 100%; padding: 9px 12px; font-family: inherit; font-size: 14px; color: var(--text); border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+    input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+    
+    .results-panel { background: var(--surface); border: 1px solid var(--primary); border-radius: var(--radius-lg); padding: 24px; box-shadow: 0 4px 12px rgba(2,132,199,0.1); }
+    .results-panel .card-title { border-bottom-color: var(--primary-light); color: var(--primary-dark); }
+    .result-value { font-size: 28px; font-weight: 800; color: var(--primary-dark); line-height: 1.1; margin: 4px 0 16px; word-break: break-word; }
+    .result-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+    .result-grid-sm { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .result-sm-value { font-size: 18px; font-weight: 700; color: var(--text); }
+    
+    .formula-box { background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-top: 24px; overflow-x: auto; font-size: 13px; }
+    .formula-title { font-weight: 600; margin-bottom: 8px; color: var(--text); }
+    .support-note { font-size: 12px; color: var(--text-muted); text-align: center; margin-top: 40px; }
+    .support-note a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .support-note a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="tool-header">
+        <a href="index.html" class="back-link">← Back to Tools</a>
+        <h1>AASHTO 1993 Rigid Pavement Design</h1>
+        <p class="subtitle">Calculate the required concrete slab thickness (D) according to the AASHTO 1993 rigid pavement design guide.</p>
+    </div>
+
+    <div class="layout-grid">
+        <!-- Input Section -->
+        <div class="card">
+            <div class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Design Parameters
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label for="w18">Estimated Future ESALs (W18)</label>
+                <input type="number" id="w18" value="5000000" min="0" step="1">
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="reliability">Reliability R (%)</label>
+                    <select id="reliability">
+                        <option value="50">50%</option>
+                        <option value="60">60%</option>
+                        <option value="70">70%</option>
+                        <option value="75">75%</option>
+                        <option value="80">80%</option>
+                        <option value="85">85%</option>
+                        <option value="90" selected>90%</option>
+                        <option value="95">95%</option>
+                        <option value="99">99%</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="so" title="Typically 0.30 - 0.40 for rigid pavements">Overall Std. Dev (So)</label>
+                    <input type="number" id="so" value="0.35" step="0.01" min="0.3" max="0.5">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="pi">Initial Serviceability (pi)</label>
+                    <input type="number" id="pi" value="4.5" step="0.1" min="0" max="5.0">
+                </div>
+                <div class="form-group">
+                    <label for="pt">Terminal Serviceability (pt)</label>
+                    <input type="number" id="pt" value="2.5" step="0.1" min="0" max="5.0">
+                </div>
+            </div>
+
+            <div class="section-title">Material Properties</div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="sc" title="28-day concrete flexural strength">Modulus of Rupture S'c (psi)</label>
+                    <input type="number" id="sc" value="650" min="0" step="10">
+                </div>
+                <div class="form-group">
+                    <label for="cd" title="Typically 1.0 for adequate drainage">Drainage Coefficient (Cd)</label>
+                    <input type="number" id="cd" value="1.0" step="0.05" min="0.1">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="j" title="Typically 3.2 for doweled joints, 4.2 for undoweled">Load Transfer Coefficient (J)</label>
+                    <input type="number" id="j" value="3.2" step="0.1" min="2.0" max="5.0">
+                </div>
+                <div class="form-group">
+                    <label for="k">Modulus of Subgrade Reaction k (pci)</label>
+                    <input type="number" id="k" value="200" min="0" step="10">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label for="ec">Concrete Elastic Modulus Ec (psi)</label>
+                <input type="number" id="ec" value="4000000" min="0" step="100000">
+            </div>
+        </div>
+
+        <!-- Output Section -->
+        <div>
+            <div class="results-panel">
+                <div class="card-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    Calculation Results
+                </div>
+                
+                <div class="result-sub">Design Slab Thickness (D)</div>
+                <div class="result-value" id="outPracticalD">0.0 in</div>
+                
+                <div class="result-grid-sm">
+                    <div>
+                        <div class="result-sub">Exact Thickness</div>
+                        <div class="result-sm-value" id="outExactD">0.000 in</div>
+                    </div>
+                    <div>
+                        <div class="result-sub">Serviceability Loss (\(\Delta PSI\))</div>
+                        <div class="result-sm-value" id="outDeltaPsi">0.00</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="formula-box">
+                <div class="formula-title">Implicit Solver</div>
+                <div id="formulaDisplay">
+                    <!-- Formulas will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="support-note">Free and open-source. You can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a> to support this project.</p>
+</div>
+
+<script>
+    function getZrFromReliability(r) {
+        const rMap = {
+            50: 0.000, 60: -0.253, 70: -0.524, 75: -0.674, 
+            80: -0.841, 85: -1.037, 90: -1.282, 95: -1.645, 99: -2.327, 99.9: -3.090
+        };
+        if (rMap[r] !== undefined) return rMap[r];
+
+        const p = 1 - (r / 100);
+        if (p >= 0.5) return 0;
+        
+        const t = Math.sqrt(Math.log(1 / (p * p)));
+        const c0 = 2.515517, c1 = 0.802853, c2 = 0.010328;
+        const d1 = 1.432788, d2 = 0.189269, d3 = 0.001308;
+        
+        const z = t - ((c0 + c1 * t + c2 * t * t) / (1 + d1 * t + d2 * t * t + d3 * t * t * t));
+        return -z;
+    }
+
+    function aashtoRigidEquation(d, inputs, zr, deltaPsi) {
+        const lhs = Math.log10(inputs.w18);
+        const term1 = zr * inputs.so;
+        const term2 = 7.35 * Math.log10(d + 1) - 0.06;
+        
+        const numerator = Math.log10(deltaPsi / (4.5 - 1.5));
+        const denominator = 1 + (1.624 * Math.pow(10, 7) / Math.pow(d + 1, 8.46));
+        const term3 = numerator / denominator;
+        
+        const term4_multiplier = 4.22 - 0.32 * inputs.pt;
+        const term4_inner_num = inputs.sc * inputs.cd * (Math.pow(d, 0.75) - 1.132);
+        const term4_inner_den = 215.63 * inputs.j * (Math.pow(d, 0.75) - (18.42 / Math.pow(inputs.ec / inputs.k, 0.25)));
+        const term4 = term4_multiplier * Math.log10(term4_inner_num / term4_inner_den);
+        
+        const rhs = term1 + term2 + term3 + term4;
+        return lhs - rhs;
+    }
+
+    function calculate() {
+        const inputs = {
+            w18: parseFloat(document.getElementById('w18').value) || 0,
+            reliability: parseFloat(document.getElementById('reliability').value) || 0,
+            so: parseFloat(document.getElementById('so').value) || 0,
+            pi: parseFloat(document.getElementById('pi').value) || 0,
+            pt: parseFloat(document.getElementById('pt').value) || 0,
+            sc: parseFloat(document.getElementById('sc').value) || 0,
+            cd: parseFloat(document.getElementById('cd').value) || 0,
+            j: parseFloat(document.getElementById('j').value) || 0,
+            ec: parseFloat(document.getElementById('ec').value) || 0,
+            k: parseFloat(document.getElementById('k').value) || 0,
+        };
+
+        const deltaPsi = inputs.pi - inputs.pt;
+        const zr = getZrFromReliability(inputs.reliability);
+
+        let dLow = 2.0;
+        let dHigh = 30.0;
+        let dMid = (dLow + dHigh) / 2;
+        const tolerance = 0.0001;
+        let iterations = 0;
+        const maxIter = 100;
+        
+        const fLow = aashtoRigidEquation(dLow, inputs, zr, deltaPsi);
+        const fHigh = aashtoRigidEquation(dHigh, inputs, zr, deltaPsi);
+        
+        if (fLow * fHigh > 0 || isNaN(fLow) || isNaN(fHigh)) {
+            dMid = 0;
+        } else {
+            while ((dHigh - dLow) / 2 > tolerance && iterations < maxIter) {
+                dMid = (dLow + dHigh) / 2;
+                const fMid = aashtoRigidEquation(dMid, inputs, zr, deltaPsi);
+                
+                if (fMid === 0) break;
+                
+                if (fLow * fMid < 0) {
+                    dHigh = dMid;
+                } else {
+                    dLow = dMid;
+                }
+                iterations++;
+            }
+        }
+
+        const practicalD = dMid === 0 ? 0 : Math.ceil(dMid * 2) / 2;
+
+        document.getElementById('outPracticalD').innerText = practicalD > 0 ? practicalD.toFixed(1) + ' in' : 'Error';
+        document.getElementById('outExactD').innerText = dMid > 0 ? dMid.toFixed(3) + ' in' : 'Error';
+        document.getElementById('outDeltaPsi').innerText = deltaPsi.toFixed(2);
+
+        const formulaHtml = `
+            \\begin{aligned} 
+            \\log_{10}(W_{18}) &= Z_R S_o + 7.35 \\log_{10}(D + 1) - 0.06 \\\\ 
+            &+ \\frac{\\log_{10}\\left(\\frac{\\Delta PSI}{3.0}\\right)}{1 + \\frac{1.624 \\times 10^7}{(D + 1)^{8.46}}} \\\\ 
+            &+ (4.22 - 0.32 p_t) \\log_{10}\\left(\\frac{S'_c C_d}{215.63 J \\left(1 - \\frac{18.42}{(D/k)^{0.25}}\\right)}\\right) \\\\ 
+            \\\\
+            D_{exact} &= ${dMid.toFixed(3)}\\text{ in} \\\\ 
+            D_{design} &= ${practicalD.toFixed(1)}\\text{ in}
+            \\end{aligned}
+        `;
+        
+        const formulaDiv = document.getElementById('formulaDisplay');
+        formulaDiv.innerHTML = '$$' + formulaHtml + '$$';
+
+        if (window.MathJax && window.MathJax.typesetPromise) {
+            window.MathJax.typesetPromise([formulaDiv]).catch((err) => console.log(err.message));
+        }
+    }
+
+    const domInputs = document.querySelectorAll('input, select');
+    domInputs.forEach(input => {
+        input.addEventListener('input', calculate);
+    });
+
+    // Initial calculation
+    window.onload = () => {
+        calculate();
+    };
+</script>
+</body>
+</html>

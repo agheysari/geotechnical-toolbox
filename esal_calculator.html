@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Calculate Equivalent Single Axle Loads (ESALs) for pavement design using AASHTO traffic growth methodologies.">
+<title>ESAL Calculator | Geotechnical Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+    /* ==========================================================================
+       Geotechnical Tools: shared shell
+       ========================================================================== */
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --surface: #ffffff;
+      --background: #f8fafc;
+      --surface-alt: #f1f5f9;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #059669;
+      --success-bg: #ecfdf5;
+      --warning: #b45309;
+      --warning-bg: #fffbeb;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 28px 16px 8px;
+      background: var(--background); color: var(--text);
+      font-family: var(--font); font-size: 14px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .tool-header { margin-bottom: 20px; }
+    .tool-header h1 {
+      margin: 0; font-size: 25px; font-weight: 800; letter-spacing: -0.015em; line-height: 1.25;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .tool-header .subtitle { margin: 8px 0 0; max-width: 90ch; font-size: 13px; color: var(--text-muted); }
+    .tool-header .back-link {
+      display: inline-block; margin-bottom: 10px; font-size: 12px; font-weight: 600;
+      color: var(--text-muted); text-decoration: none;
+    }
+    .tool-header .back-link:hover { color: var(--primary); }
+    
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow); }
+    .card-title { margin: 0 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .section-title { margin: 26px 0 14px; padding-bottom: 7px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+    .section-title:first-child { margin-top: 0; }
+    
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); gap: 16px; margin-bottom: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr)); gap: 16px; margin-bottom: 16px; }
+    .layout-grid { display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 24px; align-items: start; }
+    @media (max-width: 900px) { .layout-grid { grid-template-columns: 1fr; } }
+    
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    input, select { width: 100%; padding: 9px 12px; font-family: inherit; font-size: 14px; color: var(--text); border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+    input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+    
+    .results-panel { background: var(--surface); border: 1px solid var(--primary); border-radius: var(--radius-lg); padding: 24px; box-shadow: 0 4px 12px rgba(2,132,199,0.1); }
+    .results-panel .card-title { border-bottom-color: var(--primary-light); color: var(--primary-dark); }
+    .result-value { font-size: 28px; font-weight: 800; color: var(--primary-dark); line-height: 1.1; margin: 4px 0 16px; word-break: break-word; }
+    .result-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+    .result-grid-sm { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+    .result-sm-value { font-size: 18px; font-weight: 700; color: var(--text); }
+    
+    .formula-box { background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-top: 24px; overflow-x: auto; font-size: 13px; }
+    .formula-title { font-weight: 600; margin-bottom: 8px; color: var(--text); }
+    .support-note { font-size: 12px; color: var(--text-muted); text-align: center; margin-top: 40px; }
+    .support-note a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .support-note a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="tool-header">
+        <a href="index.html" class="back-link">← Back to Tools</a>
+        <h1>ESAL Calculator</h1>
+        <p class="subtitle">Estimate cumulative traffic loading (\(W_{18}\)) over a pavement design life using AASHTO methodologies.</p>
+    </div>
+
+    <div class="layout-grid">
+        <!-- Input Section -->
+        <div class="card">
+            <div class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Traffic Parameters
+            </div>
+
+            <div class="section-title">Volume & Growth</div>
+            <div class="grid-3">
+                <div class="form-group">
+                    <label for="aadt">Initial AADT</label>
+                    <input type="number" id="aadt" value="10000" min="0" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="growthRate">Growth Rate (%)</label>
+                    <input type="number" id="growthRate" value="3.0" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="designLife">Design Life (years)</label>
+                    <input type="number" id="designLife" value="20" min="1" step="1">
+                </div>
+            </div>
+
+            <div class="section-title">Distribution</div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="directionalFactor" title="Directional Distribution Factor (Dd). Typically 0.5">Directional Factor (Dd)</label>
+                    <input type="number" id="directionalFactor" value="0.5" step="0.05" min="0.1" max="1.0">
+                </div>
+                <div class="form-group">
+                    <label for="laneFactor" title="Lane Distribution Factor (Ld). 1.0 for 1 lane, 0.8-1.0 for 2 lanes">Lane Factor (Ld)</label>
+                    <input type="number" id="laneFactor" value="0.9" step="0.05" min="0.1" max="1.0">
+                </div>
+            </div>
+
+            <div class="section-title">Vehicle Characteristics</div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="percentTrucks">Percent Trucks (%)</label>
+                    <input type="number" id="percentTrucks" value="10" step="0.1" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label for="truckFactor" title="Average ESALs per truck">Truck Factor (Tf)</label>
+                    <input type="number" id="truckFactor" value="1.2" step="0.1" min="0">
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Section -->
+        <div>
+            <div class="results-panel">
+                <div class="card-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    Calculation Results
+                </div>
+                
+                <div class="result-sub">Cumulative ESALs (\(W_{18}\))</div>
+                <div class="result-value" id="outTotalESALs">0</div>
+                
+                <div class="result-grid-sm">
+                    <div>
+                        <div class="result-sub">Design Year AADT</div>
+                        <div class="result-sm-value" id="outDesignAADT">0</div>
+                    </div>
+                    <div>
+                        <div class="result-sub">Growth Multiplier</div>
+                        <div class="result-sm-value" id="outGrowth">0.000</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="formula-box">
+                <div class="formula-title">Calculations</div>
+                <div id="formulaDisplay">
+                    <!-- Formulas will be injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="support-note">Free and open-source. You can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a> to support this project.</p>
+</div>
+
+<script>
+    function calculate() {
+        const aadt = parseFloat(document.getElementById('aadt').value) || 0;
+        const growthRate = parseFloat(document.getElementById('growthRate').value) || 0;
+        const designLife = parseFloat(document.getElementById('designLife').value) || 0;
+        const directionalFactor = parseFloat(document.getElementById('directionalFactor').value) || 0;
+        const laneFactor = parseFloat(document.getElementById('laneFactor').value) || 0;
+        const percentTrucks = parseFloat(document.getElementById('percentTrucks').value) || 0;
+        const truckFactor = parseFloat(document.getElementById('truckFactor').value) || 0;
+
+        const g = growthRate / 100;
+        const pT = percentTrucks / 100;
+        
+        let growthMultiplier = designLife;
+        if (g !== 0) {
+            growthMultiplier = (Math.pow(1 + g, designLife) - 1) / g;
+        }
+
+        const totalESALs = 365 * aadt * directionalFactor * laneFactor * pT * truckFactor * growthMultiplier;
+        const designYearAADT = aadt * Math.pow(1 + g, designLife);
+
+        document.getElementById('outTotalESALs').innerText = Math.round(totalESALs).toLocaleString();
+        document.getElementById('outDesignAADT').innerText = Math.round(designYearAADT).toLocaleString();
+        document.getElementById('outGrowth').innerText = growthMultiplier.toFixed(3);
+
+        const formulaHtml = `
+            \\begin{aligned} G &= \\frac{(1 + ${g.toFixed(3)})^{${designLife}} - 1}{${g.toFixed(3)}} = ${growthMultiplier.toFixed(3)} \\\\ 
+            W_{18} &= 365 \\times AADT \\times D_D \\times L_D \\times P_T \\times T_f \\times G \\\\ 
+            W_{18} &= 365 \\times ${aadt} \\times ${directionalFactor} \\times ${laneFactor} \\times ${pT.toFixed(3)} \\times ${truckFactor} \\times ${growthMultiplier.toFixed(3)} \\end{aligned}
+        `;
+        
+        const formulaDiv = document.getElementById('formulaDisplay');
+        formulaDiv.innerHTML = '$$' + formulaHtml + '$$';
+
+        if (window.MathJax && window.MathJax.typesetPromise) {
+            window.MathJax.typesetPromise([formulaDiv]).catch((err) => console.log(err.message));
+        }
+    }
+
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+        input.addEventListener('input', calculate);
+    });
+
+    // Initial calculation
+    window.onload = () => {
+        calculate();
+    };
+</script>
+</body>
+</html>
