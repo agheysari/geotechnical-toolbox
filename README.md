@@ -56,6 +56,9 @@ engineers, civil engineering researchers, and geospatial analysts, developed by
 | 23 | **CSV to KML Batch Converter** | [Launch](https://agheysari.github.io/geotechnical-toolbox/csv_to_kml.html) | [`csv_to_kml.html`](./csv_to_kml.html) | Borehole & CPT coordinate transform to styled Google Earth KML |
 | 24 | **Geometry Simplifier & Optimizer** | [Launch](https://agheysari.github.io/geotechnical-toolbox/geometry_simplifier.html) | [`geometry_simplifier.html`](./geometry_simplifier.html) | Douglas-Peucker vertex reduction & interactive map preview |
 | 25 | **Stress Calculator (Simple Edition)** | [Launch](https://agheysari.github.io/geotechnical-toolbox/stress_calculator_simple.html) | [`stress_calculator_simple.html`](./stress_calculator_simple.html) | Lightweight single-point Boussinesq & Westergaard solver |
+| 26 | **AASHTO Flexible Pavement Design** | [Launch](https://agheysari.github.io/geotechnical-toolbox/flexible_pavement.html) | [`flexible_pavement.html`](./flexible_pavement.html) | Calculate required Structural Number (SN) using AASHTO 1993 |
+| 27 | **AASHTO Rigid Pavement Design** | [Launch](https://agheysari.github.io/geotechnical-toolbox/rigid_pavement.html) | [`rigid_pavement.html`](./rigid_pavement.html) | Calculate required concrete slab thickness (D) using AASHTO 1993 |
+| 28 | **ESAL Calculator** | [Launch](https://agheysari.github.io/geotechnical-toolbox/esal_calculator.html) | [`esal_calculator.html`](./esal_calculator.html) | Estimate cumulative traffic loading (W18) over pavement design life |
 
 ---
 
