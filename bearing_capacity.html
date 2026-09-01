@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <style>
     /* ==========================================================================
        Geotechnical Tools: shared shell
@@ -697,6 +697,24 @@
     }
 
     function calculateCapacity() {
+        // Guard: highlight any blank visible number inputs before computing
+        var missing = [];
+        document.querySelectorAll('input[type="number"]').forEach(function(el) {
+            if (el.offsetParent !== null && !el.disabled && !el.readOnly && el.value.trim() === '') {
+                el.classList.add('input-error');
+                missing.push(el);
+            } else {
+                el.classList.remove('input-error');
+            }
+        });
+        // B and γ are truly required — stop if either is empty
+        var bVal = document.getElementById('widthB').value.trim();
+        var gVal = document.getElementById('gamma').value.trim();
+        if (!bVal || !gVal) {
+            if (missing.length) missing[0].focus({ preventScroll: true });
+            return;
+        }
+
         const method = document.getElementById('method').value;
         const shape = document.getElementById('shape').value;
         

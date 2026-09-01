@@ -743,7 +743,7 @@
 
     // Magnitude Scaling Factor (MSF)
     let msf = 6.9 * Math.exp(-Mw / 4) - 0.058;
-    msf = Math.min(1.8, msf);
+    msf = Math.min(1.8, Math.max(0.5, msf));  // Idriss & Boulanger 2008: cap at 1.8, floor at 0.5
 
     // Overburden Correction Factor (Ksigma)
     let cSigma = 1 / (18.9 - 2.55 * Math.sqrt(Math.max(0, n160)));
