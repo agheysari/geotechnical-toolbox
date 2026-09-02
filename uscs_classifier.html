@@ -857,8 +857,7 @@
             let lw = words[i].toLowerCase().replace(",", "");
             if (sk[lw]) words[i] = sk[lw];
             else if (!["with", "and"].includes(lw)) words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1);
-            
-            if (words[i-1] === "with" && sk[lw]) words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1).toLowerCase();
+            if (i > 0 && (words[i-1] === "with" || words[i-1] === "and") && sk[lw]) words[i] = words[i].charAt(0).toUpperCase() + words[i].slice(1).toLowerCase();
         }
         name = words.join(" ").replace("Well-graded", "Well-Graded").replace("Poorly graded", "Poorly Graded");
 
