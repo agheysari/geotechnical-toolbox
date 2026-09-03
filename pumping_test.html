@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Calculate aquifer Transmissivity and Storativity from pumping test data using Cooper-Jacob analysis.">
+<title>Drawdown Analyzer (Pumping Test) | Geotechnical Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<style>
+    /* ==========================================================================
+       Geotechnical Tools: shared shell
+       ========================================================================== */
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --surface: #ffffff;
+      --background: #f8fafc;
+      --surface-alt: #f1f5f9;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 28px 16px 8px;
+      background: var(--background); color: var(--text);
+      font-family: var(--font); font-size: 14px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .tool-header { margin-bottom: 20px; }
+    .tool-header h1 {
+      margin: 0; font-size: 25px; font-weight: 800; letter-spacing: -0.015em; line-height: 1.25;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .tool-header .subtitle { margin: 8px 0 0; max-width: 90ch; font-size: 13px; color: var(--text-muted); }
+    .tool-header .back-link {
+      display: inline-block; margin-bottom: 10px; font-size: 12px; font-weight: 600;
+      color: var(--text-muted); text-decoration: none;
+    }
+    .tool-header .back-link:hover { color: var(--primary); }
+    
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow); }
+    .card-title { margin: 0 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-size: 14px; font-weight: 700; display: flex; justify-content: space-between; align-items: center;}
+    .section-title { margin: 26px 0 14px; padding-bottom: 7px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+    .section-title:first-child { margin-top: 0; }
+    
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr)); gap: 16px; margin-bottom: 16px; }
+    .layout-grid { display: grid; grid-template-columns: minmax(0, 1fr) 350px; gap: 24px; align-items: start; }
+    @media (max-width: 900px) { .layout-grid { grid-template-columns: 1fr; } }
+    
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+    input, textarea { width: 100%; padding: 9px 12px; font-family: inherit; font-size: 14px; color: var(--text); border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+    textarea { font-family: var(--mono); }
+    input:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+    
+    .results-panel { background: var(--surface); border: 1px solid var(--primary); border-radius: var(--radius-lg); padding: 24px; box-shadow: 0 4px 12px rgba(2,132,199,0.1); margin-top: 24px; }
+    .results-panel .card-title { border-bottom-color: var(--primary-light); color: var(--primary-dark); }
+    .result-value { font-size: 28px; font-weight: 800; color: var(--primary-dark); line-height: 1.1; margin: 4px 0 16px; word-break: break-word; }
+    .result-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+    
+    .btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; font-size: 13px; font-weight: 600; background: var(--surface); color: var(--text); display: inline-flex; align-items: center; gap: 6px; }
+    .btn:hover { background: var(--surface-alt); }
+    
+    .formula-box { background: var(--surface-alt); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-top: 24px; overflow-x: auto; font-size: 13px; }
+    .support-note { font-size: 12px; color: var(--text-muted); text-align: center; margin-top: 40px; }
+    .support-note a { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .support-note a:hover { text-decoration: underline; }
+    
+    .chart-container { position: relative; height: 500px; width: 100%; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="tool-header">
+        <a href="index.html" class="back-link">← Back to Tools</a>
+        <h1>Drawdown Analyzer (Pumping Test)</h1>
+        <p class="subtitle">Calculate aquifer Transmissivity and Storativity using the Cooper-Jacob straight-line method.</p>
+    </div>
+
+    <div class="layout-grid">
+        <div class="card">
+            <div class="card-title">
+                <span>Aquifer & Pump Data</span>
+                <button class="btn" onclick="loadDemo()">Load Demo</button>
+            </div>
+            
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Pumping Rate, Q (m³/day)</label>
+                    <input type="number" id="in-q" value="1500" step="10">
+                </div>
+                <div class="form-group">
+                    <label>Observation Dist, r (m)</label>
+                    <input type="number" id="in-r" value="50" step="1">
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label>Ignore Early Points</label>
+                <input type="number" id="in-ignore" value="2" min="0" step="1">
+                <span style="font-size:10px; color:var(--text-muted);">Cooper-Jacob is valid for large time. Ignore the first few points.</span>
+            </div>
+
+            <div class="form-group">
+                <label>Data (Time in min, Drawdown in m)</label>
+                <textarea id="in-data" rows="12">1, 0.25
+2, 0.38
+5, 0.55
+10, 0.68
+20, 0.82
+50, 0.99
+100, 1.13
+200, 1.25
+500, 1.41
+1000, 1.54
+1440, 1.60</textarea>
+            </div>
+
+            <div class="results-panel" id="results-panel" style="display:none;">
+                <div class="card-title">Estimated Properties</div>
+                <div class="result-sub">Transmissivity (m²/day)</div>
+                <div class="result-value" id="out-t">-</div>
+                <div class="result-sub">Storativity</div>
+                <div class="result-value" id="out-s" style="margin-bottom: 0;">-</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 16px; border-top: 1px solid var(--border); padding-top: 8px;">
+                    Slope: <span id="out-slope"></span> m/log cycle<br>
+                    R²: <span id="out-r2"></span>
+                </div>
+            </div>
+            
+            <div class="formula-box">
+                <strong>Cooper-Jacob Approximation:</strong><br>
+                Valid for small \( u = \frac{r^2 S}{4 T t} \) (typically \( u < 0.01 \)).<br><br>
+                \( T = \frac{2.303 Q}{4 \pi \Delta s} \)<br>
+                \( S = \frac{2.25 T t_0}{r^2} \)<br><br>
+                Where \( \Delta s \) is drawdown per log cycle and \( t_0 \) is the time intercept.
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">
+                <span>Semi-Log Drawdown Plot</span>
+                <div>
+                    <button class="btn" onclick="copyChart()">Copy</button>
+                    <button class="btn" onclick="saveChart()">Save Image</button>
+                </div>
+            </div>
+            <div class="chart-container" style="background: white;">
+                <canvas id="cjChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <p class="support-note">Free and open-source. You can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a> to support this project.</p>
+</div>
+
+<script>
+const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2,2,2], [3,3], [8,4]];
+
+(function () {
+  var FONT  = "'Inter', system-ui, -apple-system, sans-serif";
+  var INK   = '#0f172a';
+  var MUTED = '#475569';
+  if (typeof Chart !== 'undefined') {
+    var d = Chart.defaults;
+    d.font.family = FONT;
+    d.font.size = 12;
+    d.color = MUTED;
+    d.responsive = true;
+    d.maintainAspectRatio = false;
+    d.plugins.title.color = INK;
+    d.plugins.title.font = { family: FONT, size: 13, weight: '700' };
+    
+    d.plugins.legend.labels.usePointStyle = false;
+    d.plugins.legend.labels.boxHeight = 2;
+    d.plugins.legend.labels.boxWidth = 36;
+  }
+})();
+
+let chartInstance = null;
+
+function loadDemo() {
+    document.getElementById('in-q').value = 1500;
+    document.getElementById('in-r').value = 50;
+    document.getElementById('in-ignore').value = 2;
+    document.getElementById('in-data').value = "1, 0.25\n2, 0.38\n5, 0.55\n10, 0.68\n20, 0.82\n50, 0.99\n100, 1.13\n200, 1.25\n500, 1.41\n1000, 1.54\n1440, 1.60";
+    calculate();
+}
+
+function calculate() {
+    const q = parseFloat(document.getElementById('in-q').value);
+    const r = parseFloat(document.getElementById('in-r').value);
+    const ignoreN = parseInt(document.getElementById('in-ignore').value) || 0;
+    const dataText = document.getElementById('in-data').value;
+    
+    if (isNaN(q) || isNaN(r)) return;
+
+    let points = [];
+    const lines = dataText.split('\n');
+    for (let line of lines) {
+        let parts = line.split(/[,\s\t]+/).filter(Boolean);
+        if (parts.length >= 2) {
+            let t = parseFloat(parts[0]);
+            let s = parseFloat(parts[1]);
+            if (!isNaN(t) && !isNaN(s) && t > 0) {
+                points.push({ x: t, y: s });
+            }
+        }
+    }
+
+    if (points.length < 2) return;
+    
+    let validPoints = points.slice(ignoreN);
+    let ignoredPoints = points.slice(0, ignoreN);
+
+    if (validPoints.length < 2) return;
+
+    let n = validPoints.length;
+    let sumLogX = 0, sumY = 0, sumLogX2 = 0, sumLogXY = 0;
+    
+    for (let pt of validPoints) {
+        let logX = Math.log10(pt.x);
+        sumLogX += logX;
+        sumY += pt.y;
+        sumLogX2 += logX * logX;
+        sumLogXY += logX * pt.y;
+    }
+
+    let meanLogX = sumLogX / n;
+    let meanY = sumY / n;
+    let m = (n * sumLogXY - sumLogX * sumY) / (n * sumLogX2 - sumLogX * sumLogX);
+    let b = meanY - m * meanLogX;
+
+    // R2
+    let ssTot = 0, ssRes = 0;
+    for (let pt of validPoints) {
+        let logX = Math.log10(pt.x);
+        let predictedY = m * logX + b;
+        ssTot += Math.pow(pt.y - meanY, 2);
+        ssRes += Math.pow(pt.y - predictedY, 2);
+    }
+    let r2 = ssTot === 0 ? 1 : 1 - ssRes / ssTot;
+
+    let t0 = Math.pow(10, -b / m);
+    let transmissivity = (2.303 * q) / (4 * Math.PI * m);
+    let t0Days = t0 / 1440.0;
+    let storativity = (2.25 * transmissivity * t0Days) / (r * r);
+
+    // Outputs
+    document.getElementById('results-panel').style.display = 'block';
+    document.getElementById('out-t').innerText = transmissivity.toFixed(1);
+    document.getElementById('out-s').innerText = storativity.toExponential(2);
+    document.getElementById('out-slope').innerText = m.toFixed(3);
+    document.getElementById('out-r2').innerText = r2.toFixed(4);
+
+    updateChart(validPoints, ignoredPoints, m, b, points[0].x, points[points.length - 1].x, t0);
+}
+
+function updateChart(valid, ignored, m, b, minX, maxX, t0) {
+    if (chartInstance) chartInstance.destroy();
+    const ctx = document.getElementById('cjChart').getContext('2d');
+    
+    let lineMaxX = maxX * 1.5;
+    let linePts = [
+        { x: t0, y: 0 },
+        { x: lineMaxX, y: m * Math.log10(lineMaxX) + b }
+    ];
+
+    chartInstance = new Chart(ctx, {
+        type: 'scatter',
+        data: {
+            datasets: [
+                {
+                    label: 'Valid Data',
+                    data: valid,
+                    backgroundColor: '#0284c7',
+                    borderColor: '#0284c7',
+                    pointRadius: 5
+                },
+                {
+                    label: 'Ignored Data',
+                    data: ignored,
+                    backgroundColor: '#94a3b8',
+                    borderColor: '#94a3b8',
+                    pointStyle: 'rectRot',
+                    pointRadius: 5
+                },
+                {
+                    label: 'Cooper-Jacob Fit',
+                    data: linePts,
+                    borderColor: '#dc2626',
+                    borderWidth: 2,
+                    borderDash: DASH_PATTERNS[1],
+                    showLine: true,
+                    pointRadius: 0
+                }
+            ]
+        },
+        options: {
+            scales: {
+                x: {
+                    type: 'logarithmic',
+                    title: { display: true, text: 'Time, t (minutes)', font: { weight: 'bold' } },
+                    min: 1
+                },
+                y: {
+                    reverse: true,
+                    min: 0,
+                    title: { display: true, text: 'Drawdown, s (m)', font: { weight: 'bold' } }
+                }
+            }
+        }
+    });
+}
+
+function copyChart() {
+    const canvas = document.getElementById("cjChart");
+    canvas.toBlob(blob => navigator.clipboard.write([new ClipboardItem({"image/png": blob})]));
+}
+
+function saveChart() {
+    const canvas = document.getElementById("cjChart");
+    const link = document.createElement("a");
+    link.download = "drawdown-analyzer.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+}
+
+const inputs = document.querySelectorAll('input, textarea');
+inputs.forEach(el => el.addEventListener('input', calculate));
+
+window.onload = calculate;
+</script>
+</body>
+</html>
