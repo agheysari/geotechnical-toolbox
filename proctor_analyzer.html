@@ -12,6 +12,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/regression/2.0.1/regression.min.js"></script>
 <script>
+const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2,2,2], [3,3], [8,4]];
+
 /* ==========================================================================
    Geotechnical Tools: shared form guard
    Forms load empty with placeholders as guidance. Missing fields are
@@ -62,6 +64,8 @@
 })();
 </script>
 <script>
+const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2,2,2], [3,3], [8,4]];
+
 /* ==========================================================================
    Geotechnical Tools: shared figure theme
    Identical on every page that draws a plot. Gives all charts one look:
@@ -726,6 +730,8 @@
 </div>
 
 <script>
+const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2,2,2], [3,3], [8,4]];
+
 
     let chartInstance = null;
 
@@ -841,7 +847,7 @@
                         type: 'line',
                         borderColor: '#009933',
                         borderWidth: 2,
-                        borderDash: [5, 5],
+                        borderDash: (typeof idx !== "undefined" ? DASH_PATTERNS[idx % DASH_PATTERNS.length] : (typeof i !== "undefined" ? DASH_PATTERNS[i % DASH_PATTERNS.length] : [5,5])),
                         fill: false,
                         pointRadius: 0
                     }

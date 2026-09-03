@@ -11,6 +11,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
+const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2,2,2], [3,3], [8,4]];
+
 /* ==========================================================================
    Geotechnical Tools: shared figure theme
    Identical on every page that draws a plot. Gives all charts one look:
@@ -773,6 +775,8 @@
 </div>
 
 <script>
+const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2,2,2], [3,3], [8,4]];
+
 document.addEventListener("DOMContentLoaded", function() {
     const toggleUplift = document.getElementById("toggleUplift");
     function updateToggles() {
@@ -1155,7 +1159,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     data: [{x: totalQs, y: length}, {x: totalQs + totalQb, y: length}],
                     borderColor: '#27ae60',
                     borderWidth: 4,
-                    borderDash: [5, 5],
+                    borderDash: (typeof idx !== "undefined" ? DASH_PATTERNS[idx % DASH_PATTERNS.length] : (typeof i !== "undefined" ? DASH_PATTERNS[i % DASH_PATTERNS.length] : [5,5])),
                     showLine: true,
                     pointRadius: 5,
                     pointBackgroundColor: '#27ae60',

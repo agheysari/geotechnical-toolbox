@@ -172,7 +172,9 @@
             chartInstance.destroy();
         }
 
-        chartInstance = new Chart(ctx, {
+        chartInstance = Chart.defaults.plugins.legend.labels.usePointStyle = true;
+    Chart.defaults.plugins.legend.labels.pointStyle = 'line';
+    new Chart(ctx, {
             type: 'scatter',
             data: {
                 datasets: [{
