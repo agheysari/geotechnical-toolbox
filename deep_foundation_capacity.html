@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Axial capacity of driven piles (alpha, lambda, beta methods, with uplift) and drilled shafts (O'Neill &amp; Reese 1999 / FHWA GEC-10) in layered soil: IGM layers, belled bases and exclusion zones.">
+<title>Deep Foundation Axial Capacity | Geotechnical Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2,2,2], [3,3], [8,4]];
+
+/* ==========================================================================
+   Geotechnical Tools: shared figure theme
+   Identical on every page that draws a plot. Gives all charts one look:
+   Inter type, muted slate ink, hairline grid, and a consistent series
+   palette, so a figure can be pasted straight into a report.
+   ========================================================================== */
+(function () {
+  var FONT  = "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  var INK   = '#0f172a';
+  var MUTED = '#475569';
+  var GRID  = '#e8edf3';
+  var AXIS  = '#cbd5e1';
+  var SERIES = ['#0284c7', '#dc2626', '#059669', '#d97706', '#7c3aed', '#0f766e', '#be185d', '#475569'];
+  window.GEO_SERIES = SERIES;
+
+  /* ---- Chart.js ---------------------------------------------------------- */
+  if (typeof Chart !== 'undefined') {
+    var d = Chart.defaults;
+    d.font.family = FONT;
+    d.font.size = 12;
+    d.color = MUTED;
+    d.responsive = true;
+    d.maintainAspectRatio = false;      /* fill the figure box, not a 2:1 slab */
+    d.layout.padding = 4;
+    d.elements.line.borderWidth = 2.25;
+    d.elements.point.hitRadius = 8;
+    d.elements.point.borderWidth = 1.5;
+
+    d.plugins.title.color = INK;
+    d.plugins.title.font = { family: FONT, size: 13, weight: '700' };
+    d.plugins.title.padding = { top: 2, bottom: 14 };
+    d.plugins.legend.labels.usePointStyle = false;
+    d.plugins.legend.labels.boxHeight = 2;
+    d.plugins.legend.labels.boxWidth = 36;
+    d.plugins.legend.labels.padding = 14;
+    d.plugins.legend.labels.color = MUTED;
+    d.plugins.legend.labels.font = { family: FONT, size: 11 };
+    d.plugins.tooltip.backgroundColor = 'rgba(15,23,42,0.92)';
+    d.plugins.tooltip.padding = 10;
+    d.plugins.tooltip.cornerRadius = 8;
+    d.plugins.tooltip.titleFont = { family: FONT, size: 12, weight: '700' };
+    d.plugins.tooltip.bodyFont = { family: FONT, size: 12 };
+    d.plugins.tooltip.displayColors = false;
+
+    if (d.scale) {
+      d.scale.grid.color = GRID;
+      d.scale.grid.lineWidth = 1;
+      d.scale.grid.tickColor = AXIS;
+      d.scale.border = d.scale.border || {};
+      d.scale.border.color = AXIS;
+      d.scale.ticks.color = MUTED;
+      d.scale.ticks.padding = 6;
+      d.scale.ticks.font = { family: FONT, size: 11 };
+      d.scale.title.color = INK;
+      d.scale.title.font = { family: FONT, size: 12, weight: '600' };
+    }
+  }
+
+  /* ---- Plotly ------------------------------------------------------------ */
+  if (typeof Plotly !== 'undefined') {
+    var axisBase = {
+      gridcolor: GRID,
+      zerolinecolor: AXIS,
+      linecolor: AXIS,
+      linewidth: 1,
+      ticks: 'outside',
+      tickcolor: AXIS,
+      ticklen: 5,
+      tickfont: { family: FONT, size: 11, color: MUTED },
+      title: { font: { family: FONT, size: 12, color: INK } },
+      automargin: true
+    };
+    window.GEO_PLOTLY_LAYOUT = {
+      font: { family: FONT, size: 12, color: MUTED },
+      plot_bgcolor: '#ffffff',
+      paper_bgcolor: '#ffffff',
+      colorway: SERIES,
+      margin: { t: 54, b: 58, l: 72, r: 28 },
+      title: { font: { family: FONT, size: 13, color: INK }, x: 0, xanchor: 'left',
+               y: 0.96, yanchor: 'top', pad: { l: 16, t: 12 } },
+      legend: { font: { family: FONT, size: 11, color: MUTED },
+                bgcolor: 'rgba(255,255,255,0.88)', bordercolor: '#e2e8f0', borderwidth: 1 },
+      hoverlabel: { bgcolor: INK, bordercolor: INK,
+                    font: { family: FONT, size: 12, color: '#ffffff' } },
+      xaxis: axisBase,
+      yaxis: axisBase
+    };
+    window.GEO_PLOTLY_CONFIG = {
+      responsive: true,
+      displaylogo: false,
+      modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+      toImageButtonOptions: { format: 'png', scale: 2 }
+    };
+    function mergeTitle(base, t) {
+      if (typeof t === 'string') return Object.assign({}, base, { text: t });
+      if (t && typeof t === 'object') return Object.assign({}, base, t);
+      return Object.assign({}, base);
+    }
+    function mergeAxis(base, ax) {
+      var out = Object.assign({}, base, ax || {});
+      out.tickfont = Object.assign({}, base.tickfont, (ax || {}).tickfont);
+      out.title = mergeTitle(base.title, (ax || {}).title);
+      return out;
+    }
+    /* Merge a page's own layout over the shared theme, preserving its specifics. */
+    window.geoLayout = function (layout) {
+      layout = layout || {};
+      var B = window.GEO_PLOTLY_LAYOUT;
+      var out = Object.assign({}, B, layout);
+      out.font = Object.assign({}, B.font, layout.font);
+      out.margin = Object.assign({}, B.margin, layout.margin);
+      out.legend = Object.assign({}, B.legend, layout.legend);
+      out.hoverlabel = Object.assign({}, B.hoverlabel, layout.hoverlabel);
+      out.title = mergeTitle(B.title, layout.title);
+      ['xaxis', 'yaxis', 'xaxis2', 'yaxis2'].forEach(function (k) {
+        if (layout[k] || k === 'xaxis' || k === 'yaxis') {
+          out[k] = mergeAxis(k.charAt(0) === 'x' ? B.xaxis : B.yaxis, layout[k]);
+        }
+      });
+      return out;
+    };
+  }
+})();
+</script>
+<style>
+    /* ==========================================================================
+       Geotechnical Tools: shared shell
+       This block is identical on every page. Edit it in one page and mirror the
+       change to the rest; page-specific rules live in the section below it.
+       ========================================================================== */
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --surface: #ffffff;
+      --background: #f8fafc;
+      --surface-alt: #f1f5f9;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #059669;
+      --success-bg: #ecfdf5;
+      --warning: #b45309;
+      --warning-bg: #fffbeb;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 28px 16px 8px;
+      background: var(--background);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    /* --- Page header ------------------------------------------------------- */
+    .tool-header { margin-bottom: 20px; }
+    .tool-header h1 {
+      margin: 0;
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: -0.015em;
+      line-height: 1.25;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tool-header .subtitle {
+      margin: 8px 0 0;
+      max-width: 90ch;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .tool-header .back-link {
+      display: inline-block;
+      margin-bottom: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .tool-header .back-link:hover { color: var(--primary); }
+    .tool-header h1 .tool-icon { flex: none; border-radius: 9px; }
+
+    /* --- Surfaces ---------------------------------------------------------- */
+    .card {
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+    .card + .card { margin-top: 16px; }
+    /* the two-column pages stack several components inside one card; give them
+       an even rhythm instead of whatever margins each component brings */
+    .layout-grid .card > * { margin-top: 0; margin-bottom: 0; }
+    .layout-grid .card > * + * { margin-top: 18px; }
+    .card-title {
+      margin: 0 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-title {
+      margin: 26px 0 14px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+    .section-title:first-child { margin-top: 0; }
+
+    /* --- Input groups -------------------------------------------------------
+       Convention: a grey bordered panel is something you fill in; a white or
+       tinted box is a result the tool gives back. Legacy group names below are
+       aliases so older markup picks up the same treatment. */
+    .field-set,
+    .panel, .control-group, .settings-panel, .manual-entry {
+      margin: 0 0 18px;
+      padding: 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .field-set > :first-child,
+    .panel > :first-child, .control-group > :first-child,
+    .settings-panel > :first-child, .manual-entry > :first-child { margin-top: 0; }
+    .field-set > :last-child,
+    .panel > :last-child, .control-group > :last-child,
+    .settings-panel > :last-child, .manual-entry > :last-child { margin-bottom: 0; }
+
+    /* legacy grid names share the responsive form grid */
+    .grid-2, .grid-3, .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .grid-2 > *, .grid-3 > *, .grid-container > * { min-width: 0; }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 10px;
+    }
+    .checkbox-group:last-child { margin-bottom: 0; }
+    .checkbox-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    h1, h2, h3, h4 { font-family: var(--font); color: var(--text); }
+    h2 { font-size: 19px; font-weight: 700; margin: 0 0 12px; }
+    h3 { font-size: 15px; font-weight: 700; margin: 0 0 10px; }
+    h4 { font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+
+    /* --- Forms ------------------------------------------------------------- */
+    .form-row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .form-row > * { flex: 1 1 0; min-width: 0; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    /* grid/flex children default to min-width:auto, which refuses to shrink and
+       pushes the page wider than the viewport on phones */
+    .layout-grid > *, .form-grid > *, .results-grid > *, .form-row > * { min-width: 0; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    @media (max-width: 768px) { .form-row { flex-direction: column; gap: 12px; } }
+
+    label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    input[type="checkbox"], input[type="radio"] { width: auto; }
+    textarea {
+      min-height: 170px;
+      resize: none;
+      line-height: 1.55;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+    input[type="range"] { padding: 0; }
+    .input-error { border-color: var(--danger) !important; background: var(--danger-bg) !important; }
+
+    .hint, .help-text, .note {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    /* block footnote under a results panel, not an inline field hint */
+    .note { display: block; margin-top: 18px; }
+
+    /* row of buttons that acts on the table above it */
+    .table-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin: 16px 0 4px;
+    }
+    .table-actions .spacer { margin-left: auto; }
+
+    /* --- Buttons ----------------------------------------------------------- */
+    button, .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 16px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--primary);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    button:hover:not(:disabled), .btn:hover:not(:disabled) { background: var(--primary-dark); }
+    button:disabled, .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+    .calc-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .btn-secondary { background: var(--surface-alt); color: #475569; border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { background: #e2e8f0; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; font-weight: 600; }
+    .btn-success { background: var(--success); }
+    .btn-success:hover:not(:disabled) { background: #047857; }
+    .btn-danger, .btn-clear { background: var(--danger); }
+    .btn-danger:hover:not(:disabled), .btn-clear:hover:not(:disabled) { background: #b91c1c; }
+
+    /* --- Tabs -------------------------------------------------------------- */
+    .tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      background: var(--surface-alt);
+      border-radius: 8px;
+    }
+    .tab-btn:hover:not(.active) { background: #e2e8f0; }
+    .tab-btn.active { background: var(--primary); color: #fff; }
+    .tab-panel { display: none; }
+    .tab-panel.active {
+      display: block;
+      margin-bottom: 18px;
+      padding: 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .tab-panel.active > :first-child { margin-top: 0; }
+    .tab-panel.active > :last-child { margin-bottom: 0; }
+
+    /* --- Results ----------------------------------------------------------- */
+    .result-box {
+      margin-top: 20px;
+      padding: 18px 20px;
+      background: var(--primary-light);
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .result-box.success { background: var(--success-bg); border-color: #a7f3d0; border-left-color: var(--success); }
+    .result-box.warning { background: var(--warning-bg); border-color: #fde68a; border-left-color: #f59e0b; }
+    .result-box.danger  { background: var(--danger-bg);  border-color: #fecaca; border-left-color: var(--danger); }
+    .result-value {
+      margin: 6px 0 0;
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--primary-dark);
+    }
+    .success .result-value { color: var(--success); }
+    .warning .result-value { color: var(--warning); }
+    .danger  .result-value { color: var(--danger); }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .stat-box {
+      padding: 14px 12px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+    .stat-val {
+      margin: 5px 0 0;
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+    .stat-sub { font-size: 10px; color: var(--text-muted); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+    }
+
+    .formula-box {
+      margin: 18px 0;
+      padding: 16px 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-size: 13px;
+    }
+    .formula-box h3, .formula-box h4 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    /* --- Tables ------------------------------------------------------------ */
+    .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      background: var(--background);
+    }
+    td input, td select { padding: 6px 8px; font-size: 13px; }
+
+    /* --- Figures ------------------------------------------------------------ */
+    .chart-container, .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      margin: 22px 0 4px;
+      padding: 14px 14px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    @media (max-width: 600px) {
+      .chart-container, .chart-wrapper { height: 320px; padding: 10px 8px 6px; }
+    }
+
+    /* --- Uploads ------------------------------------------------------------ */
+    .upload-area {
+      margin-bottom: 16px;
+      padding: 24px;
+      text-align: center;
+      background: var(--background);
+      border: 2px dashed #cbd5e1;
+      border-radius: var(--radius);
+      transition: border-color 0.15s ease;
+    }
+    .upload-area:hover { border-color: var(--primary); }
+    .upload-area input { width: auto; max-width: 100%; }
+    .upload-area input[type="file"] { width: 100%; }
+
+    /* --- Support line & footer ---------------------------------------------- */
+    .support-note {
+      margin: 20px 0 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .support-note a {
+      color: var(--primary);
+      text-decoration: none;
+      border-bottom: 1px solid var(--primary-light);
+    }
+    .support-note a:hover { border-bottom-color: var(--primary); }
+
+    .site-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 32px;
+      padding: 22px 12px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .site-footer a { color: var(--text-muted); text-decoration: none; }
+    .site-footer a:hover { color: var(--primary); }
+    .site-footer .sep { color: #cbd5e1; }
+    .site-footer .social { display: inline-flex; align-items: center; gap: 9px; }
+    .site-footer .social a { display: inline-flex; color: var(--text-muted); }
+    .site-footer .social a:hover { color: var(--primary); }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 600px) {
+      body { padding: 20px 12px 8px; }
+      .card { padding: 18px 16px; }
+      th, td { padding: 8px 9px; }
+    }
+
+    /* ==========================================================================
+       Page-specific styles
+       ========================================================================== */
+    .preset-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+    td input:disabled { background: var(--surface-alt); }
+    tr.excluded td { color: var(--text-muted); font-style: italic; }
+    .step { margin: 0 0 12px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; }
+    .step h4 { margin: 0 0 6px; font-size: 13px; }
+    .step .step-note { margin: 6px 0 0; font-size: 12px; color: var(--text-muted); }
+    #tipDetails { font-weight: 500; }
+    #warnings:empty { display: none; }
+    #warnings { margin-top: 16px; padding: 12px 16px; background: var(--warning-bg); border: 1px solid #fde68a; border-left: 4px solid #f59e0b; border-radius: var(--radius); font-size: 13px; color: var(--warning); }
+    #warnings ul { margin: 0; padding-left: 18px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <header class="tool-header">
+    <a class="back-link" href="index.html">&larr; All calculators</a>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="64" height="64" rx="14" fill="#F0F9FF" /> <rect x="6" y="18" width="52" height="16" fill="#FDE68A" fill-opacity="0.35" /> <rect x="6" y="34" width="52" height="24" fill="#94A3B8" fill-opacity="0.25" /> <line x1="6" y1="18" x2="58" y2="18" stroke="#94A3B8" stroke-width="2" stroke-dasharray="3 3" /> <rect x="22" y="8" width="20" height="4" rx="1.5" fill="#0369A1" /> <path d="M27 12H37V44L44 54H20L27 44V12Z" fill="#0284C7" /> <path d="M32 2V7M32 7L29 4.5M32 7L35 4.5" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /> <path d="M22 26H25M39 26H42M22 36H25M39 36H42" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" /> <path d="M24 57H40" stroke="#D97706" stroke-width="2" stroke-linecap="round" /> </svg> Deep Foundation Axial Capacity</h1>
+    <p class="subtitle">Static axial compressive and uplift capacity of driven piles (&alpha; / &lambda; / &beta; methods) and drilled shafts (O'Neill &amp; Reese 1999 / FHWA GEC-10: clay &alpha;, depth-varying sand &beta;, cohesive IGM, belled bases, exclusion zones) in layered soil.</p>
+  </header>
+
+  <main id="deep-foundation-tool" class="card">
+    <p id="intro"></p>
+
+    <div class="preset-row">
+      <button class="btn btn-secondary btn-sm" data-preset="0">Shaft: stiff clay</button>
+      <button class="btn btn-secondary btn-sm" data-preset="1">Shaft: dense sand</button>
+      <button class="btn btn-secondary btn-sm" data-preset="2">Shaft: belled on IGM</button>
+      <button class="btn btn-secondary btn-sm" data-preset="3">Driven: sand over clay</button>
+      <button class="btn btn-secondary btn-sm" data-preset="4">Driven: square, lambda</button>
+      <button class="btn btn-secondary btn-sm" id="clearBtn">Clear</button>
+    </div>
+
+    <section class="field-set">
+      <div class="section-title">Foundation &amp; Site</div>
+      <div class="grid-container">
+        <div class="form-group">
+          <label for="installation">Installation Type</label>
+          <select id="installation">
+            <option value="drilled">Drilled Shaft (bored, cast-in-place)</option>
+            <option value="driven">Driven Pile (displacement)</option>
+          </select>
+        </div>
+        <div class="form-group only-driven hidden">
+          <label for="shape">Cross-Section</label>
+          <select id="shape">
+            <option value="circular">Circular</option>
+            <option value="square">Square</option>
+          </select>
+        </div>
+        <div class="form-group only-driven hidden">
+          <label for="methodClay">Clay Method</label>
+          <select id="methodClay">
+            <option value="alpha">Alpha (API RP 2A)</option>
+            <option value="lambda">Lambda (Vijayvergiya &amp; Focht)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="diameter" id="diameterLabel">Shaft Diameter, D (m)</label>
+          <input type="number" id="diameter" placeholder="e.g., 0.9" step="0.05" min="0">
+        </div>
+        <div class="form-group">
+          <label for="length">Embedded Length, L (m)</label>
+          <input type="number" id="length" placeholder="e.g., 15.0" step="0.5" min="0">
+        </div>
+        <div class="form-group only-drilled">
+          <label for="bellDiameter">Bell Diameter, D<sub>b</sub> (m)</label>
+          <input type="number" id="bellDiameter" placeholder="Optional, straight shaft" step="0.05" min="0">
+        </div>
+        <div class="form-group">
+          <label for="gwDepth">Groundwater Depth (m)</label>
+          <input type="number" id="gwDepth" placeholder="Blank = below tip" step="0.1" min="0">
+        </div>
+        <div class="form-group">
+          <label for="shaftGamma">Concrete &gamma;<sub>c</sub> (kN/m³)</label>
+          <input type="number" id="shaftGamma" value="24.0" step="0.1">
+        </div>
+        <div class="form-group">
+          <label for="fos">Factor of Safety, FS</label>
+          <input type="number" id="fos" value="2.5" step="0.1" min="1">
+        </div>
+        <div class="form-group only-driven hidden">
+          <label for="upliftReduction">Uplift f<sub>s</sub> Reduction</label>
+          <input type="number" id="upliftReduction" value="0.70" step="0.05" min="0">
+        </div>
+        <div class="form-group only-driven hidden">
+          <label for="capFsSand">Max Sand f<sub>s</sub> (kPa)</label>
+          <input type="number" id="capFsSand" value="100" step="1" min="0">
+        </div>
+        <div class="form-group only-driven hidden">
+          <label for="capQbSand">Max Sand q<sub>b</sub> (kPa)</label>
+          <input type="number" id="capQbSand" value="10000" step="100" min="0">
+        </div>
+      </div>
+    </section>
+
+    <div class="section-title">Soil &amp; Rock Stratigraphy</div>
+    <div class="table-scroll">
+      <table id="layersTable">
+        <thead>
+          <tr>
+            <th>Top (m)</th>
+            <th>Bottom (m)</th>
+            <th>Material</th>
+            <th>&gamma; (kN/m³)</th>
+            <th>s<sub>u</sub> (kPa)<br><small>Clay</small></th>
+            <th>&phi;' (deg)<br><small>Sand</small></th>
+            <th>q<sub>u</sub> (kPa)<br><small>IGM / rock</small></th>
+            <th class="only-driven hidden">Custom<br><small>&alpha; / &beta; / N<sub>q</sub></small></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="layersBody"></tbody>
+      </table>
+    </div>
+    <div class="table-actions">
+      <button class="btn" id="addLayerBtn">+ Add Layer</button>
+    </div>
+
+    <p id="formMsg" class="hint" style="color: var(--danger); margin: 12px 0 0;"></p>
+    <button class="btn btn-success calc-btn" id="calcBtn">Calculate Axial Capacity</button>
+
+    <div id="resultsArea" class="hidden">
+      <div class="section-title" style="margin-top: 28px;">Results</div>
+      <div class="results-grid">
+        <div class="stat-box"><div class="stat-label">Ultimate, Q<sub>u</sub></div><div class="stat-val" id="resQu">-</div><div class="stat-sub">kN</div></div>
+        <div class="stat-box"><div class="stat-label">Allowable, Q<sub>u</sub>/FS</div><div class="stat-val" id="resQall">-</div><div class="stat-sub" id="resFs">kN</div></div>
+        <div class="stat-box"><div class="stat-label">Side, Q<sub>s</sub></div><div class="stat-val" id="resQs">-</div><div class="stat-sub" id="resQsPct">kN</div></div>
+        <div class="stat-box"><div class="stat-label">Base, Q<sub>b</sub></div><div class="stat-val" id="resQb">-</div><div class="stat-sub" id="resQbPct">kN</div></div>
+        <div class="stat-box"><div class="stat-label">Self-Weight, W</div><div class="stat-val" id="resW">-</div><div class="stat-sub" id="resWNote">kN</div></div>
+        <div class="stat-box only-driven hidden"><div class="stat-label">Allowable Uplift, Q<sub>up</sub>/FS</div><div class="stat-val" id="resQup">-</div><div class="stat-sub" id="resQupSub">kN</div></div>
+      </div>
+      <div id="warnings"></div>
+
+      <h4 style="margin-top: 24px;">Side Resistance Breakdown</h4>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Depth (m)</th>
+              <th>Material</th>
+              <th>&sigma;'<sub>v</sub> (kPa)</th>
+              <th>Coefficient</th>
+              <th>f<sub>s</sub> (kPa)</th>
+              <th>Q<sub>s,i</sub> (kN)</th>
+            </tr>
+          </thead>
+          <tbody id="resSkinBody"></tbody>
+        </table>
+      </div>
+
+      <h4 style="margin-top: 24px;">Base Resistance</h4>
+      <p id="tipDetails"></p>
+
+      <div class="chart-container" style="height: 460px;">
+        <canvas id="capacityChart"></canvas>
+      </div>
+
+      <div class="section-title" style="margin-top: 28px;">Step-by-Step Calculation</div>
+      <div id="stepsContainer"></div>
+    </div>
+
+    <div class="formula-box only-driven hidden">
+      <h4>Method summary (driven pile)</h4>
+      <strong>Clay, alpha (API RP 2A):</strong> \( f_s = \alpha\, s_u \) with \( \alpha = 0.5\,\psi^{-0.5} \) for \( \psi \le 1 \), \( 0.5\,\psi^{-0.25} \) otherwise (\( \le 1 \)), \( \psi = s_u/\sigma'_v \).<br>
+      <strong>Clay, lambda:</strong> \( f_s = \lambda(\bar{\sigma}'_v + 2\bar{s}_u) \), \( \lambda = \max(0.11,\; 0.13 + 0.37 e^{-L/15}) \).<br>
+      <strong>Sand, beta:</strong> \( f_s = \beta\, \sigma'_v \le f_{s,max} \), \( \beta = K \tan(0.8\phi') \), \( K = 0.8 \).<br>
+      <strong>Base:</strong> clay \( q_b = 9 s_u \); sand \( q_b = N_q \sigma'_{v,tip} \le q_{b,max} \), \( N_q = e^{\pi \tan\phi'} \tan^2(45^\circ + \phi'/2) \).<br>
+      \( Q_u = Q_s + Q_b \), \( Q_{up} = R_{up} Q_s + W \), \( Q_{all} = Q_u / FS \).
+    </div>
+
+    <div class="formula-box only-drilled">
+      <h4>Method summary (drilled shaft)</h4>
+      <strong>Clay (&alpha; method):</strong> \( f_s = \alpha\, s_u \); \( \alpha = 0.55 \) for \( s_u/p_a \le 1.5 \), \( \alpha = 0.55 - 0.1\,(s_u/p_a - 1.5) \) for \( 1.5 < s_u/p_a \le 2.5 \).<br>
+      <strong>Sand (&beta; method):</strong> \( f_s = \beta\, \sigma'_v \le 200 \) kPa, with \( \beta = 1.5 - 0.245\sqrt{z} \), bounded to \( 0.25 \le \beta \le 1.20 \).<br>
+      <strong>Cohesive IGM:</strong> \( f_s = 0.65\, p_a \sqrt{q_u/p_a} \). Rock side resistance is neglected.<br>
+      <strong>Base:</strong> clay \( q_b = \psi N_c s_u \) with \( N_c = \min(9,\; 6[1 + 0.2 L/D_b]) \); sand \( q_b = N_q \sigma'_{v,tip} \le 4800 \) kPa; IGM / rock \( q_b = 2.5\, q_u \).<br>
+      \( Q_u = Q_s + Q_b \), \( Q_{all} = Q_u / FS \), with \( p_a = 101.325 \) kPa.
+    </div>
+
+    <p class="support-note">Free and open-source. You can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a> to support this project.</p>
+  </main>
+
+  <footer class="site-footer">
+    <span>&copy; 2026 <strong>Ali Gheysari, PhD</strong></span>
+    <span class="social">
+      <a href="https://github.com/agheysari" target="_blank" rel="noopener noreferrer" aria-label="Ali Gheysari on GitHub" title="GitHub"><svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+      <a href="https://www.linkedin.com/in/aligheysari/" target="_blank" rel="noopener noreferrer" aria-label="Ali Gheysari on LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.55V9h3.57v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg></a>
+    </span>
+    <span class="sep">&bull;</span>
+    <a href="index.html">All calculators</a>
+    <span class="sep">&bull;</span>
+    <a href="https://github.com/agheysari/geotechnical-toolbox" target="_blank" rel="noopener noreferrer">Source</a>
+    <span class="sep">&bull;</span>
+    <a href="index.html#disclaimer">Disclaimer</a>
+    <span class="sep">&bull;</span>
+    <a href="LICENSE">GNU GPL v3.0</a>
+  </footer>
+
+</div>
+
+<script>
+/* ==========================================================================
+   Calculation: port of lib/calculations/drilledShaft.ts (O'Neill & Reese 1999 /
+   FHWA GEC-10). Keep the two in sync.
+   ========================================================================== */
+const PA_KPA = 101.325;
+
+const NQ_TABLE = [
+  [26, 12], [28, 20], [30, 29], [32, 38],
+  [34, 48], [36, 60], [38, 78], [40, 109],
+];
+
+function interpolateNq(phi) {
+  if (phi <= NQ_TABLE[0][0]) return NQ_TABLE[0][1];
+  if (phi >= NQ_TABLE[NQ_TABLE.length - 1][0]) return NQ_TABLE[NQ_TABLE.length - 1][1];
+  for (let i = 0; i < NQ_TABLE.length - 1; i++) {
+    const [p0, nq0] = NQ_TABLE[i];
+    const [p1, nq1] = NQ_TABLE[i + 1];
+    if (phi >= p0 && phi <= p1) return nq0 + ((phi - p0) / (p1 - p0)) * (nq1 - nq0);
+  }
+  return NQ_TABLE[NQ_TABLE.length - 1][1];
+}
+
+function calcEffectiveStress(layers, depth, gwDepth, gwGamma) {
+  let stress = 0;
+  let z = 0;
+  const sorted = [...layers].sort((a, b) => a.top - b.top);
+  for (const layer of sorted) {
+    if (z >= depth) break;
+    const bot = Math.min(layer.bottom, depth);
+    if (bot <= z) continue;
+    const dz = bot - z;
+    if (z >= gwDepth) {
+      stress += (layer.gamma - gwGamma) * dz;
+    } else if (bot > gwDepth) {
+      stress += layer.gamma * (gwDepth - z) + (layer.gamma - gwGamma) * (bot - gwDepth);
+    } else {
+      stress += layer.gamma * dz;
+    }
+    z = bot;
+  }
+  return Math.max(0, stress);
+}
+
+// O'Neill & Reese (1999): qbr = 2.5 / (a*Bb + 2.5*b) * qb (<= 1), Bb in inches, su in ksf; only for Bb > 1.91 m
+function largeBaseReductionFactor(Db, L, su) {
+  if (Db <= 1.91) return 1;
+  const BbIn = Db * 39.3701;
+  const suKsf = su / 47.88;
+  const a = Math.min(0.015, 0.0071 + 0.0021 * (L / Db));
+  const b = Math.min(1.5, Math.max(0.5, 0.45 * Math.sqrt(suKsf)));
+  return Math.min(1, 2.5 / (a * BbIn + 2.5 * b));
+}
+
+function calculateDrilledShaft(inputs) {
+  const D = inputs.diameter;
+  const L = inputs.length;
+  const gwDepth = inputs.gwDepth;
+  const gwGamma = inputs.gwGamma ?? 9.81;
+  const shaftGamma = inputs.shaftGamma ?? 24.0;
+  const hasBell = inputs.bellDiameter != null && inputs.bellDiameter > D;
+  const Db = hasBell ? inputs.bellDiameter : D;
+
+  const steps = [];
+  const sorted = [...inputs.layers].sort((a, b) => a.top - b.top);
+
+  const perimeter = Math.PI * D;
+  const shaftArea = (Math.PI / 4) * D * D;
+  const baseArea = (Math.PI / 4) * Db * Db;
+
+  steps.push({
+    title: 'Shaft Geometry',
+    formula: `\\begin{aligned}
+    D &= ${D.toFixed(3)} \\text{ m}, \\quad L = ${L.toFixed(2)} \\text{ m} \\\\
+    p &= \\pi D = \\mathbf{${perimeter.toFixed(3)}} \\text{ m} \\\\
+    A_{shaft} &= \\frac{\\pi D^2}{4} = \\mathbf{${shaftArea.toFixed(4)}} \\text{ m}^2 \\\\
+    A_{base} &= \\frac{\\pi D_b^2}{4} = \\mathbf{${baseArea.toFixed(4)}} \\text{ m}^2${hasBell ? ` \\quad (D_b = ${Db.toFixed(3)} \\text{ m, bell})` : ''}
+    \\end{aligned}`,
+    explanation: hasBell
+      ? `Belled shaft: bearing area uses bell diameter Db = ${Db.toFixed(2)} m.`
+      : 'Straight-sided shaft: bearing area equals shaft cross-section.',
+  });
+
+  const topExcl = 1.5 * D;
+  const botExclTop = L - 1.0 * D;
+
+  steps.push({
+    title: "Skin Friction Exclusion Zones (O'Neill & Reese §11.3.2)",
+    formula: `\\begin{aligned}
+    \\text{Top exclusion} &= 1.5D = 1.5 \\times ${D.toFixed(3)} = \\mathbf{${topExcl.toFixed(3)}} \\text{ m} \\\\
+    \\text{Bottom exclusion} &= 1.0D = 1.0 \\times ${D.toFixed(3)} = \\mathbf{${(L - botExclTop).toFixed(3)}} \\text{ m from tip}
+    \\end{aligned}`,
+    explanation: 'Skin friction is neglected in the top 1.5D (soil disturbance during construction) and bottom 1D (soil compression / load transfer to base).',
+  });
+
+  let Qs = 0;
+  const skinDetails = [];
+  let currentZ = 0;
+
+  for (const layer of sorted) {
+    if (currentZ >= L) break;
+    const layerTop = Math.max(currentZ, layer.top);
+    const layerBot = Math.min(L, layer.bottom);
+    if (layerBot <= layerTop) { currentZ = layer.bottom; continue; }
+
+    // Split the layer at the exclusion-zone boundaries
+    const segments = [];
+    let segStart = layerTop;
+    const boundaries = [topExcl, botExclTop > 0 ? botExclTop : Infinity, layerBot];
+    for (const boundary of boundaries) {
+      const segEnd = Math.min(boundary, layerBot);
+      if (segEnd > segStart) {
+        const midpoint = (segStart + segEnd) / 2;
+        const excl = midpoint < topExcl || (botExclTop > 0 && midpoint > botExclTop);
+        segments.push({ top: segStart, bot: segEnd, excluded: excl });
+        segStart = segEnd;
+      }
+    }
+
+    for (const seg of segments) {
+      const segDz = seg.bot - seg.top;
+      const segMid = (seg.top + seg.bot) / 2;
+      const segSigmaV = calcEffectiveStress(sorted, segMid, gwDepth, gwGamma);
+      let fs = 0, coeff = 0, coeffLabel = '', typeLabel = '';
+
+      if (layer.type === 'clay') {
+        const su = layer.su ?? 0;
+        const suRatio = su / PA_KPA;
+        let alpha;
+        if (su <= 1.5 * PA_KPA) alpha = 0.55;
+        else if (su <= 2.5 * PA_KPA) alpha = 0.55 - 0.1 * (suRatio - 1.5);
+        else alpha = 0.45;
+        fs = alpha * su;
+        coeff = alpha;
+        coeffLabel = 'α';
+        typeLabel = `Clay (α=${alpha.toFixed(3)})`;
+      } else if (layer.type === 'sand') {
+        const beta = Math.min(1.20, Math.max(0.25, 1.5 - 0.245 * Math.sqrt(segMid)));
+        fs = Math.min(beta * segSigmaV, 200);
+        coeff = beta;
+        coeffLabel = 'β';
+        typeLabel = `Sand (β=${beta.toFixed(3)})`;
+      } else if (layer.type === 'igm') {
+        const qu = layer.qu ?? 1000;
+        fs = Math.min(0.65 * PA_KPA * Math.sqrt(qu / PA_KPA), 2500);
+        coeff = 0.65 * Math.sqrt(qu / PA_KPA);
+        coeffLabel = 'fs/pa';
+        typeLabel = `IGM (qu=${qu.toFixed(0)} kPa)`;
+      } else {
+        fs = 0;
+        coeff = 0;
+        coeffLabel = '—';
+        typeLabel = 'Rock (shaft friction neglected)';
+      }
+
+      const qsLayer = seg.excluded ? 0 : fs * perimeter * segDz;
+      Qs += qsLayer;
+
+      skinDetails.push({
+        range: `${seg.top.toFixed(2)}–${seg.bot.toFixed(2)}`,
+        top: seg.top, bottom: seg.bot, type: typeLabel, excluded: seg.excluded,
+        sigmaV: segSigmaV, coeff, coeffLabel, fs, qs: qsLayer,
+      });
+
+      if (!seg.excluded && segDz > 0 && layer.type !== 'rock') {
+        const name = layer.type === 'clay' ? 'Clay' : layer.type === 'sand' ? 'Sand' : 'IGM';
+        const fsExpr = coeffLabel === 'α'
+          ? `\\alpha \\cdot s_u = (${coeff.toFixed(3)})(${(layer.su ?? 0).toFixed(1)})`
+          : coeffLabel === 'β'
+          ? `\\beta \\cdot \\sigma'_v = (${coeff.toFixed(3)})(${segSigmaV.toFixed(1)})`
+          : `0.65 p_a \\sqrt{q_u / p_a} = (0.65)(${PA_KPA.toFixed(1)})\\sqrt{${(layer.qu ?? 0).toFixed(0)}/${PA_KPA.toFixed(1)}}`;
+        steps.push({
+          title: `Shaft Friction — ${name} (z = ${seg.top.toFixed(2)}–${seg.bot.toFixed(2)} m)`,
+          formula: `\\begin{aligned}
+          f_s &= ${fsExpr} = \\mathbf{${fs.toFixed(1)}} \\text{ kPa} \\\\
+          Q_{s,i} &= f_s \\cdot p \\cdot \\Delta z = (${fs.toFixed(1)})(${perimeter.toFixed(3)})(${segDz.toFixed(3)}) = \\mathbf{${qsLayer.toFixed(1)}} \\text{ kN}
+          \\end{aligned}`,
+        });
+      }
+    }
+    currentZ = layerBot;
+  }
+
+  steps.push({
+    title: 'Total Shaft Resistance',
+    formula: `Q_s = \\sum Q_{s,i} = \\mathbf{${Qs.toFixed(1)}} \\text{ kN}`,
+    explanation: 'Sum of all active (non-excluded) shaft friction segments.',
+  });
+
+  // Base resistance
+  let tipLayer = null;
+  for (const layer of sorted) {
+    if (layer.top <= L && layer.bottom >= L) { tipLayer = layer; break; }
+  }
+  if (!tipLayer && sorted.length > 0) tipLayer = sorted[sorted.length - 1];
+
+  let Qb = 0, qb = 0, tipDetails = '';
+  const sigmaVTip = calcEffectiveStress(sorted, L, gwDepth, gwGamma);
+
+  if (tipLayer) {
+    if (tipLayer.type === 'clay') {
+      const su = tipLayer.su ?? 0;
+      const Nc = Math.min(9, 6 * (1 + 0.2 * (L / Db)));
+      const psi = largeBaseReductionFactor(Db, L, su);
+      qb = psi * Nc * su;
+      Qb = qb * baseArea;
+      tipDetails = `Clay base: N<sub>c</sub> = ${Nc.toFixed(1)}, &psi; = ${psi.toFixed(3)}, s<sub>u</sub> = ${su.toFixed(1)} kPa &rarr; q<sub>b</sub> = ${qb.toFixed(1)} kPa &rarr; Q<sub>b</sub> = ${Qb.toFixed(1)} kN`;
+      steps.push({
+        title: 'Tip Bearing — Clay',
+        formula: `\\begin{aligned}
+        N_c &= \\min\\left(9,\\, 6\\left[1 + 0.2\\frac{L}{D_b}\\right]\\right) = ${Nc.toFixed(2)} \\\\
+        \\psi &= ${Db <= 1.91 ? '1.0 \\quad (D_b \\leq 1.91 \\text{ m})' : psi.toFixed(3)} \\\\
+        q_b &= \\psi \\cdot N_c \\cdot s_u = (${psi.toFixed(3)})(${Nc.toFixed(1)})(${su.toFixed(1)}) = \\mathbf{${qb.toFixed(1)}} \\text{ kPa} \\\\
+        Q_b &= q_b \\cdot A_{base} = (${qb.toFixed(1)})(${baseArea.toFixed(4)}) = \\mathbf{${Qb.toFixed(1)}} \\text{ kN}
+        \\end{aligned}`,
+        explanation: Db > 1.91
+          ? "Large-diameter base (Db > 1.91 m): base resistance reduced by ψ (O'Neill & Reese 1999)."
+          : 'Nc* = 6[1 + 0.2 L/Db] ≤ 9; base diameter ≤ 1.91 m, so ψ = 1.0.',
+      });
+    } else if (tipLayer.type === 'sand') {
+      const phi = tipLayer.phi ?? 30;
+      const Nq = interpolateNq(phi);
+      const capped = Nq * sigmaVTip > 4800;
+      qb = Math.min(Nq * sigmaVTip, 4800);
+      Qb = qb * baseArea;
+      tipDetails = `Sand base: &phi;' = ${phi}&deg;, N<sub>q</sub> = ${Nq.toFixed(1)}, &sigma;'<sub>v,tip</sub> = ${sigmaVTip.toFixed(1)} kPa &rarr; q<sub>b</sub> = ${qb.toFixed(1)} kPa${capped ? ' (capped at 4800 kPa)' : ''} &rarr; Q<sub>b</sub> = ${Qb.toFixed(1)} kN`;
+      steps.push({
+        title: 'Tip Bearing — Sand',
+        formula: `\\begin{aligned}
+        \\phi' &= ${phi}^\\circ \\Rightarrow N_q = ${Nq.toFixed(1)} \\\\
+        q_b &= N_q \\cdot \\sigma'_{v,tip} = (${Nq.toFixed(1)})(${sigmaVTip.toFixed(1)}) = \\mathbf{${qb.toFixed(1)}} \\text{ kPa}${capped ? '\\; \\text{(capped 4800 kPa)}' : ''} \\\\
+        Q_b &= q_b \\cdot A_{base} = (${qb.toFixed(1)})(${baseArea.toFixed(4)}) = \\mathbf{${Qb.toFixed(1)}} \\text{ kN}
+        \\end{aligned}`,
+        explanation: "Nq interpolated from O'Neill & Reese (1999) Table 11-8; tip stress capped at 4800 kPa per GEC-10.",
+      });
+    } else {
+      const qu = tipLayer.qu ?? 1000;
+      const name = tipLayer.type === 'rock' ? 'Rock' : 'IGM';
+      qb = Math.min(2.5 * qu, 40000);
+      Qb = qb * baseArea;
+      tipDetails = `${name} base: q<sub>u</sub> = ${qu.toFixed(0)} kPa, q<sub>b</sub> = 2.5&middot;q<sub>u</sub> = ${qb.toFixed(0)} kPa &rarr; Q<sub>b</sub> = ${Qb.toFixed(1)} kN`;
+      steps.push({
+        title: `Tip Bearing — ${name}`,
+        formula: `\\begin{aligned}
+        q_u &= ${qu.toFixed(0)} \\text{ kPa} \\\\
+        q_b &= 2.5 q_u = 2.5 \\times ${qu.toFixed(0)} = \\mathbf{${qb.toFixed(1)}} \\text{ kPa} \\\\
+        Q_b &= q_b \\cdot A_{base} = (${qb.toFixed(1)})(${baseArea.toFixed(4)}) = \\mathbf{${Qb.toFixed(1)}} \\text{ kN}
+        \\end{aligned}`,
+        explanation: 'GEC-10 simplified approach for cohesive IGM/weak rock: tip bearing = 2.5·qu.',
+      });
+    }
+  } else {
+    tipDetails = 'No soil layer at shaft tip.';
+  }
+
+  const Qu = Qs + Qb;
+  const Wp = shaftArea * L * shaftGamma;
+
+  steps.push({
+    title: 'Ultimate Compressive Capacity',
+    formula: `\\begin{aligned}
+    Q_u &= Q_s + Q_b = ${Qs.toFixed(1)} + ${Qb.toFixed(1)} = \\mathbf{${Qu.toFixed(1)}} \\text{ kN} \\\\
+    W_{shaft} &= A_{shaft} \\cdot L \\cdot \\gamma_c = (${shaftArea.toFixed(4)})(${L.toFixed(2)})(${shaftGamma}) = \\mathbf{${Wp.toFixed(1)}} \\text{ kN}
+    \\end{aligned}`,
+    explanation: 'Shaft self-weight is computed for reference but not subtracted from capacity (buoyancy adjustment should be done separately if shaft is below GW).',
+  });
+
+  const cumulativeQs = [{ x: 0, y: 0 }];
+  const unitFs = [];
+  let runningQs = 0;
+  for (const seg of skinDetails) {
+    unitFs.push({ x: seg.fs, y: seg.top });
+    unitFs.push({ x: seg.fs, y: seg.bottom });
+    runningQs += seg.qs;
+    cumulativeQs.push({ x: runningQs, y: seg.bottom });
+  }
+
+  return { Qu, Qs, Qb, Wp, perimeter, shaftArea, baseArea, skinDetails, tipDetails, cumulativeQs, unitFs, steps };
+}
+
+/* ==========================================================================
+   Driven piles: port of lib/calculations/axialPile.ts (static alpha / lambda /
+   beta methods with uplift). Keep the two in sync.
+   ========================================================================== */
+function calculateDrivenPile(inputs) {
+  const D = inputs.diameter;
+  const L = inputs.length;
+  const gwDepth = inputs.gwDepth;
+  const gwGamma = inputs.gwGamma ?? 9.81;
+  const pileGamma = inputs.shaftGamma ?? 24.0;
+  const methodClay = inputs.methodClay || 'alpha';
+  const upliftReduction = inputs.upliftReduction ?? 0.70;
+  const capFsSand = inputs.capFsSand === undefined ? 100.0 : inputs.capFsSand;   // null = no cap
+  const capQbSand = inputs.capQbSand === undefined ? 10000.0 : inputs.capQbSand;
+  const isSquare = inputs.shape === 'square';
+
+  const steps = [];
+  const perimeter = isSquare ? 4 * D : Math.PI * D;
+  const area = isSquare ? D * D : (Math.PI / 4) * D * D;
+
+  steps.push({
+    title: 'Pile Geometry Properties',
+    formula: `\\begin{aligned}
+    \\text{Perimeter } (p) &= ${isSquare ? '4B' : '\\pi D'} = \\mathbf{${perimeter.toFixed(3)}} \\text{ m} \\\\
+    \\text{Area } (A) &= ${isSquare ? 'B^2' : '\\frac{\\pi D^2}{4}'} = \\mathbf{${area.toFixed(3)}} \\text{ m}^2
+    \\end{aligned}`,
+    explanation: `${isSquare ? 'Square' : 'Circular'} pile with diameter/width = ${D} m.`,
+  });
+
+  const sorted = [...inputs.layers].sort((a, b) => a.top - b.top);
+  let Qs = 0;
+  const skinDetails = [];
+  let sumLClay = 0, sumSuL = 0, sumSigmaL = 0;
+  let currentZ = 0;
+
+  for (const layer of sorted) {
+    if (currentZ >= L) break;
+    const layerTop = Math.max(currentZ, layer.top);
+    const layerBottom = Math.min(L, layer.bottom);
+    if (layerBottom <= layerTop) { currentZ = layer.bottom; continue; }
+
+    const dz = layerBottom - layerTop;
+    const zMid = (layerTop + layerBottom) / 2;
+    const sigmaVMid = calcEffectiveStress(sorted, zMid, gwDepth, gwGamma);
+    const range = `${layerTop.toFixed(2)}–${layerBottom.toFixed(2)}`;
+
+    if (layer.type === 'clay') {
+      const su = layer.su || 0;
+      if (methodClay === 'alpha') {
+        let alpha = layer.customCoeff ?? null;
+        let note = 'Custom specified \\(\\alpha\\) coefficient.';
+        if (alpha === null) {
+          const psi = sigmaVMid > 0 ? su / sigmaVMid : 1.0;
+          alpha = psi <= 1.0 ? 0.5 * Math.pow(psi, -0.5) : 0.5 * Math.pow(psi, -0.25);
+          alpha = Math.min(alpha, 1.0);
+          note = `API RP 2A empirical correlation for \\(\\alpha\\) with \\(\\psi = s_u / \\sigma'_v = ${psi.toFixed(2)}\\)`;
+        }
+        const fs = alpha * su;
+        const qsLayer = fs * perimeter * dz;
+        Qs += qsLayer;
+        steps.push({
+          title: `Skin Friction in Clay (z = ${layerTop.toFixed(1)} to ${layerBottom.toFixed(1)} m)`,
+          formula: `\\begin{aligned}
+          f_s &= \\alpha \\cdot s_u = (${alpha.toFixed(3)})(${su.toFixed(1)}) = \\mathbf{${fs.toFixed(1)}} \\text{ kPa} \\\\
+          Q_s &= f_s \\cdot p \\cdot \\Delta z = (${fs.toFixed(1)})(${perimeter.toFixed(3)})(${dz.toFixed(2)}) = \\mathbf{${qsLayer.toFixed(1)}} \\text{ kN}
+          \\end{aligned}`,
+          explanation: note,
+        });
+        skinDetails.push({ range, top: layerTop, bottom: layerBottom, type: `Clay (α=${alpha.toFixed(2)})`, excluded: false, sigmaV: sigmaVMid, coeff: alpha, coeffLabel: 'α', fs, qs: qsLayer });
+      } else {
+        sumLClay += dz;
+        sumSuL += su * dz;
+        sumSigmaL += sigmaVMid * dz;
+        skinDetails.push({ range, top: layerTop, bottom: layerBottom, type: 'Clay (λ pending)', excluded: false, sigmaV: sigmaVMid, coeff: 0, coeffLabel: 'λ', fs: 0, qs: 0, isLambda: true, dz });
+      }
+    } else if (layer.type === 'sand') {
+      const phi = layer.phi || 30;
+      let beta = layer.customCoeff ?? null;
+      let note = 'Custom specified \\(\\beta\\) coefficient.';
+      if (beta === null) {
+        const K = 0.8;
+        beta = K * Math.tan((0.8 * phi * Math.PI) / 180);
+        note = `\\(\\beta = K \\tan(0.8\\phi)\\) with K = ${K} (driven)`;
+      }
+      let fs = beta * sigmaVMid;
+      let capNote = '';
+      if (capFsSand !== null && fs > capFsSand) {
+        fs = capFsSand;
+        capNote = ` (Capped at ${capFsSand} kPa)`;
+      }
+      const qsLayer = fs * perimeter * dz;
+      Qs += qsLayer;
+      steps.push({
+        title: `Skin Friction in Sand (z = ${layerTop.toFixed(1)} to ${layerBottom.toFixed(1)} m)`,
+        formula: `\\begin{aligned}
+        f_s &= \\beta \\cdot \\sigma'_v = (${beta.toFixed(3)})(${sigmaVMid.toFixed(1)}) = \\mathbf{${fs.toFixed(1)}} \\text{ kPa}${capNote ? '\\; \\text{' + capNote.trim() + '}' : ''} \\\\
+        Q_s &= f_s \\cdot p \\cdot \\Delta z = (${fs.toFixed(1)})(${perimeter.toFixed(3)})(${dz.toFixed(2)}) = \\mathbf{${qsLayer.toFixed(1)}} \\text{ kN}
+        \\end{aligned}`,
+        explanation: note,
+      });
+      skinDetails.push({ range, top: layerTop, bottom: layerBottom, type: `Sand (β=${beta.toFixed(2)})`, excluded: false, sigmaV: sigmaVMid, coeff: beta, coeffLabel: 'β', fs, qs: qsLayer });
+    }
+    currentZ = layerBottom;
+  }
+
+  if (methodClay === 'lambda' && sumLClay > 0) {
+    const lam = Math.max(0.11, 0.13 + 0.37 * Math.exp(-L / 15));
+    const meanSu = sumSuL / sumLClay;
+    const meanSigma = sumSigmaL / sumLClay;
+    const fsLambda = lam * (meanSigma + 2 * meanSu);
+    const QsLambda = fsLambda * perimeter * sumLClay;
+    Qs += QsLambda;
+    steps.push({
+      title: 'Global Skin Friction in Clay (Lambda Method)',
+      formula: `\\begin{aligned}
+      \\lambda &= 0.13 + 0.37 \\exp(-L/15) = \\mathbf{${lam.toFixed(3)}} \\\\
+      f_s &= \\lambda (\\bar{\\sigma}'_v + 2\\bar{s}_u) = (${lam.toFixed(3)})(${meanSigma.toFixed(1)} + 2(${meanSu.toFixed(1)})) = \\mathbf{${fsLambda.toFixed(1)}} \\text{ kPa} \\\\
+      Q_s &= f_s \\cdot p \\cdot L_{clay} = (${fsLambda.toFixed(1)})(${perimeter.toFixed(3)})(${sumLClay.toFixed(2)}) = \\mathbf{${QsLambda.toFixed(1)}} \\text{ kN}
+      \\end{aligned}`,
+      explanation: 'Vijayvergiya & Focht (1972) Lambda method for clay.',
+    });
+    skinDetails.forEach(d => {
+      if (d.isLambda) {
+        d.type = `Clay (λ=${lam.toFixed(3)})`;
+        d.coeff = lam;
+        d.fs = fsLambda;
+        d.qs = fsLambda * perimeter * d.dz;
+      }
+    });
+  }
+
+  // End bearing
+  let endLayer = null;
+  for (const layer of sorted) {
+    if ((layer.top <= L && L < layer.bottom) || L === layer.bottom) { endLayer = layer; break; }
+  }
+  if (!endLayer && sorted.length > 0) endLayer = sorted[sorted.length - 1];
+
+  let Qb = 0, qb = 0, tipDetails = '';
+  if (endLayer) {
+    const sigmaVTip = calcEffectiveStress(sorted, L, gwDepth, gwGamma);
+    if (endLayer.type === 'clay') {
+      const su = endLayer.su || 0;
+      qb = 9.0 * su;
+      steps.push({
+        title: 'End Bearing Capacity (Clay)',
+        formula: `\\begin{aligned}
+        q_b &= N_c \\cdot s_u = (9.0)(${su.toFixed(1)}) = \\mathbf{${qb.toFixed(1)}} \\text{ kPa} \\\\
+        Q_b &= q_b \\cdot A = (${qb.toFixed(1)})(${area.toFixed(3)}) = \\mathbf{${(qb * area).toFixed(1)}} \\text{ kN}
+        \\end{aligned}`,
+        explanation: 'Tip bearing capacity in clay (Skempton).',
+      });
+      tipDetails = `Clay base: N<sub>c</sub> = 9.0, s<sub>u</sub> = ${su.toFixed(1)} kPa &rarr; q<sub>b</sub> = ${qb.toFixed(1)} kPa`;
+    } else {
+      let Nq = endLayer.customCoeff ?? null;
+      let note = 'Custom specified \\(N_q\\) coefficient.';
+      if (Nq === null) {
+        const phiRad = ((endLayer.phi || 30) * Math.PI) / 180;
+        Nq = Math.exp(Math.PI * Math.tan(phiRad)) * Math.pow(Math.tan(Math.PI / 4 + phiRad / 2), 2);
+        note = 'Berezantzev / general bearing capacity factor \\(N_q\\)';
+      }
+      qb = Nq * sigmaVTip;
+      tipDetails = `Sand base: N<sub>q</sub> = ${Nq.toFixed(1)}, &sigma;'<sub>v,tip</sub> = ${sigmaVTip.toFixed(1)} kPa &rarr; q<sub>b</sub> = ${qb.toFixed(1)} kPa`;
+      let capNote = '';
+      if (capQbSand !== null && qb > capQbSand) {
+        qb = capQbSand;
+        tipDetails += ` (capped at ${capQbSand} kPa)`;
+        capNote = `\\; \\text{(Capped at ${capQbSand} kPa)}`;
+      }
+      steps.push({
+        title: 'End Bearing Capacity (Sand)',
+        formula: `\\begin{aligned}
+        q_b &= N_q \\cdot \\sigma'_{v,tip} = (${Nq.toFixed(1)})(${sigmaVTip.toFixed(1)}) = \\mathbf{${qb.toFixed(1)}} \\text{ kPa}${capNote} \\\\
+        Q_b &= q_b \\cdot A = (${qb.toFixed(1)})(${area.toFixed(3)}) = \\mathbf{${(qb * area).toFixed(1)}} \\text{ kN}
+        \\end{aligned}`,
+        explanation: note,
+      });
+    }
+    Qb = qb * area;
+    tipDetails += ` | A = ${area.toFixed(3)} m² &rarr; Q<sub>b</sub> = ${Qb.toFixed(1)} kN`;
+  } else {
+    tipDetails = 'No soil layers defined at pile tip.';
+  }
+
+  const Qu = Qs + Qb;
+  const Wp = area * L * pileGamma;
+  const Qup = Qs * upliftReduction + Wp;
+
+  steps.push({
+    title: 'Total Ultimate Capacities',
+    formula: `\\begin{aligned}
+    Q_{ult} &= Q_s + Q_b = ${Qs.toFixed(1)} + ${Qb.toFixed(1)} = \\mathbf{${Qu.toFixed(1)}} \\text{ kN (Compression)} \\\\
+    W_{pile} &= A \\cdot L \\cdot \\gamma_{pile} = (${area.toFixed(3)})(${L})(${pileGamma}) = \\mathbf{${Wp.toFixed(1)}} \\text{ kN} \\\\
+    Q_{up} &= (R_{up} \\cdot Q_s) + W_{pile} = (${upliftReduction} \\cdot ${Qs.toFixed(1)}) + ${Wp.toFixed(1)} = \\mathbf{${Qup.toFixed(1)}} \\text{ kN (Uplift)}
+    \\end{aligned}`,
+    explanation: 'Sum of shaft and tip resistance for compression, and reduced shaft resistance + self-weight for uplift.',
+  });
+
+  const cumulativeQs = [{ x: 0, y: 0 }];
+  const unitFs = [];
+  let running = 0;
+  for (const d of skinDetails) {
+    unitFs.push({ x: d.fs, y: d.top });
+    unitFs.push({ x: d.fs, y: d.bottom });
+    running += d.qs;
+    cumulativeQs.push({ x: running, y: d.bottom });
+  }
+
+  return { Qu, Qs, Qb, Wp, Qup, perimeter, baseArea: area, skinDetails, tipDetails, cumulativeQs, unitFs, steps };
+}
+
+/* ==========================================================================
+   UI
+   ========================================================================== */
+const PRESETS = [
+  {
+    installation: 'drilled', diameter: 0.9, length: 15, gwDepth: 2.0, fos: 2.5, shaftGamma: 24.0,
+    layers: [
+      { top: 0, bottom: 5, type: 'clay', gamma: 17.5, su: 40 },
+      { top: 5, bottom: 12, type: 'clay', gamma: 18.5, su: 90 },
+      { top: 12, bottom: 20, type: 'clay', gamma: 19.0, su: 150 },
+    ],
+  },
+  {
+    installation: 'drilled', diameter: 1.0, length: 18, gwDepth: 3.0, fos: 2.5, shaftGamma: 24.0,
+    layers: [
+      { top: 0, bottom: 8, type: 'sand', gamma: 18.5, phi: 30 },
+      { top: 8, bottom: 25, type: 'sand', gamma: 19.5, phi: 36 },
+    ],
+  },
+  {
+    installation: 'drilled', diameter: 0.9, length: 14, bellDiameter: 1.8, gwDepth: 5.0, fos: 2.5, shaftGamma: 24.0,
+    layers: [
+      { top: 0, bottom: 12, type: 'clay', gamma: 18.0, su: 80 },
+      { top: 12, bottom: 20, type: 'igm', gamma: 22.0, qu: 1200 },
+    ],
+  },
+  {
+    installation: 'driven', shape: 'circular', methodClay: 'alpha', diameter: 0.45, length: 15, gwDepth: 3.0, fos: 2.5, shaftGamma: 24.0,
+    layers: [
+      { top: 0, bottom: 6, type: 'sand', gamma: 18.5, phi: 32 },
+      { top: 6, bottom: 18, type: 'clay', gamma: 19.0, su: 75 },
+    ],
+  },
+  {
+    installation: 'driven', shape: 'square', methodClay: 'lambda', diameter: 0.35, length: 20, gwDepth: 1.5, fos: 2.5, shaftGamma: 24.0,
+    layers: [
+      { top: 0, bottom: 8, type: 'clay', gamma: 17.0, su: 30 },
+      { top: 8, bottom: 25, type: 'clay', gamma: 18.5, su: 65 },
+    ],
+  },
+];
+
+// which strength column each material uses
+const STRENGTH_FIELD = { clay: 'su', sand: 'phi', igm: 'qu', rock: 'qu' };
+
+const layersBody = document.getElementById('layersBody');
+const installationEl = document.getElementById('installation');
+let chartInstance = null;
+
+function val(v) { return v === undefined || v === null ? '' : v; }
+function isDriven() { return installationEl.value === 'driven'; }
+
+// show / hide everything that only applies to one installation method
+function setMode() {
+  const driven = isDriven();
+  document.querySelectorAll('.only-driven').forEach(e => e.classList.toggle('hidden', !driven));
+  document.querySelectorAll('.only-drilled').forEach(e => e.classList.toggle('hidden', driven));
+  document.getElementById('diameterLabel').innerHTML = driven ? 'Diameter / Width, B (m)' : 'Shaft Diameter, D (m)';
+  document.getElementById('intro').innerHTML = driven
+    ? 'Assumes consistent SI units (kN, m, kPa). Driven piles use the static &alpha; / &lambda; (clay) and &beta; (sand) methods with no exclusion zones, and also report uplift capacity.'
+    : 'Assumes consistent SI units (kN, m, kPa). Skin friction is neglected over the top 1.5D and the bottom 1D of the shaft (or the bell height).';
+  // IGM and rock are drilled-shaft materials
+  layersBody.querySelectorAll('.l-type option').forEach(o => {
+    if (o.value === 'igm' || o.value === 'rock') { o.hidden = driven; o.disabled = driven; }
+  });
+}
+
+function addLayerRow(l) {
+  l = l || {};
+  const type = l.type || (isDriven() ? 'sand' : 'clay');
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="number" class="l-top" value="${val(l.top)}" step="0.1"></td>
+    <td><input type="number" class="l-bottom" value="${val(l.bottom)}" step="0.1"></td>
+    <td>
+      <select class="l-type">
+        <option value="clay">Clay</option>
+        <option value="sand">Sand</option>
+        <option value="igm">Cohesive IGM</option>
+        <option value="rock">Rock</option>
+      </select>
+    </td>
+    <td><input type="number" class="l-gamma" value="${val(l.gamma)}" step="0.1"></td>
+    <td><input type="number" class="l-su" value="${val(l.su)}" step="1"></td>
+    <td><input type="number" class="l-phi" value="${val(l.phi)}" step="0.5"></td>
+    <td><input type="number" class="l-qu" value="${val(l.qu)}" step="50"></td>
+    <td class="only-driven hidden"><input type="number" class="l-custom" value="${val(l.customCoeff)}" step="0.05" placeholder="Auto"></td>
+    <td style="text-align:center;"><button class="btn btn-danger btn-sm remove-btn" aria-label="Remove layer">&times;</button></td>`;
+  layersBody.appendChild(tr);
+
+  const typeSel = tr.querySelector('.l-type');
+  typeSel.value = type;
+  tr.querySelector('.remove-btn').addEventListener('click', () => tr.remove());
+
+  function syncFields() {
+    const active = STRENGTH_FIELD[typeSel.value];
+    ['su', 'phi', 'qu'].forEach(f => {
+      const input = tr.querySelector('.l-' + f);
+      input.disabled = f !== active;
+      if (input.disabled) { input.value = ''; input.classList.remove('input-error'); }
+    });
+  }
+  typeSel.addEventListener('change', () => { syncFields(); typeSel.classList.remove('input-error'); });
+  syncFields();
+  setMode();
+}
+
+function setField(id, v) { document.getElementById(id).value = val(v); }
+
+function loadPreset(p) {
+  installationEl.value = p.installation;
+  setField('shape', p.shape || 'circular');
+  setField('methodClay', p.methodClay || 'alpha');
+  setField('diameter', p.diameter);
+  setField('length', p.length);
+  setField('bellDiameter', p.bellDiameter);
+  setField('gwDepth', p.gwDepth);
+  setField('fos', p.fos);
+  setField('shaftGamma', p.shaftGamma);
+  layersBody.innerHTML = '';
+  setMode();
+  p.layers.forEach(addLayerRow);
+  calculate();
+}
+
+function clearAll() {
+  ['diameter', 'length', 'bellDiameter', 'gwDepth'].forEach(id => setField(id, ''));
+  setField('fos', 2.5);
+  setField('shaftGamma', 24.0);
+  setField('upliftReduction', 0.70);
+  setField('capFsSand', 100);
+  setField('capQbSand', 10000);
+  layersBody.innerHTML = '';
+  addLayerRow();
+  document.getElementById('formMsg').textContent = '';
+  document.getElementById('resultsArea').classList.add('hidden');
+}
+
+function num(el) { return el.value.trim() === '' ? null : parseFloat(el.value); }
+
+function flag(el) { el.classList.add('input-error'); return true; }
+
+function readInputs() {
+  document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+  const msg = document.getElementById('formMsg');
+  msg.textContent = '';
+  const driven = isDriven();
+  let bad = false;
+
+  const dEl = document.getElementById('diameter');
+  const lEl = document.getElementById('length');
+  const bEl = document.getElementById('bellDiameter');
+  const gwEl = document.getElementById('gwDepth');
+  const fosEl = document.getElementById('fos');
+  const gcEl = document.getElementById('shaftGamma');
+  const urEl = document.getElementById('upliftReduction');
+  const cfEl = document.getElementById('capFsSand');
+  const cqEl = document.getElementById('capQbSand');
+
+  const diameter = num(dEl), length = num(lEl), bell = num(bEl);
+  if (!(diameter > 0)) bad = flag(dEl);
+  if (!(length > 0)) bad = flag(lEl);
+  if (!driven && bell !== null && !(bell >= 0)) bad = flag(bEl);
+  const fos = num(fosEl);
+  if (fos !== null && !(fos > 0)) bad = flag(fosEl);
+  const upliftReduction = num(urEl);
+  if (driven && upliftReduction !== null && !(upliftReduction >= 0)) bad = flag(urEl);
+  const capFs = num(cfEl), capQb = num(cqEl);
+  if (driven && capFs !== null && !(capFs > 0)) bad = flag(cfEl);
+  if (driven && capQb !== null && !(capQb > 0)) bad = flag(cqEl);
+
+  const layers = [];
+  layersBody.querySelectorAll('tr').forEach((tr, idx) => {
+    const els = {};
+    ['top', 'bottom', 'gamma', 'su', 'phi', 'qu', 'custom'].forEach(f => { els[f] = tr.querySelector('.l-' + f); });
+    const typeEl = tr.querySelector('.l-type');
+    const type = typeEl.value;
+    const empty = ['top', 'bottom', 'gamma', 'su', 'phi', 'qu'].every(f => els[f].value.trim() === '');
+    if (empty && idx > 0) return;
+
+    if (driven && (type === 'igm' || type === 'rock')) {
+      bad = flag(typeEl);
+      msg.textContent = 'Driven piles support clay and sand layers only. Change the highlighted layer, or switch back to a drilled shaft.';
+    }
+
+    const top = num(els.top), bottom = num(els.bottom), gamma = num(els.gamma);
+    if (top === null || top < 0) bad = flag(els.top);
+    if (bottom === null || (top !== null && bottom <= top)) bad = flag(els.bottom);
+    if (!(gamma > 0)) bad = flag(els.gamma);
+    const sf = STRENGTH_FIELD[type];
+    const strength = num(els[sf]);
+    if (!(strength > 0)) bad = flag(els[sf]);
+
+    const layer = { top, bottom, type, gamma };
+    layer[sf] = strength;
+    if (driven) layer.customCoeff = num(els.custom);
+    layers.push(layer);
+  });
+
+  if (bad) return null;
+  return {
+    installation: installationEl.value,
+    shape: document.getElementById('shape').value,
+    methodClay: document.getElementById('methodClay').value,
+    diameter, length,
+    bellDiameter: driven ? undefined : (bell || undefined),
+    gwDepth: num(gwEl) ?? 999,   // blank = water table below the foundation
+    fos: fos ?? 2.5,
+    shaftGamma: num(gcEl) ?? 24.0,
+    upliftReduction: upliftReduction ?? 0.70,
+    capFsSand: capFs ?? 100,
+    capQbSand: capQb ?? 10000,
+    layers,
+  };
+}
+
+function profileWarnings(inp) {
+  const w = [];
+  const sorted = [...inp.layers].sort((a, b) => a.top - b.top);
+  if (sorted[0].top > 0) w.push(`The profile starts at ${sorted[0].top} m; the zone above it carries no overburden or friction.`);
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i].top > sorted[i - 1].bottom) w.push(`Gap in the profile between ${sorted[i - 1].bottom} m and ${sorted[i].top} m.`);
+    if (sorted[i].top < sorted[i - 1].bottom) w.push(`Layers overlap between ${sorted[i].top} m and ${sorted[i - 1].bottom} m.`);
+  }
+  const deepest = Math.max(...sorted.map(l => l.bottom));
+  if (deepest < inp.length) w.push(`The profile ends at ${deepest} m, above the tip (${inp.length} m). The deepest layer is used for base resistance.`);
+  if (inp.installation === 'drilled') {
+    if (inp.length <= 2.5 * inp.diameter) w.push('L &le; 2.5D: the exclusion zones cover the whole shaft, so side resistance is zero.');
+    if (inp.bellDiameter && inp.bellDiameter <= inp.diameter) w.push('Bell diameter is not larger than the shaft diameter and was ignored.');
+  }
+  return w;
+}
+
+function fmt(x, d) { return x.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }); }
+
+function calculate() {
+  const inp = readInputs();
+  const area = document.getElementById('resultsArea');
+  if (!inp) { area.classList.add('hidden'); return; }
+
+  const driven = inp.installation === 'driven';
+  const r = driven ? calculateDrivenPile(inp) : calculateDrilledShaft(inp);
+  const pct = x => (r.Qu > 0 ? ` (${fmt(100 * x / r.Qu, 0)}%)` : '');
+
+  document.getElementById('resQu').textContent = fmt(r.Qu, 0);
+  document.getElementById('resQall').textContent = fmt(r.Qu / inp.fos, 0);
+  document.getElementById('resFs').textContent = `kN, FS = ${inp.fos}`;
+  document.getElementById('resQs').textContent = fmt(r.Qs, 0);
+  document.getElementById('resQsPct').textContent = 'kN' + pct(r.Qs);
+  document.getElementById('resQb').textContent = fmt(r.Qb, 0);
+  document.getElementById('resQbPct').textContent = 'kN' + pct(r.Qb);
+  document.getElementById('resW').textContent = fmt(r.Wp, 0);
+  document.getElementById('resWNote').textContent = driven ? 'kN (used in uplift)' : 'kN (not deducted)';
+  if (driven) {
+    document.getElementById('resQup').textContent = fmt(r.Qup / inp.fos, 0);
+    document.getElementById('resQupSub').textContent = `kN, ultimate ${fmt(r.Qup, 0)}`;
+  }
+
+  const warn = profileWarnings(inp);
+  document.getElementById('warnings').innerHTML = warn.length ? '<ul>' + warn.map(m => `<li>${m}</li>`).join('') + '</ul>' : '';
+
+  document.getElementById('resSkinBody').innerHTML = r.skinDetails.map(d => `
+    <tr class="${d.excluded ? 'excluded' : ''}">
+      <td>${d.range}</td>
+      <td>${d.type}${d.excluded ? ' &middot; excluded' : ''}</td>
+      <td>${fmt(d.sigmaV, 1)}</td>
+      <td>${d.coeffLabel === '—' ? '—' : `${d.coeffLabel} = ${d.coeff.toFixed(3)}`}</td>
+      <td>${fmt(d.fs, 1)}</td>
+      <td>${fmt(d.qs, 1)}</td>
+    </tr>`).join('');
+
+  document.getElementById('tipDetails').innerHTML = r.tipDetails;
+
+  const stepsEl = document.getElementById('stepsContainer');
+  stepsEl.innerHTML = '';
+  r.steps.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'step';
+    const h = document.createElement('h4');
+    h.textContent = `${i + 1}. ${s.title}`;
+    const f = document.createElement('div');
+    f.textContent = `\\[ ${s.formula} \\]`;
+    div.append(h, f);
+    if (s.explanation) {
+      const p = document.createElement('p');
+      p.className = 'step-note';
+      p.textContent = s.explanation;
+      div.append(p);
+    }
+    stepsEl.append(div);
+  });
+
+  area.classList.remove('hidden');
+  plotChart(r, inp.length);
+
+  if (window.MathJax && MathJax.typesetPromise) {
+    MathJax.typesetClear && MathJax.typesetClear([stepsEl]);
+    MathJax.typesetPromise([stepsEl]).catch(err => console.error('MathJax typeset failed:', err));
+  }
+}
+
+function plotChart(r, L) {
+  const S = window.GEO_SERIES;
+  if (chartInstance) chartInstance.destroy();
+  const datasets = [
+    {
+      label: 'Cumulative side resistance, Qs (kN)',
+      data: r.cumulativeQs, borderColor: S[0], backgroundColor: 'rgba(2,132,199,0.08)',
+      fill: true, showLine: true, pointRadius: 3, xAxisID: 'x1',
+    },
+    {
+      label: 'Unit side resistance, fs (kPa)',
+      data: r.unitFs, borderColor: S[3], borderDash: [5, 5],
+      showLine: true, pointRadius: 0, xAxisID: 'x2',
+    },
+  ];
+  if (r.Qb > 0) {
+    datasets.push({
+      label: 'Qs + base resistance = Qu (kN)',
+      data: [{ x: r.Qs, y: L }, { x: r.Qu, y: L }], borderColor: S[2], borderWidth: 4,
+      borderDash: [2, 2], showLine: true, pointRadius: 4, pointBackgroundColor: S[2], xAxisID: 'x1',
+    });
+  }
+  chartInstance = new Chart(document.getElementById('capacityChart'), {
+    type: 'scatter',
+    data: { datasets },
+    options: {
+      plugins: { title: { display: true, text: 'Load transfer with depth' } },
+      scales: {
+        y: { type: 'linear', reverse: true, min: 0, max: Math.ceil(L * 1.1), title: { display: true, text: 'Depth (m)' } },
+        x1: { type: 'linear', position: 'bottom', min: 0, title: { display: true, text: 'Capacity (kN)' } },
+        x2: { type: 'linear', position: 'top', min: 0, title: { display: true, text: 'Unit side resistance, fs (kPa)' }, grid: { drawOnChartArea: false } },
+      },
+    },
+  });
+}
+
+document.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => loadPreset(PRESETS[+b.dataset.preset])));
+document.getElementById('clearBtn').addEventListener('click', clearAll);
+document.getElementById('addLayerBtn').addEventListener('click', () => addLayerRow());
+installationEl.addEventListener('change', () => {
+  setMode();
+  document.getElementById('resultsArea').classList.add('hidden');
+});
+document.getElementById('calcBtn').addEventListener('click', () => {
+  calculate();
+  if (!document.getElementById('resultsArea').classList.contains('hidden')) {
+    document.getElementById('resultsArea').scrollIntoView({ behavior: 'smooth' });
+  }
+});
+document.addEventListener('input', e => {
+  if (e.target.classList && e.target.classList.contains('input-error')) e.target.classList.remove('input-error');
+});
+
+addLayerRow();
+setMode();
+</script>
+
+</body>
+</html>

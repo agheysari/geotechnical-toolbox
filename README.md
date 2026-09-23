@@ -31,7 +31,7 @@ engineers, civil engineering researchers, and geospatial analysts, developed by
 
 | # | Module | Run it | Source | Key methods / theories |
 |---|--------|--------|--------|------------------------|
-| 1 | **Axial Pile Capacity** | [Launch](https://agheysari.github.io/geotechnical-toolbox/axial_pile_capacity.html) | [`axial_pile_capacity.html`](./axial_pile_capacity.html) | Alpha (API RP 2A), Beta (Burland), Lambda (Vijayvergiya & Focht) |
+| 1 | **Deep Foundation Axial Capacity** | [Launch](https://agheysari.github.io/geotechnical-toolbox/deep_foundation_capacity.html) | [`deep_foundation_capacity.html`](./deep_foundation_capacity.html) | Driven piles: Alpha (API RP 2A), Lambda, Beta, uplift. Drilled shafts: O'Neill & Reese (1999) / FHWA GEC-10, IGM, belled bases |
 | 2 | **Pile Group Efficiency & Settlement** | [Launch](https://agheysari.github.io/geotechnical-toolbox/pile_group_efficiency.html) | [`pile_group_efficiency.html`](./pile_group_efficiency.html) | Converse-Labarre, Sayed-Baker, cohesive block shear, 2:1 raft model |
 | 3 | **Shallow Bearing Capacity** | [Launch](https://agheysari.github.io/geotechnical-toolbox/bearing_capacity.html) | [`bearing_capacity.html`](./bearing_capacity.html) | Terzaghi, Meyerhof, Hansen, Vesic general formulations |
 | 4 | **Lateral Pile P-y Curves** | [Launch](https://agheysari.github.io/geotechnical-toolbox/lateral_pile_py_curves.html) | [`lateral_pile_py_curves.html`](./lateral_pile_py_curves.html) | Matlock (1970) soft clay, API RP 2A sand |
