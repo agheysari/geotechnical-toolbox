@@ -644,7 +644,7 @@
                 <tr id="manualTheadRow">
                     <th>Sieve</th>
                     <th>Diameter (mm)</th>
-                    <th class="mat-col-header"><input type="text" class="m-mat-name" value="Sample A" style="font-weight: bold; width: 100%; box-sizing: border-box;"></th>
+                    <th class="mat-col-header"><input placeholder="e.g. Sample A" type="text" class="m-mat-name" value="Sample A" style="font-weight: bold; width: 100%; box-sizing: border-box;"></th>
                     <th id="manualTheadAction" style="width: 50px;"></th>
                 </tr>
             </thead>
@@ -868,7 +868,7 @@
         
         const newTh = document.createElement('th');
         newTh.className = 'mat-col-header';
-        newTh.innerHTML = `<input type="text" class="m-mat-name" value="Sample ${String.fromCharCode(64 + sampleCount)}" style="font-weight: bold; width: 100%; box-sizing: border-box;">`;
+        newTh.innerHTML = `<input placeholder="e.g. Sample A" type="text" class="m-mat-name" value="Sample ${String.fromCharCode(64 + sampleCount)}" style="font-weight: bold; width: 100%; box-sizing: border-box;">`;
         theadRow.insertBefore(newTh, actionTh);
 
         const rows = manualTbody.querySelectorAll('tr');

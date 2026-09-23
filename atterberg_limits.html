@@ -610,6 +610,10 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
     ol.steps li { margin-bottom: 6px; }
 
     .chart-container { height: 420px; }
+    .preset-row { align-items: center; }
+    .preset-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-right: 2px; }
+    .btn-clear-inputs { background: transparent !important; color: var(--danger) !important; border: 1px dashed #fca5a5 !important; }
+    .btn-clear-inputs:hover:not(:disabled) { background: var(--danger-bg) !important; }
   </style>
 </head>
 <body>
@@ -627,8 +631,9 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
     <p>Enter the moisture content at each blow count from the liquid limit test (ASTM D4318). The flow curve is a least-squares line of moisture content against log<sub>10</sub>(blows); the liquid limit is its value at 25 blows.</p>
 
     <div class="preset-row">
+      <span class="preset-label">Demo:</span>
       <button class="btn btn-secondary btn-sm" id="presetBtn">Load example</button>
-      <button class="btn btn-secondary btn-sm" id="clearBtn">Clear</button>
+      <button class="btn btn-secondary btn-sm btn-clear-inputs" id="clearBtn">Clear</button>
     </div>
 
     <div class="two-col">

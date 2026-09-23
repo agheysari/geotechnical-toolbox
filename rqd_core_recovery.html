@@ -128,10 +128,10 @@
         runs.forEach((run, index) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><input type="number" step="0.1" value="${run.top}" onchange="updateRun(${index}, 'top', this.value)"></td>
-                <td><input type="number" step="0.1" value="${run.bottom}" onchange="updateRun(${index}, 'bottom', this.value)"></td>
-                <td><input type="number" step="0.01" value="${run.tcr}" onchange="updateRun(${index}, 'tcr', this.value)"></td>
-                <td><input type="number" step="0.01" value="${run.rqd}" onchange="updateRun(${index}, 'rqd', this.value)"></td>
+                <td><input placeholder="e.g. 0.0" type="number" step="0.1" value="${run.top}" onchange="updateRun(${index}, 'top', this.value)"></td>
+                <td><input placeholder="e.g. 1.5" type="number" step="0.1" value="${run.bottom}" onchange="updateRun(${index}, 'bottom', this.value)"></td>
+                <td><input placeholder="e.g. 1.4" type="number" step="0.01" value="${run.tcr}" onchange="updateRun(${index}, 'tcr', this.value)"></td>
+                <td><input placeholder="e.g. 0.8" type="number" step="0.01" value="${run.rqd}" onchange="updateRun(${index}, 'rqd', this.value)"></td>
                 <td><button class="btn-danger" onclick="removeRun(${index})">✕</button></td>
             `;
             tbody.appendChild(tr);

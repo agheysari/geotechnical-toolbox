@@ -80,6 +80,11 @@
     .support-note a:hover { text-decoration: underline; }
     
     .chart-container { position: relative; height: 500px; width: 100%; }
+    .demo-row { display: flex; align-items: center; gap: 8px; }
+    .preset-row { align-items: center; }
+    .preset-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-right: 2px; }
+    .btn-clear-inputs { background: transparent !important; color: #dc2626 !important; border: 1px dashed #fca5a5 !important; }
+    .btn-clear-inputs:hover:not(:disabled) { background: #fef2f2 !important; }
 </style>
 </head>
 <body>
@@ -95,29 +100,29 @@
         <div class="card">
             <div class="card-title">
                 <span>Aquifer & Pump Data</span>
-                <button class="btn" onclick="loadDemo()">Load Demo</button>
+                <div class="demo-row"><span class="preset-label">Demo:</span><button class="btn" onclick="loadDemo()">Load Demo</button><button class="btn btn-clear-inputs" onclick="clearAll()">Clear</button></div>
             </div>
             
             <div class="grid-2">
                 <div class="form-group">
                     <label>Pumping Rate, Q (m³/day)</label>
-                    <input type="number" id="in-q" value="1500" step="10">
+                    <input placeholder="e.g. 1500" type="number" id="in-q" value="1500" step="10">
                 </div>
                 <div class="form-group">
                     <label>Observation Dist, r (m)</label>
-                    <input type="number" id="in-r" value="50" step="1">
+                    <input placeholder="e.g. 50" type="number" id="in-r" value="50" step="1">
                 </div>
             </div>
             
             <div class="form-group" style="margin-bottom: 16px;">
                 <label>Ignore Early Points</label>
-                <input type="number" id="in-ignore" value="2" min="0" step="1">
+                <input placeholder="e.g. 2" type="number" id="in-ignore" value="2" min="0" step="1">
                 <span style="font-size:10px; color:var(--text-muted);">Cooper-Jacob is valid for large time. Ignore the first few points.</span>
             </div>
 
             <div class="form-group">
                 <label>Data (Time in min, Drawdown in m)</label>
-                <textarea id="in-data" rows="12">1, 0.25
+                <textarea placeholder="e.g.&#10;1, 0.25&#10;2, 0.38&#10;5, 0.55" id="in-data" rows="12">1, 0.25
 2, 0.38
 5, 0.55
 10, 0.68
@@ -199,6 +204,12 @@ function loadDemo() {
     document.getElementById('in-ignore').value = 2;
     document.getElementById('in-data').value = "1, 0.25\n2, 0.38\n5, 0.55\n10, 0.68\n20, 0.82\n50, 0.99\n100, 1.13\n200, 1.25\n500, 1.41\n1000, 1.54\n1440, 1.60";
     calculate();
+}
+
+function clearAll() {
+    ['in-q', 'in-r', 'in-ignore', 'in-data'].forEach(id => { document.getElementById(id).value = ''; });
+    document.getElementById('results-panel').style.display = 'none';
+    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
 }
 
 function calculate() {

@@ -251,8 +251,8 @@
         planes.forEach((pl, i) => {
             tbody.innerHTML += `
                 <tr>
-                    <td><input type="number" value="${pl.dip}" onchange="update(${i}, 'dip', this.value)"></td>
-                    <td><input type="number" value="${pl.dipDir}" onchange="update(${i}, 'dipDir', this.value)"></td>
+                    <td><input placeholder="e.g. 45" type="number" value="${pl.dip}" onchange="update(${i}, 'dip', this.value)"></td>
+                    <td><input placeholder="e.g. 120" type="number" value="${pl.dipDir}" onchange="update(${i}, 'dipDir', this.value)"></td>
                     <td><input type="color" value="${pl.color}" onchange="update(${i}, 'color', this.value)"></td>
                     <td><input type="checkbox" ${pl.showPole?'checked':''} onchange="update(${i}, 'showPole', this.checked)"></td>
                     <td><input type="checkbox" ${pl.showPlane?'checked':''} onchange="update(${i}, 'showPlane', this.checked)"></td>

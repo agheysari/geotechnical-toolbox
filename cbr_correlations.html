@@ -615,6 +615,10 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
     .kv .num small { font-size: 12px; font-weight: 600; color: var(--text-muted); }
     .kv .num.accent { color: var(--primary-dark); }
     .panel-title { margin: 0 0 4px; padding-bottom: 8px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 700; }
+    .preset-row { align-items: center; }
+    .preset-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-right: 2px; }
+    .btn-clear-inputs { background: transparent !important; color: var(--danger) !important; border: 1px dashed #fca5a5 !important; }
+    .btn-clear-inputs:hover:not(:disabled) { background: var(--danger-bg) !important; }
   </style>
 </head>
 <body>
@@ -630,9 +634,10 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
   <main class="card">
 
     <div class="preset-row">
+      <span class="preset-label">Demo:</span>
       <button class="btn btn-secondary btn-sm" data-preset="0">Soft clay (DCP)</button>
       <button class="btn btn-secondary btn-sm" data-preset="1">Stiff subgrade (CBR)</button>
-      <button class="btn btn-secondary btn-sm" id="clearBtn">Clear</button>
+      <button class="btn btn-secondary btn-sm btn-clear-inputs" id="clearBtn">Clear</button>
     </div>
 
     <div class="two-col">

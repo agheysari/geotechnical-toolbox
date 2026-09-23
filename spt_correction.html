@@ -610,6 +610,10 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
     ol.steps li { margin-bottom: 6px; }
 
     .stat-val.big { font-size: 34px; }
+    .preset-row { align-items: center; }
+    .preset-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-right: 2px; }
+    .btn-clear-inputs { background: transparent !important; color: var(--danger) !important; border: 1px dashed #fca5a5 !important; }
+    .btn-clear-inputs:hover:not(:disabled) { background: var(--danger-bg) !important; }
   </style>
 </head>
 <body>
@@ -627,9 +631,10 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
     <p>Corrections follow the standard form (N<sub>1</sub>)<sub>60</sub> = N &middot; C<sub>N</sub> &middot; C<sub>E</sub> &middot; C<sub>B</sub> &middot; C<sub>R</sub> &middot; C<sub>S</sub>. Consistent SI units (m, kPa, kN/m³).</p>
 
     <div class="preset-row">
+      <span class="preset-label">Demo:</span>
       <button class="btn btn-secondary btn-sm" data-preset="0">Auto hammer, shallow</button>
       <button class="btn btn-secondary btn-sm" data-preset="1">Safety hammer, deep</button>
-      <button class="btn btn-secondary btn-sm" id="clearBtn">Clear</button>
+      <button class="btn btn-secondary btn-sm btn-clear-inputs" id="clearBtn">Clear</button>
     </div>
 
     <div class="two-col">
@@ -734,7 +739,7 @@ const PRESETS = [
   { nRaw: 15, depth: 3.0, gwDepth: 2.0, gammaMoist: 18.0, gammaSat: 20.0, stickup: 1.0, energyRatio: 80, boreholeDiam: '1.0', samplerType: '1.0' },
   { nRaw: 25, depth: 15.0, gwDepth: 5.0, gammaMoist: 17.5, gammaSat: 19.5, stickup: 1.0, energyRatio: 60, boreholeDiam: '1.0', samplerType: '1.0' },
 ];
-const BLANK = { nRaw: '', depth: '', gwDepth: '', gammaMoist: '', gammaSat: '', stickup: 1.0, energyRatio: 60, boreholeDiam: '1.0', samplerType: '1.0' };
+const BLANK = { nRaw: '', depth: '', gwDepth: '', gammaMoist: '', gammaSat: '', stickup: '', energyRatio: '', boreholeDiam: '1.0', samplerType: '1.0' };
 
 function load(p) { IDS.forEach(id => { document.getElementById(id).value = p[id]; }); update(); }
 
