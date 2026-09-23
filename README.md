@@ -1,6 +1,6 @@
 # 🌍 Open-Source Geotechnical Engineering & Geospatial Calculators
 
-A collection of **25 standalone, client-side HTML/JavaScript calculation tools** for geotechnical
+A collection of **35 standalone, client-side HTML/JavaScript calculation tools** for geotechnical
 engineers, civil engineering researchers, and geospatial analysts, developed by
 **Ali Gheysari, PhD**.
 
@@ -8,7 +8,7 @@ engineers, civil engineering researchers, and geospatial analysts, developed by
 
 [![Live portal](https://img.shields.io/badge/Live%20portal-GitHub%20Pages-success.svg)](https://agheysari.github.io/geotechnical-toolbox/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Calculators](https://img.shields.io/badge/Calculators-25-blue.svg)](https://github.com/agheysari/geotechnical-toolbox)
+[![Calculators](https://img.shields.io/badge/Calculators-35-blue.svg)](https://github.com/agheysari/geotechnical-toolbox)
 
 ---
 
@@ -22,7 +22,7 @@ engineers, civil engineering researchers, and geospatial analysts, developed by
   (m, kPa, kN/m³, mm, years). Settlements are reported in mm, times in years.
 * **Report-ready figures.** Charts share one theme, with consistent type, palette, gridlines and
   axis labelling, so a figure can be pasted straight into a report.
-* **Consistent page shell.** All 25 pages share the same header, container, results and footer
+* **Consistent page shell.** All 35 pages share the same header, container, results and footer
   structure, and validate your inputs the same way before calculating.
 
 ---
@@ -59,6 +59,13 @@ engineers, civil engineering researchers, and geospatial analysts, developed by
 | 26 | **AASHTO Flexible Pavement Design** | [Launch](https://agheysari.github.io/geotechnical-toolbox/flexible_pavement.html) | [`flexible_pavement.html`](./flexible_pavement.html) | Calculate required Structural Number (SN) using AASHTO 1993 |
 | 27 | **AASHTO Rigid Pavement Design** | [Launch](https://agheysari.github.io/geotechnical-toolbox/rigid_pavement.html) | [`rigid_pavement.html`](./rigid_pavement.html) | Calculate required concrete slab thickness (D) using AASHTO 1993 |
 | 28 | **ESAL Calculator** | [Launch](https://agheysari.github.io/geotechnical-toolbox/esal_calculator.html) | [`esal_calculator.html`](./esal_calculator.html) | Estimate cumulative traffic loading (W18) over pavement design life |
+| 29 | **Atterberg Limits & Flow Curve** | [Launch](https://agheysari.github.io/geotechnical-toolbox/atterberg_limits.html) | [`atterberg_limits.html`](./atterberg_limits.html) | Liquid limit flow curve (semi-log regression), flow index, PI and LI |
+| 30 | **Mohr-Coulomb Failure Envelope** | [Launch](https://agheysari.github.io/geotechnical-toolbox/mohr_coulomb_analyzer.html) | [`mohr_coulomb_analyzer.html`](./mohr_coulomb_analyzer.html) | Triaxial c' and φ' by regression on σ1-σ3, Mohr circles |
+| 31 | **SPT N-Value Correction** | [Launch](https://agheysari.github.io/geotechnical-toolbox/spt_correction.html) | [`spt_correction.html`](./spt_correction.html) | N60 and (N1)60: overburden (Liao & Whitman), energy, rod length, borehole, sampler |
+| 32 | **CBR & Subgrade Correlations** | [Launch](https://agheysari.github.io/geotechnical-toolbox/cbr_correlations.html) | [`cbr_correlations.html`](./cbr_correlations.html) | DCP to CBR (USACE), resilient modulus (AASHTO 1993, MEPDG), subgrade modulus k |
+| 33 | **Drawdown Analyzer (Pumping Test)** | [Launch](https://agheysari.github.io/geotechnical-toolbox/pumping_test.html) | [`pumping_test.html`](./pumping_test.html) | Cooper-Jacob straight-line transmissivity and storativity |
+| 34 | **RQD & Core Recovery Log** | [Launch](https://agheysari.github.io/geotechnical-toolbox/rqd_core_recovery.html) | [`rqd_core_recovery.html`](./rqd_core_recovery.html) | Rock Quality Designation and total core recovery from core run lengths |
+| 35 | **Stereonet Plotter** | [Launch](https://agheysari.github.io/geotechnical-toolbox/stereonet_plotter.html) | [`stereonet_plotter.html`](./stereonet_plotter.html) | Kinematic stereonet of dip / dip direction structural data |
 
 ---
 

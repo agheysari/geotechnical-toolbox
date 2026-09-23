@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Rankine and Coulomb active, passive and at-rest coefficients with surcharge, groundwater and resultant thrust diagrams.">
-<title>Lateral Earth Pressure Calculator | Geotechnical Tools</title>
+<meta name="description" content="Plot the liquid limit flow curve (moisture content vs. number of blows, semi-log) to interpolate the Liquid Limit, Plasticity Index and Liquidity Index.">
+<title>Atterberg Limits &amp; Flow Curve Plotter | Geotechnical Tools</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <script>
 const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2,2,2], [3,3], [8,4]];
 
@@ -594,7 +594,22 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
     /* ==========================================================================
        Page-specific styles
        ========================================================================== */
-    .factors-row { display: flex; justify-content: center; gap: 2rem; margin-top: 0.5rem; font-size: 0.95rem; color: #444; }
+    .preset-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+    .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 18px; margin-bottom: 18px; }
+    .two-col > * { margin: 0; min-width: 0; }
+    .msg { margin: 18px 0 0; padding: 14px 16px; text-align: center; color: var(--text-muted); background: var(--background); border: 1px dashed var(--border); border-radius: var(--radius); font-size: 13px; }
+    .msg.error { color: var(--danger); background: var(--danger-bg); border-color: #fecaca; border-style: solid; }
+    .stat-val.big { font-size: 26px; }
+    .stat-val small { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+    .factor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 12px; }
+    .seg { display: flex; gap: 6px; padding: 4px; background: var(--surface-alt); border-radius: 10px; margin-bottom: 14px; }
+    .seg button { flex: 1; background: transparent; color: var(--text-muted); }
+    .seg button:hover:not(.on) { background: #e2e8f0; }
+    .seg button.on { background: var(--surface); color: var(--primary-dark); box-shadow: 0 1px 2px rgb(0 0 0 / 0.1); }
+    ol.steps { margin: 0; padding-left: 20px; font-family: var(--mono); font-size: 12px; color: var(--text-muted); }
+    ol.steps li { margin-bottom: 6px; }
+
+    .chart-container { height: 420px; }
   </style>
 </head>
 <body>
@@ -603,102 +618,63 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 
   <header class="tool-header">
     <a class="back-link" href="index.html">&larr; All calculators</a>
-    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#FFFBEB" /> <rect x="18" y="12" width="6" height="42" rx="1.5" fill="#D97706" /> <path d="M24 16L48 54H24V16Z" fill="#F59E0B" fill-opacity="0.25" stroke="#F59E0B" stroke-width="2" /> <path d="M44 48H28M28 48L32 45M28 48L32 51" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M36 36H28M28 36L31 33.5M28 36L31 38.5" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M30 25H28M28 25L30 23M28 25L30 27" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> </svg> Lateral Earth Pressure Calculator</h1>
-    <p class="subtitle">Rankine and Coulomb active, passive and at-rest coefficients with surcharge, groundwater and resultant thrust diagrams.</p>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="14" fill="#F0F9FF"/><path d="M12 14V50H54" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round"/><path d="M16 22C26 28 38 38 52 44" stroke="#0284C7" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="25" r="3" fill="#D97706"/><circle cx="30" cy="32" r="3" fill="#D97706"/><circle cx="42" cy="39" r="3" fill="#D97706"/><rect x="33" y="30" width="7" height="7" transform="rotate(45 36.5 33.5)" fill="#DC2626"/></svg> Atterberg Limits &amp; Flow Curve Plotter</h1>
+    <p class="subtitle">Plot the liquid limit flow curve (moisture content vs. number of blows on a semi-log scale) to interpolate the Liquid Limit, Flow Index, Plasticity Index and Liquidity Index.</p>
   </header>
 
   <main class="card">
-    <section class="field-set">  <div class="form-row" style="background: #e8f4fd; padding: 10px; border-radius: 6px; justify-content: flex-start; gap: 1.5rem; margin-bottom: 1.5rem;">
-          <label style="margin: 0; display: flex; align-items: center; gap: 5px; cursor: pointer;">
-              <input type="checkbox" id="toggleGW" onchange="updateToggles()"> Groundwater Effects
-          </label>
-          <label style="margin: 0; display: flex; align-items: center; gap: 5px; cursor: pointer;">
-              <input type="checkbox" id="toggleSurcharge" onchange="updateToggles()"> Surcharge Load
-          </label>
-      </div><div class="form-row">
-          <div class="form-group">
-              <label for="method">Theory / Method</label>
-              <select id="method" onchange="updateUI()">
-                  <option value="rankine">Rankine</option>
-                  <option value="coulomb">Coulomb</option>
-              </select>
-          </div>
-          <div class="form-group">
-              <label for="state">Earth Pressure State</label>
-              <select id="state" onchange="updateUI()">
-                  <option value="active">Active (Ka)</option>
-                  <option value="passive">Passive (Kp)</option>
-                  <option value="at_rest">At Rest (Ko)</option>
-              </select>
-          </div>
-      </div><div class="form-row">
-          <div class="form-group">
-              <label for="heightH">Wall Height (H) [m]</label>
-              <input type="number" id="heightH" step="any" placeholder="e.g., 5.0 m">
-          </div>
-          <div class="form-group">
-              <label for="gamma">Soil Unit Weight (γ) [kN/m³]</label>
-              <input type="number" id="gamma" step="any" placeholder="e.g., 18 kN/m³">
-          </div>
-      </div><div class="form-row">
-          <div class="form-group">
-              <label for="phi">Friction Angle (φ&deg;)</label>
-              <input type="number" id="phi" step="any" min="0" max="60" placeholder="e.g., 30">
-          </div>
-          <div class="form-group">
-              <label for="beta">Backfill Slope (β&deg;)</label>
-              <input type="number" id="beta" step="any" min="0" max="60" value="0">
-          </div>
-      </div><div class="form-row hidden" id="coulomb-group">
-          <div class="form-group">
-              <label for="theta">Wall Angle from Horizontal (θ&deg;)</label>
-              <input type="number" id="theta" step="any" min="10" max="170" placeholder="e.g., 90 (vertical)">
-          </div>
-          <div class="form-group">
-              <label for="delta">Wall Friction Angle (δ&deg;)</label>
-              <input type="number" id="delta" step="any" min="0" max="60" placeholder="e.g., 20">
-          </div>
-      </div><div class="form-row hidden" id="gw-row">
-          <div class="form-group">
-              <label for="waterTableDw">Depth to Water Table (D<sub>w</sub>) [m]</label>
-              <input type="number" id="waterTableDw" step="any" placeholder="e.g., 2.0 m">
-          </div>
-          <div class="form-group">
-              <label for="gammaSat">Sat. Unit Weight (γ<sub>sat</sub>) [kN/m³]</label>
-              <input type="number" id="gammaSat" step="any" placeholder="e.g., 20 kN/m³">
-          </div>
-          <div class="form-group">
-              <label for="gammaW">Unit Wt. Water (γ<sub>w</sub>) [kN/m³]</label>
-              <input type="number" id="gammaW" step="any" value="9.81">
-          </div>
-      </div><div class="form-row hidden" id="surcharge-row">
-          <div class="form-group">
-              <label for="surchargeQ">Uniform Surcharge (q) [kPa]</label>
-              <input type="number" id="surchargeQ" step="any" placeholder="e.g., 10 kPa">
-          </div>
-      </div><div style="text-align: left; margin-bottom: 1rem;">
-          <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
-              <input type="checkbox" id="toggleFormula" onchange="updateToggles()"> Show Formulas
-          </label>
-      </div>
-    </section>
-<div class="formula-box" id="formula-container">
-        <!-- LaTeX formula injected here -->
-    </div><button onclick="calculatePressure()" class="calc-btn">Calculate Earth Pressure</button>
 
-    <div class="result-box hidden" id="resultBox">
-        <div id="resultLabel">Total Lateral Force (P)</div>
-        <div class="result-value" id="resultForce" style="line-height: 1.2;">---</div>
-        <div class="factors-row">
-            <span id="calcK">K = ---</span>
+    <p>Enter the moisture content at each blow count from the liquid limit test (ASTM D4318). The flow curve is a least-squares line of moisture content against log<sub>10</sub>(blows); the liquid limit is its value at 25 blows.</p>
+
+    <div class="preset-row">
+      <button class="btn btn-secondary btn-sm" id="presetBtn">Load example</button>
+      <button class="btn btn-secondary btn-sm" id="clearBtn">Clear</button>
+    </div>
+
+    <div class="two-col">
+      <section class="field-set">
+        <div class="section-title">Flow Curve Data</div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Blows, N</th><th>Moisture, w (%)</th><th></th></tr></thead>
+            <tbody id="ptsBody"></tbody>
+          </table>
         </div>
+        <div class="table-actions"><button class="btn" id="addBtn">+ Add Data Point</button></div>
+      </section>
+
+      <section class="field-set">
+        <div class="section-title">Additional Limits (optional)</div>
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="PL">Plastic Limit, PL (%)</label>
+          <input type="number" id="PL" step="0.1" placeholder="e.g. 20">
+          <span class="hint">Needed for the Plasticity Index (PI).</span>
+        </div>
+        <div class="form-group">
+          <label for="wn">Natural Moisture Content, w<sub>n</sub> (%)</label>
+          <input type="number" id="wn" step="0.1" placeholder="e.g. 30">
+          <span class="hint">Needed, together with PL, for the Liquidity Index (LI).</span>
+        </div>
+      </section>
     </div>
 
-    <div class="chart-container hidden" id="chartContainer">
-        <canvas id="pressureChart"></canvas>
+    <div id="msg" class="msg"></div>
+
+    <div id="resultsArea" class="hidden">
+      <div class="section-title" style="margin-top: 8px;">Results</div>
+      <div class="results-grid">
+        <div class="stat-box"><div class="stat-label">Liquid Limit, LL</div><div class="stat-val big" id="outLL">-</div><div class="stat-sub">% at N = 25</div></div>
+        <div class="stat-box"><div class="stat-label">Flow Index, I<sub>f</sub></div><div class="stat-val big" id="outIf">-</div><div class="stat-sub">% per log cycle</div></div>
+        <div class="stat-box"><div class="stat-label">Plasticity Index, PI</div><div class="stat-val big" id="outPI">-</div><div class="stat-sub" id="outPISub">%</div></div>
+        <div class="stat-box"><div class="stat-label">Liquidity Index, LI</div><div class="stat-val big" id="outLI">-</div><div class="stat-sub" id="outLISub"></div></div>
+      </div>
+      <div class="chart-container"><canvas id="flowChart"></canvas></div>
     </div>
-    <div class="note">
-        * This tool assumes cohesionless soil (c' = 0). Water pressure and uniform surcharge are added to the effective earth pressure if present.
+
+    <div class="formula-box">
+      <h4>Formulation</h4>
+      Flow curve: \( w = -I_f \log_{10}(N) + C \) &nbsp;(least squares on \( \log_{10} N \)).<br>
+      \( LL = w \) at \( N = 25 \), \( PI = LL - PL \), \( LI = \dfrac{w_n - PL}{PI} \).
     </div>
 
     <p class="support-note">Free and open-source. You can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a> to support this project.</p>
@@ -724,259 +700,134 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 
 <script>
 
-    let pressureChart = null;
+const ptsBody = document.getElementById('ptsBody');
+const EXAMPLE = { pts: [[15, 46.5], [22, 44.8], [30, 43.1], [35, 42.2]], PL: 22, wn: 35 };
+let chart = null;
 
-    function updateToggles() {
-        document.getElementById('formula-container').classList.toggle('hidden', !document.getElementById('toggleFormula').checked);
-        document.getElementById('gw-row').classList.toggle('hidden', !document.getElementById('toggleGW').checked);
-        document.getElementById('surcharge-row').classList.toggle('hidden', !document.getElementById('toggleSurcharge').checked);
-    }
+function addRow(n, w) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><input type="number" class="p-n" step="1" min="1" placeholder="e.g. 25" value="${n ?? ''}"></td>
+    <td><input type="number" class="p-w" step="0.1" placeholder="e.g. 45" value="${w ?? ''}"></td>
+    <td style="text-align:center;"><button class="btn btn-danger btn-sm" aria-label="Remove point">&times;</button></td>`;
+  tr.querySelector('button').addEventListener('click', () => {
+    if (ptsBody.children.length > 2) { tr.remove(); update(); }
+  });
+  ptsBody.appendChild(tr);
+}
 
-    function updateUI() {
-        const method = document.getElementById('method').value;
-        const state = document.getElementById('state').value;
-        const useGW = document.getElementById('toggleGW').checked;
-        
-        document.getElementById('coulomb-group').classList.toggle('hidden', method !== 'coulomb' || state === 'at_rest');
-        
-        let formula = "";
-        if (state === 'at_rest') {
-            formula = "$$ K_o = (1 - \\sin\\phi)(1 + \\sin\\beta) $$";
-            formula += "<br>$$ P = \\frac{1}{2} \\gamma H^2 K_o $$";
-        } else if (method === 'rankine') {
-            if (state === 'active') {
-                formula = "$$ K_a = \\cos\\beta \\frac{\\cos\\beta - \\sqrt{\\cos^2\\beta - \\cos^2\\phi}}{\\cos\\beta + \\sqrt{\\cos^2\\beta - \\cos^2\\phi}} $$";
-            } else {
-                formula = "$$ K_p = \\cos\\beta \\frac{\\cos\\beta + \\sqrt{\\cos^2\\beta - \\cos^2\\phi}}{\\cos\\beta - \\sqrt{\\cos^2\\beta - \\cos^2\\phi}} $$";
-            }
-            formula += "<br>$$ P = \\frac{1}{2} \\gamma H^2 K $$";
-        } else {
-            if (state === 'active') {
-                formula = "$$ K_a = \\frac{\\sin^2(\\theta + \\phi)}{\\sin^2\\theta \\sin(\\theta - \\delta) \\left[1 + \\sqrt{\\frac{\\sin(\\phi + \\delta)\\sin(\\phi - \\beta)}{\\sin(\\theta - \\delta)\\sin(\\theta + \\beta)}}\\right]^2} $$";
-            } else {
-                formula = "$$ K_p = \\frac{\\sin^2(\\theta - \\phi)}{\\sin^2\\theta \\sin(\\theta + \\delta) \\left[1 - \\sqrt{\\frac{\\sin(\\phi + \\delta)\\sin(\\phi + \\beta)}{\\sin(\\theta + \\delta)\\sin(\\theta + \\beta)}}\\right]^2} $$";
-            }
-            formula += "<br>$$ P = \\frac{1}{2} \\gamma H^2 K $$";
-        }
-        
-        const container = document.getElementById('formula-container');
-        container.innerHTML = formula;
-        
-        if (window.MathJax) {
-            MathJax.typesetPromise([container]).catch(err => console.error('MathJax typeset failed:', err));
-        }
-    }
+function setExample() {
+  ptsBody.innerHTML = '';
+  EXAMPLE.pts.forEach(p => addRow(p[0], p[1]));
+  document.getElementById('PL').value = EXAMPLE.PL;
+  document.getElementById('wn').value = EXAMPLE.wn;
+  update();
+}
 
-    function calculatePressure() {
-        document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+function clearAll() {
+  ptsBody.innerHTML = '';
+  for (let i = 0; i < 3; i++) addRow();
+  document.getElementById('PL').value = '';
+  document.getElementById('wn').value = '';
+  update();
+}
 
-        const method = document.getElementById('method').value;
-        const state = document.getElementById('state').value;
-        
-        const H = parseFloat(document.getElementById('heightH').value);
-        const gamma = parseFloat(document.getElementById('gamma').value);
-        const phi = parseFloat(document.getElementById('phi').value);
-        const beta = parseFloat(document.getElementById('beta').value) || 0;
-        const useGW = document.getElementById('toggleGW').checked;
-        const useSurcharge = document.getElementById('toggleSurcharge').checked;
-        const q = useSurcharge ? (parseFloat(document.getElementById('surchargeQ').value) || 0) : 0;
+function numOrNull(id) {
+  const v = document.getElementById(id).value.trim();
+  return v === '' ? null : parseFloat(v);
+}
 
-        const reqIds = ['heightH', 'gamma', 'phi'];
-        if (method === 'coulomb' && state !== 'at_rest') {
-            reqIds.push('theta', 'delta');
-        }
-        if (useGW) {
-            reqIds.push('waterTableDw', 'gammaSat', 'gammaW');
-        }
-        if (useSurcharge) {
-            reqIds.push('surchargeQ');
-        }
-        
-        reqIds.forEach(id => {
-            const el = document.getElementById(id);
-            if (el && el.value.trim() === '') el.classList.add('input-error');
-        });
-        
-        document.getElementById('resultBox').classList.remove('hidden');
-        document.getElementById('chartContainer').classList.add('hidden');
+function fitFlowCurve(pts) {
+  let sx = 0, sy = 0, sxy = 0, sx2 = 0;
+  const n = pts.length;
+  pts.forEach(p => {
+    const x = Math.log10(p.n), y = p.w;
+    sx += x; sy += y; sxy += x * y; sx2 += x * x;
+  });
+  const den = n * sx2 - sx * sx;
+  if (Math.abs(den) < 1e-12) return null;
+  const m = (n * sxy - sx * sy) / den;
+  return { m, c: (sy - m * sx) / n };
+}
 
-        if (isNaN(H) || isNaN(gamma) || isNaN(phi)) {
-            document.getElementById('resultForce').innerHTML = "---";
-            document.getElementById('calcK').innerText = "K = ---";
-            return;
-        }
+function update() {
+  const pts = [];
+  ptsBody.querySelectorAll('tr').forEach(tr => {
+    const n = parseFloat(tr.querySelector('.p-n').value);
+    const w = parseFloat(tr.querySelector('.p-w').value);
+    if (!isNaN(n) && !isNaN(w) && n > 0) pts.push({ n, w });
+  });
 
-        if (beta > phi) {
-            document.getElementById('resultForce').innerHTML = "Error: β > φ";
-            document.getElementById('calcK').innerText = "Slope cannot exceed friction angle.";
-            return;
-        }
+  const msg = document.getElementById('msg');
+  const area = document.getElementById('resultsArea');
+  msg.className = 'msg';
+  if (pts.length < 2) {
+    msg.textContent = 'Enter at least 2 valid data points (blows > 0) to see the results and flow curve.';
+    msg.classList.remove('hidden');
+    area.classList.add('hidden');
+    return;
+  }
+  const fit = fitFlowCurve(pts);
+  if (!fit) {
+    msg.textContent = 'The blow counts must not all be the same: the flow curve needs at least two different values of N.';
+    msg.classList.add('error');
+    area.classList.add('hidden');
+    return;
+  }
+  msg.classList.add('hidden');
+  area.classList.remove('hidden');
 
-        const phiRad = phi * Math.PI / 180;
-        const betaRad = beta * Math.PI / 180;
-        let K = 0;
+  const { m, c } = fit;
+  const LL = m * Math.log10(25) + c;
+  const PL = numOrNull('PL');
+  const wn = numOrNull('wn');
+  const PI = PL !== null ? LL - PL : null;
+  const LI = PI !== null && PI > 0 && wn !== null ? (wn - PL) / PI : null;
 
-        if (state === 'at_rest') {
-            K = (1 - Math.sin(phiRad)) * (1 + Math.sin(betaRad));
-        } else if (method === 'rankine') {
-            const cosBeta = Math.cos(betaRad);
-            const rootTerm = Math.sqrt(Math.pow(cosBeta, 2) - Math.pow(Math.cos(phiRad), 2));
-            K = state === 'active' ? cosBeta * ((cosBeta - rootTerm) / (cosBeta + rootTerm)) : cosBeta * ((cosBeta + rootTerm) / (cosBeta - rootTerm));
-        } else {
-            const theta = parseFloat(document.getElementById('theta').value) || 90;
-            const delta = parseFloat(document.getElementById('delta').value) || 0;
-            const thetaRad = theta * Math.PI / 180;
-            const deltaRad = delta * Math.PI / 180;
-            
-            if (state === 'active') {
-                const term = 1 + Math.sqrt((Math.sin(phiRad + deltaRad) * Math.sin(phiRad - betaRad)) / (Math.sin(thetaRad - deltaRad) * Math.sin(thetaRad + betaRad)));
-                K = Math.pow(Math.sin(thetaRad + phiRad), 2) / (Math.pow(Math.sin(thetaRad), 2) * Math.sin(thetaRad - deltaRad) * Math.pow(term, 2));
-            } else {
-                const term = 1 - Math.sqrt((Math.sin(phiRad + deltaRad) * Math.sin(phiRad + betaRad)) / (Math.sin(thetaRad + deltaRad) * Math.sin(thetaRad + betaRad)));
-                K = Math.pow(Math.sin(thetaRad - phiRad), 2) / (Math.pow(Math.sin(thetaRad), 2) * Math.sin(thetaRad + deltaRad) * Math.pow(term, 2));
-            }
-        }
+  document.getElementById('outLL').textContent = LL.toFixed(1);
+  document.getElementById('outIf').textContent = Math.abs(m).toFixed(2);
+  document.getElementById('outPI').textContent = PI !== null ? PI.toFixed(1) : 'Need PL';
+  document.getElementById('outPISub').textContent = PI !== null ? '%' : '';
+  document.getElementById('outLI').textContent = LI !== null ? LI.toFixed(2) : (PI !== null && PI <= 0 ? 'PI ≤ 0' : 'Need w\u2099 & PL');
 
-        let Dw = parseFloat(document.getElementById('waterTableDw').value);
-        let gammaSat = parseFloat(document.getElementById('gammaSat').value) || gamma;
-        let gammaW = parseFloat(document.getElementById('gammaW').value) || 9.81;
-        
-        let depths = [0];
-        let sig_v_eff = [0];
-        let pore_u = [0];
-        
-        if (!useGW || isNaN(Dw) || Dw >= H) {
-            depths.push(H);
-            sig_v_eff.push(gamma * H);
-            pore_u.push(0);
-        } else if (Dw <= 0) {
-            let gamma_sub = gammaSat - gammaW;
-            depths.push(H);
-            sig_v_eff.push(gamma_sub * H);
-            pore_u.push(gammaW * H);
-        } else {
-            depths.push(Dw);
-            sig_v_eff.push(gamma * Dw);
-            pore_u.push(0);
-            
-            let gamma_sub = gammaSat - gammaW;
-            depths.push(H);
-            sig_v_eff.push(gamma * Dw + gamma_sub * (H - Dw));
-            pore_u.push(gammaW * (H - Dw));
-        }
-        
-        let p_earth = sig_v_eff.map(sig => (sig + q) * K);
-        let p_water = pore_u;
-        let p_total = p_earth.map((pe, i) => pe + p_water[i]);
+  plot(pts, m, c, LL);
+}
 
-        let P_earth = 0;
-        let P_water = 0;
-        for (let i = 1; i < depths.length; i++) {
-            let dz = depths[i] - depths[i-1];
-            P_earth += 0.5 * (p_earth[i-1] + p_earth[i]) * dz;
-            P_water += 0.5 * (p_water[i-1] + p_water[i]) * dz;
-        }
-        let P_tot = P_earth + P_water;
-        let P_surcharge = useSurcharge ? (q * K * H) : 0;
-        let P_soil = P_earth - P_surcharge;
+function plot(pts, m, c, LL) {
+  const S = window.GEO_SERIES;
+  const lo = Math.max(1, Math.min(10, Math.floor(Math.min(...pts.map(p => p.n)) * 0.8)));
+  const hi = Math.max(50, Math.ceil(Math.max(...pts.map(p => p.n)) * 1.2));
+  const curve = [];
+  for (let x = lo; x <= hi; x += 0.5) curve.push({ x, y: m * Math.log10(x) + c });
 
-        const kLabel = state === 'active' ? 'Ka' : (state === 'passive' ? 'Kp' : 'Ko');
-        
-        let resultText = P_tot.toFixed(2) + " <span style='font-size: 1rem; font-weight: normal;'>kN/m</span>";
-        
-        let breakdown = [];
-        breakdown.push(`Soil: ${P_soil.toFixed(2)} kN/m`);
-        if (useGW && P_water > 0) breakdown.push(`Water: ${P_water.toFixed(2)} kN/m`);
-        if (useSurcharge && P_surcharge > 0) breakdown.push(`Surcharge: ${P_surcharge.toFixed(2)} kN/m`);
-        
-        if (breakdown.length > 1) {
-            resultText += `<br><small style="font-size: 0.95rem; font-weight: normal; color: #555;">(${breakdown.join(' | ')})</small>`;
-        }
-        
-        document.getElementById('resultForce').innerHTML = resultText;
-        document.getElementById('calcK').innerText = `${kLabel} = ${K.toFixed(4)}`;
-        
-        plotPressureChart(depths, p_earth, p_water, p_total);
-    }
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById('flowChart'), {
+    type: 'scatter',
+    data: {
+      datasets: [
+        { label: 'Flow curve (best fit)', data: curve, borderColor: S[0], showLine: true, pointRadius: 0 },
+        { label: 'Data points', data: pts.map(p => ({ x: p.n, y: p.w })), backgroundColor: S[3], borderColor: '#ffffff', borderWidth: 2, pointRadius: 6, showLine: false },
+        { label: `Liquid limit = ${LL.toFixed(1)}% (N = 25)`, data: [{ x: 25, y: LL }], backgroundColor: S[1], borderColor: '#ffffff', borderWidth: 2, pointRadius: 8, pointStyle: 'rectRot', showLine: false },
+      ],
+    },
+    options: {
+      plugins: {
+        title: { display: true, text: 'Flow curve (semi-logarithmic)' },
+        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: N = ${ctx.parsed.x.toFixed(1)}, w = ${ctx.parsed.y.toFixed(1)}%` } },
+      },
+      scales: {
+        x: { type: 'logarithmic', min: lo, max: hi, title: { display: true, text: 'Number of blows, N (log scale)' } },
+        y: { title: { display: true, text: 'Water content, w (%)' } },
+      },
+    },
+  });
+}
 
-    function plotPressureChart(depths, p_earth, p_water, p_total) {
-        document.getElementById('chartContainer').classList.remove('hidden');
-        const ctx = document.getElementById('pressureChart').getContext('2d');
-
-        if (pressureChart) {
-            pressureChart.destroy();
-        }
-
-        let datasets = [
-            {
-                label: 'Effective Earth Pressure',
-                data: depths.map((d, i) => ({ x: p_earth[i], y: d })),
-                borderColor: '#8c564b',
-                backgroundColor: 'rgba(140, 86, 75, 0.2)',
-                borderWidth: 2,
-                showLine: true,
-                pointRadius: 3
-            }
-        ];
-
-        if (document.getElementById('toggleGW').checked && p_water[p_water.length - 1] > 0) {
-            datasets.push({
-                label: 'Pore Water Pressure',
-                data: depths.map((d, i) => ({ x: p_water[i], y: d })),
-                borderColor: '#1f77b4',
-                backgroundColor: 'rgba(31, 119, 180, 0.2)',
-                borderWidth: 2,
-                showLine: true,
-                borderDash: (typeof idx !== "undefined" ? DASH_PATTERNS[idx % DASH_PATTERNS.length] : (typeof i !== "undefined" ? DASH_PATTERNS[i % DASH_PATTERNS.length] : [5,5])),
-                pointRadius: 3
-            });
-            datasets.push({
-                label: 'Total Lateral Pressure',
-                data: depths.map((d, i) => ({ x: p_total[i], y: d })),
-                borderColor: '#d62728',
-                backgroundColor: 'rgba(214, 39, 40, 0.2)',
-                borderWidth: 3,
-                showLine: true,
-                pointRadius: 4
-            });
-        }
-
-        pressureChart = new Chart(ctx, {
-            type: 'scatter',
-            data: { datasets: datasets },
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        type: 'linear',
-                        position: 'top',
-                        title: { display: true, text: 'Lateral Pressure (kPa)' },
-                        min: 0
-                    },
-                    y: {
-                        type: 'linear',
-                        title: { display: true, text: 'Depth from top of wall (m)' },
-                        reverse: true,
-                        min: 0
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: { label: (context) => context.dataset.label + ': ' + context.parsed.x.toFixed(2) + ' at depth ' + context.parsed.y.toFixed(2) }
-                    }
-                }
-            }
-        });
-    }
-
-    updateToggles();
-    updateUI();
-
-    document.addEventListener('input', function(e) {
-        if (e.target.classList && e.target.classList.contains('input-error')) {
-            e.target.classList.remove('input-error');
-        }
-    });
+document.getElementById('presetBtn').addEventListener('click', setExample);
+document.getElementById('clearBtn').addEventListener('click', clearAll);
+document.getElementById('addBtn').addEventListener('click', () => addRow());
+document.addEventListener('input', update);
+setExample();
 
 </script>
 

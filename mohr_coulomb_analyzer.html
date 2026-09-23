@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Rankine and Coulomb active, passive and at-rest coefficients with surcharge, groundwater and resultant thrust diagrams.">
-<title>Lateral Earth Pressure Calculator | Geotechnical Tools</title>
+<meta name="description" content="Fit the Mohr-Coulomb failure envelope to triaxial test stages: effective cohesion, friction angle, regression R2 and Mohr circles.">
+<title>Mohr-Coulomb Failure Envelope Analyzer | Geotechnical Tools</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <script>
 const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2,2,2], [3,3], [8,4]];
 
@@ -594,7 +594,23 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
     /* ==========================================================================
        Page-specific styles
        ========================================================================== */
-    .factors-row { display: flex; justify-content: center; gap: 2rem; margin-top: 0.5rem; font-size: 0.95rem; color: #444; }
+    .preset-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+    .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 18px; margin-bottom: 18px; }
+    .two-col > * { margin: 0; min-width: 0; }
+    .msg { margin: 18px 0 0; padding: 14px 16px; text-align: center; color: var(--text-muted); background: var(--background); border: 1px dashed var(--border); border-radius: var(--radius); font-size: 13px; }
+    .msg.error { color: var(--danger); background: var(--danger-bg); border-color: #fecaca; border-style: solid; }
+    .stat-val.big { font-size: 26px; }
+    .stat-val small { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+    .factor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-top: 12px; }
+    .seg { display: flex; gap: 6px; padding: 4px; background: var(--surface-alt); border-radius: 10px; margin-bottom: 14px; }
+    .seg button { flex: 1; background: transparent; color: var(--text-muted); }
+    .seg button:hover:not(.on) { background: #e2e8f0; }
+    .seg button.on { background: var(--surface); color: var(--primary-dark); box-shadow: 0 1px 2px rgb(0 0 0 / 0.1); }
+    ol.steps { margin: 0; padding-left: 20px; font-family: var(--mono); font-size: 12px; color: var(--text-muted); }
+    ol.steps li { margin-bottom: 6px; }
+
+    .chart-container { height: auto; }
+    .chart-container canvas { width: 100% !important; }
   </style>
 </head>
 <body>
@@ -603,102 +619,48 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 
   <header class="tool-header">
     <a class="back-link" href="index.html">&larr; All calculators</a>
-    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#FFFBEB" /> <rect x="18" y="12" width="6" height="42" rx="1.5" fill="#D97706" /> <path d="M24 16L48 54H24V16Z" fill="#F59E0B" fill-opacity="0.25" stroke="#F59E0B" stroke-width="2" /> <path d="M44 48H28M28 48L32 45M28 48L32 51" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M36 36H28M28 36L31 33.5M28 36L31 38.5" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M30 25H28M28 25L30 23M28 25L30 27" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> </svg> Lateral Earth Pressure Calculator</h1>
-    <p class="subtitle">Rankine and Coulomb active, passive and at-rest coefficients with surcharge, groundwater and resultant thrust diagrams.</p>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="14" fill="#F5F3FF"/><path d="M10 50H56" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round"/><path d="M12 50A14 14 0 0 1 40 50" stroke="#7C3AED" stroke-width="2.5"/><path d="M26 50A14 14 0 0 1 54 50" stroke="#7C3AED" stroke-width="2.5"/><path d="M10 40L56 16" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round"/></svg> Mohr-Coulomb Failure Envelope Analyzer</h1>
+    <p class="subtitle">Determine the effective cohesion (c') and friction angle (&phi;') from triaxial test stages by linear regression of &sigma;<sub>1</sub> on &sigma;<sub>3</sub>, and plot the Mohr circles with the failure envelope.</p>
   </header>
 
   <main class="card">
-    <section class="field-set">  <div class="form-row" style="background: #e8f4fd; padding: 10px; border-radius: 6px; justify-content: flex-start; gap: 1.5rem; margin-bottom: 1.5rem;">
-          <label style="margin: 0; display: flex; align-items: center; gap: 5px; cursor: pointer;">
-              <input type="checkbox" id="toggleGW" onchange="updateToggles()"> Groundwater Effects
-          </label>
-          <label style="margin: 0; display: flex; align-items: center; gap: 5px; cursor: pointer;">
-              <input type="checkbox" id="toggleSurcharge" onchange="updateToggles()"> Surcharge Load
-          </label>
-      </div><div class="form-row">
-          <div class="form-group">
-              <label for="method">Theory / Method</label>
-              <select id="method" onchange="updateUI()">
-                  <option value="rankine">Rankine</option>
-                  <option value="coulomb">Coulomb</option>
-              </select>
-          </div>
-          <div class="form-group">
-              <label for="state">Earth Pressure State</label>
-              <select id="state" onchange="updateUI()">
-                  <option value="active">Active (Ka)</option>
-                  <option value="passive">Passive (Kp)</option>
-                  <option value="at_rest">At Rest (Ko)</option>
-              </select>
-          </div>
-      </div><div class="form-row">
-          <div class="form-group">
-              <label for="heightH">Wall Height (H) [m]</label>
-              <input type="number" id="heightH" step="any" placeholder="e.g., 5.0 m">
-          </div>
-          <div class="form-group">
-              <label for="gamma">Soil Unit Weight (γ) [kN/m³]</label>
-              <input type="number" id="gamma" step="any" placeholder="e.g., 18 kN/m³">
-          </div>
-      </div><div class="form-row">
-          <div class="form-group">
-              <label for="phi">Friction Angle (φ&deg;)</label>
-              <input type="number" id="phi" step="any" min="0" max="60" placeholder="e.g., 30">
-          </div>
-          <div class="form-group">
-              <label for="beta">Backfill Slope (β&deg;)</label>
-              <input type="number" id="beta" step="any" min="0" max="60" value="0">
-          </div>
-      </div><div class="form-row hidden" id="coulomb-group">
-          <div class="form-group">
-              <label for="theta">Wall Angle from Horizontal (θ&deg;)</label>
-              <input type="number" id="theta" step="any" min="10" max="170" placeholder="e.g., 90 (vertical)">
-          </div>
-          <div class="form-group">
-              <label for="delta">Wall Friction Angle (δ&deg;)</label>
-              <input type="number" id="delta" step="any" min="0" max="60" placeholder="e.g., 20">
-          </div>
-      </div><div class="form-row hidden" id="gw-row">
-          <div class="form-group">
-              <label for="waterTableDw">Depth to Water Table (D<sub>w</sub>) [m]</label>
-              <input type="number" id="waterTableDw" step="any" placeholder="e.g., 2.0 m">
-          </div>
-          <div class="form-group">
-              <label for="gammaSat">Sat. Unit Weight (γ<sub>sat</sub>) [kN/m³]</label>
-              <input type="number" id="gammaSat" step="any" placeholder="e.g., 20 kN/m³">
-          </div>
-          <div class="form-group">
-              <label for="gammaW">Unit Wt. Water (γ<sub>w</sub>) [kN/m³]</label>
-              <input type="number" id="gammaW" step="any" value="9.81">
-          </div>
-      </div><div class="form-row hidden" id="surcharge-row">
-          <div class="form-group">
-              <label for="surchargeQ">Uniform Surcharge (q) [kPa]</label>
-              <input type="number" id="surchargeQ" step="any" placeholder="e.g., 10 kPa">
-          </div>
-      </div><div style="text-align: left; margin-bottom: 1rem;">
-          <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
-              <input type="checkbox" id="toggleFormula" onchange="updateToggles()"> Show Formulas
-          </label>
+
+    <p>Enter the effective principal stresses at failure for each test stage (&sigma;<sub>3</sub> = confining stress, &sigma;<sub>1</sub> = major principal stress), all in the same stress unit. At least two stages with different confining stresses are required.</p>
+
+    <div class="preset-row">
+      <button class="btn btn-secondary btn-sm" data-preset="0">Triaxial CU on clay</button>
+      <button class="btn btn-secondary btn-sm" data-preset="1">Clean sand</button>
+      <button class="btn btn-secondary btn-sm" id="clearBtn">Clear</button>
+    </div>
+
+    <section class="field-set">
+      <div class="section-title">Test Stages</div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Stage</th><th>&sigma;<sub>3</sub> (kPa)</th><th>&sigma;<sub>1</sub> at failure (kPa)</th><th></th></tr></thead>
+          <tbody id="ptsBody"></tbody>
+        </table>
       </div>
+      <div class="table-actions"><button class="btn" id="addBtn">+ Add Stage</button></div>
     </section>
-<div class="formula-box" id="formula-container">
-        <!-- LaTeX formula injected here -->
-    </div><button onclick="calculatePressure()" class="calc-btn">Calculate Earth Pressure</button>
 
-    <div class="result-box hidden" id="resultBox">
-        <div id="resultLabel">Total Lateral Force (P)</div>
-        <div class="result-value" id="resultForce" style="line-height: 1.2;">---</div>
-        <div class="factors-row">
-            <span id="calcK">K = ---</span>
-        </div>
+    <div id="msg" class="msg"></div>
+
+    <div id="resultsArea" class="hidden">
+      <div class="section-title" style="margin-top: 8px;">Results</div>
+      <div class="results-grid">
+        <div class="stat-box"><div class="stat-label">Effective cohesion, c'</div><div class="stat-val big" id="outC">-</div><div class="stat-sub">kPa</div></div>
+        <div class="stat-box"><div class="stat-label">Friction angle, &phi;'</div><div class="stat-val big" id="outPhi">-</div><div class="stat-sub">degrees</div></div>
+        <div class="stat-box"><div class="stat-label">Regression fit, R&sup2;</div><div class="stat-val big" id="outR2">-</div><div class="stat-sub" id="outFit"></div></div>
+      </div>
+      <div class="chart-container"><canvas id="mcChart"></canvas></div>
     </div>
 
-    <div class="chart-container hidden" id="chartContainer">
-        <canvas id="pressureChart"></canvas>
-    </div>
-    <div class="note">
-        * This tool assumes cohesionless soil (c' = 0). Water pressure and uniform surcharge are added to the effective earth pressure if present.
+    <div class="formula-box">
+      <h4>Formulation</h4>
+      Failure envelope: \( \tau = c' + \sigma' \tan\phi' \).<br>
+      Regression on the stages: \( \sigma_1 = m\,\sigma_3 + b \), with \( m = \tan^2(45^\circ + \phi'/2) \) and \( b = 2c'\tan(45^\circ + \phi'/2) \).<br>
+      Hence \( \sin\phi' = \dfrac{m-1}{m+1} \) and \( c' = \dfrac{b}{2\sqrt{m}} \) (negative values are clamped to zero).
     </div>
 
     <p class="support-note">Free and open-source. You can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a> to support this project.</p>
@@ -724,259 +686,147 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 
 <script>
 
-    let pressureChart = null;
+const ptsBody = document.getElementById('ptsBody');
+const PRESETS = [
+  [[100, 300], [200, 520], [300, 750]],
+  [[50, 150], [100, 300], [200, 600]],
+];
+let chart = null;
 
-    function updateToggles() {
-        document.getElementById('formula-container').classList.toggle('hidden', !document.getElementById('toggleFormula').checked);
-        document.getElementById('gw-row').classList.toggle('hidden', !document.getElementById('toggleGW').checked);
-        document.getElementById('surcharge-row').classList.toggle('hidden', !document.getElementById('toggleSurcharge').checked);
-    }
+function renumber() {
+  ptsBody.querySelectorAll('tr').forEach((tr, i) => { tr.querySelector('.stage').textContent = i + 1; });
+}
 
-    function updateUI() {
-        const method = document.getElementById('method').value;
-        const state = document.getElementById('state').value;
-        const useGW = document.getElementById('toggleGW').checked;
-        
-        document.getElementById('coulomb-group').classList.toggle('hidden', method !== 'coulomb' || state === 'at_rest');
-        
-        let formula = "";
-        if (state === 'at_rest') {
-            formula = "$$ K_o = (1 - \\sin\\phi)(1 + \\sin\\beta) $$";
-            formula += "<br>$$ P = \\frac{1}{2} \\gamma H^2 K_o $$";
-        } else if (method === 'rankine') {
-            if (state === 'active') {
-                formula = "$$ K_a = \\cos\\beta \\frac{\\cos\\beta - \\sqrt{\\cos^2\\beta - \\cos^2\\phi}}{\\cos\\beta + \\sqrt{\\cos^2\\beta - \\cos^2\\phi}} $$";
-            } else {
-                formula = "$$ K_p = \\cos\\beta \\frac{\\cos\\beta + \\sqrt{\\cos^2\\beta - \\cos^2\\phi}}{\\cos\\beta - \\sqrt{\\cos^2\\beta - \\cos^2\\phi}} $$";
-            }
-            formula += "<br>$$ P = \\frac{1}{2} \\gamma H^2 K $$";
-        } else {
-            if (state === 'active') {
-                formula = "$$ K_a = \\frac{\\sin^2(\\theta + \\phi)}{\\sin^2\\theta \\sin(\\theta - \\delta) \\left[1 + \\sqrt{\\frac{\\sin(\\phi + \\delta)\\sin(\\phi - \\beta)}{\\sin(\\theta - \\delta)\\sin(\\theta + \\beta)}}\\right]^2} $$";
-            } else {
-                formula = "$$ K_p = \\frac{\\sin^2(\\theta - \\phi)}{\\sin^2\\theta \\sin(\\theta + \\delta) \\left[1 - \\sqrt{\\frac{\\sin(\\phi + \\delta)\\sin(\\phi + \\beta)}{\\sin(\\theta + \\delta)\\sin(\\theta + \\beta)}}\\right]^2} $$";
-            }
-            formula += "<br>$$ P = \\frac{1}{2} \\gamma H^2 K $$";
-        }
-        
-        const container = document.getElementById('formula-container');
-        container.innerHTML = formula;
-        
-        if (window.MathJax) {
-            MathJax.typesetPromise([container]).catch(err => console.error('MathJax typeset failed:', err));
-        }
-    }
+function addRow(s3, s1) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td class="stage"></td>
+    <td><input type="number" class="s3" step="1" min="0" value="${s3 ?? ''}" placeholder="e.g. 100"></td>
+    <td><input type="number" class="s1" step="1" min="0" value="${s1 ?? ''}" placeholder="e.g. 300"></td>
+    <td style="text-align:center;"><button class="btn btn-danger btn-sm" aria-label="Remove stage">&times;</button></td>`;
+  tr.querySelector('button').addEventListener('click', () => { tr.remove(); renumber(); update(); });
+  ptsBody.appendChild(tr);
+  renumber();
+}
 
-    function calculatePressure() {
-        document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+function load(rows) {
+  ptsBody.innerHTML = '';
+  rows.forEach(r => addRow(r[0], r[1]));
+  update();
+}
 
-        const method = document.getElementById('method').value;
-        const state = document.getElementById('state').value;
-        
-        const H = parseFloat(document.getElementById('heightH').value);
-        const gamma = parseFloat(document.getElementById('gamma').value);
-        const phi = parseFloat(document.getElementById('phi').value);
-        const beta = parseFloat(document.getElementById('beta').value) || 0;
-        const useGW = document.getElementById('toggleGW').checked;
-        const useSurcharge = document.getElementById('toggleSurcharge').checked;
-        const q = useSurcharge ? (parseFloat(document.getElementById('surchargeQ').value) || 0) : 0;
+// least squares of sigma1 on sigma3 -> Mohr-Coulomb parameters (port of lib/calculations/mohrCoulomb.ts)
+function analyze(points) {
+  if (points.length < 2) return { error: 'At least two test stages are required for the regression.' };
+  let sx = 0, sy = 0, sxy = 0, sx2 = 0, sy2 = 0;
+  const n = points.length;
+  points.forEach(p => { sx += p.s3; sy += p.s1; sxy += p.s3 * p.s1; sx2 += p.s3 * p.s3; sy2 += p.s1 * p.s1; });
+  const den = n * sx2 - sx * sx;
+  if (den === 0) return { error: 'Cannot fit the envelope: all σ3 values are identical.' };
+  const m = (n * sxy - sx * sy) / den;
+  const b = (sy - m * sx) / n;
+  const denR2 = den * (n * sy2 - sy * sy);
+  const r2 = denR2 !== 0 ? Math.pow(n * sxy - sx * sy, 2) / denR2 : 0;
+  if (m < 1) return { error: 'Invalid slope (m < 1): this gives a negative friction angle, which is physically impossible. Check that σ1 > σ3 and that the stress values are entered correctly.' };
+  const phi = Math.asin((m - 1) / (m + 1)) * 180 / Math.PI;
+  return { c: Math.max(0, b / (2 * Math.sqrt(m))), phi, r2, m, b };
+}
 
-        const reqIds = ['heightH', 'gamma', 'phi'];
-        if (method === 'coulomb' && state !== 'at_rest') {
-            reqIds.push('theta', 'delta');
-        }
-        if (useGW) {
-            reqIds.push('waterTableDw', 'gammaSat', 'gammaW');
-        }
-        if (useSurcharge) {
-            reqIds.push('surchargeQ');
-        }
-        
-        reqIds.forEach(id => {
-            const el = document.getElementById(id);
-            if (el && el.value.trim() === '') el.classList.add('input-error');
-        });
-        
-        document.getElementById('resultBox').classList.remove('hidden');
-        document.getElementById('chartContainer').classList.add('hidden');
+function circle(s3, s1, steps) {
+  steps = steps || 50;
+  const center = (s1 + s3) / 2, radius = (s1 - s3) / 2, pts = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = Math.PI * (1 - i / steps);
+    pts.push({ x: center - radius * Math.cos(t), y: radius * Math.sin(t) });
+  }
+  return pts;
+}
 
-        if (isNaN(H) || isNaN(gamma) || isNaN(phi)) {
-            document.getElementById('resultForce').innerHTML = "---";
-            document.getElementById('calcK').innerText = "K = ---";
-            return;
-        }
+function niceMax(v) {
+  const raw = v === 0 ? 100 : v * 1.15;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm = raw / mag;
+  const steps = [1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+  const nice = steps.find(s => norm <= s) || 10;
+  return Math.ceil(nice * mag);
+}
 
-        if (beta > phi) {
-            document.getElementById('resultForce').innerHTML = "Error: β > φ";
-            document.getElementById('calcK').innerText = "Slope cannot exceed friction angle.";
-            return;
-        }
+function update() {
+  const pts = [];
+  ptsBody.querySelectorAll('tr').forEach(tr => {
+    const s3 = parseFloat(tr.querySelector('.s3').value);
+    const s1 = parseFloat(tr.querySelector('.s1').value);
+    if (!isNaN(s3) && !isNaN(s1)) pts.push({ s3, s1 });
+  });
 
-        const phiRad = phi * Math.PI / 180;
-        const betaRad = beta * Math.PI / 180;
-        let K = 0;
+  const msg = document.getElementById('msg');
+  const area = document.getElementById('resultsArea');
+  const bad = pts.find(p => p.s1 <= p.s3 || p.s3 < 0);
+  const res = pts.length < 2 ? { error: 'Enter at least two test stages (σ3 and σ1) to fit the failure envelope.' } : analyze(pts);
+  if (res.error) {
+    msg.textContent = res.error;
+    msg.className = pts.length < 2 ? 'msg' : 'msg error';
+    area.classList.add('hidden');
+    return;
+  }
+  if (bad) {
+    msg.textContent = `Stage with σ3 = ${bad.s3} and σ1 = ${bad.s1}: σ1 must be greater than σ3, and σ3 cannot be negative.`;
+    msg.className = 'msg error';
+    area.classList.add('hidden');
+    return;
+  }
+  msg.className = 'msg hidden';
+  area.classList.remove('hidden');
 
-        if (state === 'at_rest') {
-            K = (1 - Math.sin(phiRad)) * (1 + Math.sin(betaRad));
-        } else if (method === 'rankine') {
-            const cosBeta = Math.cos(betaRad);
-            const rootTerm = Math.sqrt(Math.pow(cosBeta, 2) - Math.pow(Math.cos(phiRad), 2));
-            K = state === 'active' ? cosBeta * ((cosBeta - rootTerm) / (cosBeta + rootTerm)) : cosBeta * ((cosBeta + rootTerm) / (cosBeta - rootTerm));
-        } else {
-            const theta = parseFloat(document.getElementById('theta').value) || 90;
-            const delta = parseFloat(document.getElementById('delta').value) || 0;
-            const thetaRad = theta * Math.PI / 180;
-            const deltaRad = delta * Math.PI / 180;
-            
-            if (state === 'active') {
-                const term = 1 + Math.sqrt((Math.sin(phiRad + deltaRad) * Math.sin(phiRad - betaRad)) / (Math.sin(thetaRad - deltaRad) * Math.sin(thetaRad + betaRad)));
-                K = Math.pow(Math.sin(thetaRad + phiRad), 2) / (Math.pow(Math.sin(thetaRad), 2) * Math.sin(thetaRad - deltaRad) * Math.pow(term, 2));
-            } else {
-                const term = 1 - Math.sqrt((Math.sin(phiRad + deltaRad) * Math.sin(phiRad + betaRad)) / (Math.sin(thetaRad + deltaRad) * Math.sin(thetaRad + betaRad)));
-                K = Math.pow(Math.sin(thetaRad - phiRad), 2) / (Math.pow(Math.sin(thetaRad), 2) * Math.sin(thetaRad + deltaRad) * Math.pow(term, 2));
-            }
-        }
+  document.getElementById('outC').textContent = res.c.toFixed(2);
+  document.getElementById('outPhi').textContent = res.phi.toFixed(2);
+  document.getElementById('outR2').textContent = res.r2.toFixed(3);
+  document.getElementById('outFit').textContent = res.r2 >= 0.98 ? 'excellent' : res.r2 >= 0.9 ? 'good' : 'scattered data';
+  plot(pts, res);
+}
 
-        let Dw = parseFloat(document.getElementById('waterTableDw').value);
-        let gammaSat = parseFloat(document.getElementById('gammaSat').value) || gamma;
-        let gammaW = parseFloat(document.getElementById('gammaW').value) || 9.81;
-        
-        let depths = [0];
-        let sig_v_eff = [0];
-        let pore_u = [0];
-        
-        if (!useGW || isNaN(Dw) || Dw >= H) {
-            depths.push(H);
-            sig_v_eff.push(gamma * H);
-            pore_u.push(0);
-        } else if (Dw <= 0) {
-            let gamma_sub = gammaSat - gammaW;
-            depths.push(H);
-            sig_v_eff.push(gamma_sub * H);
-            pore_u.push(gammaW * H);
-        } else {
-            depths.push(Dw);
-            sig_v_eff.push(gamma * Dw);
-            pore_u.push(0);
-            
-            let gamma_sub = gammaSat - gammaW;
-            depths.push(H);
-            sig_v_eff.push(gamma * Dw + gamma_sub * (H - Dw));
-            pore_u.push(gammaW * (H - Dw));
-        }
-        
-        let p_earth = sig_v_eff.map(sig => (sig + q) * K);
-        let p_water = pore_u;
-        let p_total = p_earth.map((pe, i) => pe + p_water[i]);
-
-        let P_earth = 0;
-        let P_water = 0;
-        for (let i = 1; i < depths.length; i++) {
-            let dz = depths[i] - depths[i-1];
-            P_earth += 0.5 * (p_earth[i-1] + p_earth[i]) * dz;
-            P_water += 0.5 * (p_water[i-1] + p_water[i]) * dz;
-        }
-        let P_tot = P_earth + P_water;
-        let P_surcharge = useSurcharge ? (q * K * H) : 0;
-        let P_soil = P_earth - P_surcharge;
-
-        const kLabel = state === 'active' ? 'Ka' : (state === 'passive' ? 'Kp' : 'Ko');
-        
-        let resultText = P_tot.toFixed(2) + " <span style='font-size: 1rem; font-weight: normal;'>kN/m</span>";
-        
-        let breakdown = [];
-        breakdown.push(`Soil: ${P_soil.toFixed(2)} kN/m`);
-        if (useGW && P_water > 0) breakdown.push(`Water: ${P_water.toFixed(2)} kN/m`);
-        if (useSurcharge && P_surcharge > 0) breakdown.push(`Surcharge: ${P_surcharge.toFixed(2)} kN/m`);
-        
-        if (breakdown.length > 1) {
-            resultText += `<br><small style="font-size: 0.95rem; font-weight: normal; color: #555;">(${breakdown.join(' | ')})</small>`;
-        }
-        
-        document.getElementById('resultForce').innerHTML = resultText;
-        document.getElementById('calcK').innerText = `${kLabel} = ${K.toFixed(4)}`;
-        
-        plotPressureChart(depths, p_earth, p_water, p_total);
-    }
-
-    function plotPressureChart(depths, p_earth, p_water, p_total) {
-        document.getElementById('chartContainer').classList.remove('hidden');
-        const ctx = document.getElementById('pressureChart').getContext('2d');
-
-        if (pressureChart) {
-            pressureChart.destroy();
-        }
-
-        let datasets = [
-            {
-                label: 'Effective Earth Pressure',
-                data: depths.map((d, i) => ({ x: p_earth[i], y: d })),
-                borderColor: '#8c564b',
-                backgroundColor: 'rgba(140, 86, 75, 0.2)',
-                borderWidth: 2,
-                showLine: true,
-                pointRadius: 3
-            }
-        ];
-
-        if (document.getElementById('toggleGW').checked && p_water[p_water.length - 1] > 0) {
-            datasets.push({
-                label: 'Pore Water Pressure',
-                data: depths.map((d, i) => ({ x: p_water[i], y: d })),
-                borderColor: '#1f77b4',
-                backgroundColor: 'rgba(31, 119, 180, 0.2)',
-                borderWidth: 2,
-                showLine: true,
-                borderDash: (typeof idx !== "undefined" ? DASH_PATTERNS[idx % DASH_PATTERNS.length] : (typeof i !== "undefined" ? DASH_PATTERNS[i % DASH_PATTERNS.length] : [5,5])),
-                pointRadius: 3
-            });
-            datasets.push({
-                label: 'Total Lateral Pressure',
-                data: depths.map((d, i) => ({ x: p_total[i], y: d })),
-                borderColor: '#d62728',
-                backgroundColor: 'rgba(214, 39, 40, 0.2)',
-                borderWidth: 3,
-                showLine: true,
-                pointRadius: 4
-            });
-        }
-
-        pressureChart = new Chart(ctx, {
-            type: 'scatter',
-            data: { datasets: datasets },
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        type: 'linear',
-                        position: 'top',
-                        title: { display: true, text: 'Lateral Pressure (kPa)' },
-                        min: 0
-                    },
-                    y: {
-                        type: 'linear',
-                        title: { display: true, text: 'Depth from top of wall (m)' },
-                        reverse: true,
-                        min: 0
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: { label: (context) => context.dataset.label + ': ' + context.parsed.x.toFixed(2) + ' at depth ' + context.parsed.y.toFixed(2) }
-                    }
-                }
-            }
-        });
-    }
-
-    updateToggles();
-    updateUI();
-
-    document.addEventListener('input', function(e) {
-        if (e.target.classList && e.target.classList.contains('input-error')) {
-            e.target.classList.remove('input-error');
-        }
+function plot(pts, res) {
+  const S = window.GEO_SERIES;
+  const maxS1 = Math.max(...pts.map(p => p.s1));
+  const xMax = niceMax(maxS1);
+  const tanPhi = Math.tan(res.phi * Math.PI / 180);
+  const datasets = [{
+    label: "Failure envelope (τ = c' + σ' tan φ')",
+    data: [{ x: 0, y: res.c }, { x: xMax, y: res.c + xMax * tanPhi }],
+    borderColor: S[1], borderWidth: 2.5, borderDash: [6, 4], showLine: true, pointRadius: 0, order: 1,
+  }];
+  pts.forEach((p, i) => {
+    datasets.push({
+      label: `Stage ${i + 1} (σ3 = ${p.s3}, σ1 = ${p.s1})`,
+      data: circle(p.s3, p.s1), borderColor: S[0], borderWidth: 1.5, showLine: true, pointRadius: 0, order: 2,
     });
+  });
+
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById('mcChart'), {
+    type: 'scatter',
+    data: { datasets },
+    options: {
+      maintainAspectRatio: true,
+      aspectRatio: 2,
+      plugins: {
+        title: { display: true, text: 'Mohr circles and failure envelope' },
+        legend: { labels: { filter: item => item.text.indexOf('Failure envelope') === 0 } },
+        tooltip: { callbacks: { label: ctx => `(${ctx.parsed.x.toFixed(1)}, ${ctx.parsed.y.toFixed(1)})` } },
+      },
+      scales: {
+        x: { min: 0, max: xMax, title: { display: true, text: 'Normal stress, σ (kPa)' } },
+        y: { min: 0, max: xMax / 2, title: { display: true, text: 'Shear stress, τ (kPa)' } },
+      },
+    },
+  });
+}
+
+document.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => load(PRESETS[+b.dataset.preset])));
+document.getElementById('clearBtn').addEventListener('click', () => load([[null, null], [null, null], [null, null]]));
+document.getElementById('addBtn').addEventListener('click', () => addRow());
+document.addEventListener('input', update);
+load(PRESETS[0]);
 
 </script>
 
