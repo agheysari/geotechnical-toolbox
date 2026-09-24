@@ -2,7 +2,7 @@
 
 A collection of **35 standalone, client-side HTML/JavaScript calculation tools** for geotechnical
 engineers, civil engineering researchers, and geospatial analysts, developed by
-**Ali Gheysari, PhD**.
+**Ali Gheysari, PhD P.Eng.**.
 
 🌐 **[Open the interactive portal](https://agheysari.github.io/geotechnical-toolbox/)**
 
