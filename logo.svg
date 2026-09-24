@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Geotechnical Toolbox">
+  <rect width="64" height="64" rx="15" fill="#2143AA"/>
+  <path d="M24 46A16 16 0 0 1 56 46Z" fill="#fff" fill-opacity=".16"/>
+  <path d="M24 46A16 16 0 0 1 56 46" fill="none" stroke="#fff" stroke-width="3.6" stroke-linecap="round"/>
+  <path d="M6 46H58" stroke="#fff" stroke-opacity=".55" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M8 46L57 17.71" stroke="#F6BC3B" stroke-width="3.6" stroke-linecap="round"/>
+  <circle cx="32" cy="32.14" r="3.06" fill="#fff"/>
+</svg>
