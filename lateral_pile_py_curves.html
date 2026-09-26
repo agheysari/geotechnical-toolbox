@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Matlock (1970) soft clay and API RP 2A sand p-y curves for laterally loaded pile analysis.">
-<title>Static P-y Curve Generator | Geotechnical Tools</title>
+<title>Lateral Pile P-y Curve Generator | Geotechnical Toolbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -615,19 +615,25 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta property="og:site_name" content="Geotechnical Toolbox">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Static P-y Curve Generator">
+<meta property="og:title" content="Lateral Pile P-y Curve Generator">
 <meta property="og:description" content="Matlock (1970) soft clay and API RP 2A sand p-y curves for laterally loaded pile analysis.">
 <meta property="og:url" content="https://agheysari.github.io/geotechnical-toolbox/lateral_pile_py_curves.html">
 <meta property="og:image" content="https://agheysari.github.io/geotechnical-toolbox/og/lateral_pile_py_curves.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Static P-y Curve Generator: free online calculator">
+<meta property="og:image:alt" content="Lateral Pile P-y Curve Generator: free online calculator">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Static P-y Curve Generator">
+<meta name="twitter:title" content="Lateral Pile P-y Curve Generator">
 <meta name="twitter:description" content="Matlock (1970) soft clay and API RP 2A sand p-y curves for laterally loaded pile analysis.">
 <meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/lateral_pile_py_curves.png">
-<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Static P-y Curve Generator", "url": "https://agheysari.github.io/geotechnical-toolbox/lateral_pile_py_curves.html", "description": "Matlock (1970) soft clay and API RP 2A sand p-y curves for laterally loaded pile analysis.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Static P-y Curve Generator", "item": "https://agheysari.github.io/geotechnical-toolbox/lateral_pile_py_curves.html"}]}]</script>
+<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Lateral Pile P-y Curve Generator", "url": "https://agheysari.github.io/geotechnical-toolbox/lateral_pile_py_curves.html", "description": "Matlock (1970) soft clay and API RP 2A sand p-y curves for laterally loaded pile analysis.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Lateral Pile P-y Curve Generator", "item": "https://agheysari.github.io/geotechnical-toolbox/lateral_pile_py_curves.html"}]}]</script>
 <!-- seo:end -->
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
 </head>
 <body>
 
@@ -635,7 +641,7 @@
 
   <header class="tool-header">
     <a class="back-link" href="index.html">&larr; All calculators</a>
-    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#FDF4FF" /> <line x1="8" y1="18" x2="56" y2="18" stroke="#94A3B8" stroke-width="2" /> <path d="M22 12Q25 32 30 54" stroke="#9333EA" stroke-width="5" stroke-linecap="round" /> <path d="M8 12H18M18 12L15 9M18 12L15 15" stroke="#EC4899" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M26 26C31 24 33 28 38 26" stroke="#A855F7" stroke-width="2" stroke-linecap="round" /> <path d="M28 36C33 34 35 38 40 36" stroke="#A855F7" stroke-width="2" stroke-linecap="round" /> <path d="M30 46C35 44 37 48 42 46" stroke="#A855F7" stroke-width="2" stroke-linecap="round" /> </svg> Static P-y Curve Generator</h1>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#FDF4FF" /> <line x1="8" y1="18" x2="56" y2="18" stroke="#94A3B8" stroke-width="2" /> <path d="M22 12Q25 32 30 54" stroke="#9333EA" stroke-width="5" stroke-linecap="round" /> <path d="M8 12H18M18 12L15 9M18 12L15 15" stroke="#EC4899" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M26 26C31 24 33 28 38 26" stroke="#A855F7" stroke-width="2" stroke-linecap="round" /> <path d="M28 36C33 34 35 38 40 36" stroke="#A855F7" stroke-width="2" stroke-linecap="round" /> <path d="M30 46C35 44 37 48 42 46" stroke="#A855F7" stroke-width="2" stroke-linecap="round" /> </svg>Lateral Pile P-y Curve Generator</h1>
     <p class="subtitle">Matlock (1970) soft clay and API RP 2A sand p-y curves for laterally loaded pile analysis.</p>
   </header>
 

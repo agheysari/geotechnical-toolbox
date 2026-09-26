@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Rankine and Coulomb active, passive and at-rest coefficients with surcharge, groundwater and resultant thrust diagrams.">
-<title>Lateral Earth Pressure Calculator | Geotechnical Tools</title>
+<title>Lateral Earth Pressure Calculator | Geotechnical Toolbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -618,6 +618,12 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 <meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/earth_pressure.png">
 <script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Lateral Earth Pressure Calculator", "url": "https://agheysari.github.io/geotechnical-toolbox/earth_pressure.html", "description": "Rankine and Coulomb active, passive and at-rest coefficients with surcharge, groundwater and resultant thrust diagrams.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Lateral Earth Pressure Calculator", "item": "https://agheysari.github.io/geotechnical-toolbox/earth_pressure.html"}]}]</script>
 <!-- seo:end -->
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
 </head>
 <body>
 
@@ -625,7 +631,7 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 
   <header class="tool-header">
     <a class="back-link" href="index.html">&larr; All calculators</a>
-    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#FFFBEB" /> <rect x="18" y="12" width="6" height="42" rx="1.5" fill="#D97706" /> <path d="M24 16L48 54H24V16Z" fill="#F59E0B" fill-opacity="0.25" stroke="#F59E0B" stroke-width="2" /> <path d="M44 48H28M28 48L32 45M28 48L32 51" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M36 36H28M28 36L31 33.5M28 36L31 38.5" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M30 25H28M28 25L30 23M28 25L30 27" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> </svg> Lateral Earth Pressure Calculator</h1>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#FFFBEB" /> <rect x="18" y="12" width="6" height="42" rx="1.5" fill="#D97706" /> <path d="M24 16L48 54H24V16Z" fill="#F59E0B" fill-opacity="0.25" stroke="#F59E0B" stroke-width="2" /> <path d="M44 48H28M28 48L32 45M28 48L32 51" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M36 36H28M28 36L31 33.5M28 36L31 38.5" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M30 25H28M28 25L30 23M28 25L30 27" stroke="#D97706" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> </svg>Lateral Earth Pressure Calculator</h1>
     <p class="subtitle">Rankine and Coulomb active, passive and at-rest coefficients with surcharge, groundwater and resultant thrust diagrams.</p>
   </header>
 

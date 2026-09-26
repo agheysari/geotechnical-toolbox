@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Axial capacity of driven piles (alpha, lambda, beta methods, with uplift) and drilled shafts (O'Neill &amp; Reese 1999 / FHWA GEC-10) in layered soil: IGM layers, belled bases and exclusion zones.">
-<title>Deep Foundation Axial Capacity | Geotechnical Tools</title>
+<title>Deep Foundation Capacity Calculator | Geotechnical Toolbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -619,19 +619,25 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta property="og:site_name" content="Geotechnical Toolbox">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Deep Foundation Axial Capacity">
+<meta property="og:title" content="Deep Foundation Axial Capacity (Driven Piles &amp; Drilled Shafts)">
 <meta property="og:description" content="Axial capacity of driven piles (alpha, lambda, beta methods, with uplift) and drilled shafts (O&#x27;Neill &amp; Reese 1999 / FHWA GEC-10) in layered soil: IGM layers, belled bases and exclusion zones.">
 <meta property="og:url" content="https://agheysari.github.io/geotechnical-toolbox/deep_foundation_capacity.html">
 <meta property="og:image" content="https://agheysari.github.io/geotechnical-toolbox/og/deep_foundation_capacity.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Deep Foundation Axial Capacity: free online calculator">
+<meta property="og:image:alt" content="Deep Foundation Axial Capacity (Driven Piles &amp; Drilled Shafts): free online calculator">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Deep Foundation Axial Capacity">
+<meta name="twitter:title" content="Deep Foundation Axial Capacity (Driven Piles &amp; Drilled Shafts)">
 <meta name="twitter:description" content="Axial capacity of driven piles (alpha, lambda, beta methods, with uplift) and drilled shafts (O&#x27;Neill &amp; Reese 1999 / FHWA GEC-10) in layered soil: IGM layers, belled bases and exclusion zones.">
 <meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/deep_foundation_capacity.png">
-<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Deep Foundation Axial Capacity", "url": "https://agheysari.github.io/geotechnical-toolbox/deep_foundation_capacity.html", "description": "Axial capacity of driven piles (alpha, lambda, beta methods, with uplift) and drilled shafts (O'Neill & Reese 1999 / FHWA GEC-10) in layered soil: IGM layers, belled bases and exclusion zones.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Deep Foundation Axial Capacity", "item": "https://agheysari.github.io/geotechnical-toolbox/deep_foundation_capacity.html"}]}]</script>
+<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Deep Foundation Axial Capacity (Driven Piles & Drilled Shafts)", "url": "https://agheysari.github.io/geotechnical-toolbox/deep_foundation_capacity.html", "description": "Axial capacity of driven piles (alpha, lambda, beta methods, with uplift) and drilled shafts (O'Neill & Reese 1999 / FHWA GEC-10) in layered soil: IGM layers, belled bases and exclusion zones.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Deep Foundation Axial Capacity (Driven Piles & Drilled Shafts)", "item": "https://agheysari.github.io/geotechnical-toolbox/deep_foundation_capacity.html"}]}]</script>
 <!-- seo:end -->
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
 </head>
 <body>
 
@@ -639,7 +645,7 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 
   <header class="tool-header">
     <a class="back-link" href="index.html">&larr; All calculators</a>
-    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="64" height="64" rx="14" fill="#F0F9FF" /> <rect x="6" y="18" width="52" height="16" fill="#FDE68A" fill-opacity="0.35" /> <rect x="6" y="34" width="52" height="24" fill="#94A3B8" fill-opacity="0.25" /> <line x1="6" y1="18" x2="58" y2="18" stroke="#94A3B8" stroke-width="2" stroke-dasharray="3 3" /> <rect x="22" y="8" width="20" height="4" rx="1.5" fill="#0369A1" /> <path d="M27 12H37V44L44 54H20L27 44V12Z" fill="#0284C7" /> <path d="M32 2V7M32 7L29 4.5M32 7L35 4.5" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /> <path d="M22 26H25M39 26H42M22 36H25M39 36H42" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" /> <path d="M24 57H40" stroke="#D97706" stroke-width="2" stroke-linecap="round" /> </svg> Deep Foundation Axial Capacity</h1>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="64" height="64" rx="14" fill="#F0F9FF" /> <rect x="6" y="18" width="52" height="16" fill="#FDE68A" fill-opacity="0.35" /> <rect x="6" y="34" width="52" height="24" fill="#94A3B8" fill-opacity="0.25" /> <line x1="6" y1="18" x2="58" y2="18" stroke="#94A3B8" stroke-width="2" stroke-dasharray="3 3" /> <rect x="22" y="8" width="20" height="4" rx="1.5" fill="#0369A1" /> <path d="M27 12H37V44L44 54H20L27 44V12Z" fill="#0284C7" /> <path d="M32 2V7M32 7L29 4.5M32 7L35 4.5" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /> <path d="M22 26H25M39 26H42M22 36H25M39 36H42" stroke="#10B981" stroke-width="1.8" stroke-linecap="round" /> <path d="M24 57H40" stroke="#D97706" stroke-width="2" stroke-linecap="round" /> </svg>Deep Foundation Axial Capacity (Driven Piles &amp; Drilled Shafts)</h1>
     <p class="subtitle">Static axial compressive and uplift capacity of driven piles (&alpha; / &lambda; / &beta; methods) and drilled shafts (O'Neill &amp; Reese 1999 / FHWA GEC-10: clay &alpha;, depth-varying sand &beta;, cohesive IGM, belled bases, exclusion zones) in layered soil.</p>
   </header>
 

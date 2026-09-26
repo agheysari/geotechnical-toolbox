@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Interconversion of soil index properties and a 3-phase weight-volume solver (ASTM D7263 / D2216 / D854).">
-<title>Soil Phase Relationships &amp; Weight-Volume Calculator | Geotechnical Tools</title>
+<title>Soil Phase Relations Calculator | Geotechnical Toolbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -490,6 +490,12 @@
 <meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/soil_phase_relationships.png">
 <script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Soil Phase Relationships & Weight-Volume Calculator", "url": "https://agheysari.github.io/geotechnical-toolbox/soil_phase_relationships.html", "description": "Interconversion of soil index properties and a 3-phase weight-volume solver (ASTM D7263 / D2216 / D854).", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Soil Phase Relationships & Weight-Volume Calculator", "item": "https://agheysari.github.io/geotechnical-toolbox/soil_phase_relationships.html"}]}]</script>
 <!-- seo:end -->
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
 </head>
 <body>
 
@@ -497,7 +503,7 @@
 
   <header class="tool-header">
     <a class="back-link" href="index.html">&larr; All calculators</a>
-    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F8FAFC" /> <rect x="14" y="10" width="36" height="44" rx="3" stroke="#475569" stroke-width="2" fill="#FFFFFF" /> <rect x="15" y="11" width="34" height="12" fill="#E2E8F0" /> <text x="32" y="20" fill="#64748B" fontSize="6" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">AIR</text> <rect x="15" y="23" width="34" height="14" fill="#60A5FA" /> <line x1="14" y1="23" x2="50" y2="23" stroke="#2563EB" stroke-width="1.5" /> <text x="32" y="32" fill="#FFFFFF" fontSize="6" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">WATER</text> <rect x="15" y="37" width="34" height="16" fill="#D97706" rx="0 0 2 2" /> <line x1="14" y1="37" x2="50" y2="37" stroke="#92400E" stroke-width="1.5" /> <text x="32" y="47" fill="#FFFFFF" fontSize="6" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">SOLID</text> <path d="M54 11V53" stroke="#64748B" stroke-width="1.5" /> <path d="M52 13L54 11L56 13M52 51L54 53L56 51" stroke="#64748B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> </svg> Soil Phase Relationships &amp; Weight-Volume Calculator</h1>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F8FAFC" /> <rect x="14" y="10" width="36" height="44" rx="3" stroke="#475569" stroke-width="2" fill="#FFFFFF" /> <rect x="15" y="11" width="34" height="12" fill="#E2E8F0" /> <text x="32" y="20" fill="#64748B" fontSize="6" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">AIR</text> <rect x="15" y="23" width="34" height="14" fill="#60A5FA" /> <line x1="14" y1="23" x2="50" y2="23" stroke="#2563EB" stroke-width="1.5" /> <text x="32" y="32" fill="#FFFFFF" fontSize="6" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">WATER</text> <rect x="15" y="37" width="34" height="16" fill="#D97706" rx="0 0 2 2" /> <line x1="14" y1="37" x2="50" y2="37" stroke="#92400E" stroke-width="1.5" /> <text x="32" y="47" fill="#FFFFFF" fontSize="6" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">SOLID</text> <path d="M54 11V53" stroke="#64748B" stroke-width="1.5" /> <path d="M52 13L54 11L56 13M52 51L54 53L56 51" stroke="#64748B" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> </svg>Soil Phase Relationships &amp; Weight-Volume Calculator</h1>
     <p class="subtitle">Interconversion of soil index properties and a 3-phase weight-volume solver (ASTM D7263 / D2216 / D854).</p>
   </header>
 

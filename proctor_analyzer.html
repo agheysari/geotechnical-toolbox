@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Quadratic regression for optimum moisture content (OMC), maximum dry density (MDD) and the zero air voids (ZAV) curve.">
-<title>Proctor Compaction Curve Analyzer | Geotechnical Tools</title>
+<title>Proctor Compaction Curve Analyzer | Geotechnical Toolbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -680,6 +680,12 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 <meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/proctor_analyzer.png">
 <script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Proctor Compaction Curve Analyzer", "url": "https://agheysari.github.io/geotechnical-toolbox/proctor_analyzer.html", "description": "Quadratic regression for optimum moisture content (OMC), maximum dry density (MDD) and the zero air voids (ZAV) curve.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Proctor Compaction Curve Analyzer", "item": "https://agheysari.github.io/geotechnical-toolbox/proctor_analyzer.html"}]}]</script>
 <!-- seo:end -->
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
 </head>
 <body>
 
@@ -687,7 +693,7 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 
   <header class="tool-header">
     <a class="back-link" href="index.html">&larr; All calculators</a>
-    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#EFF6FF" /> <line x1="12" y1="52" x2="54" y2="52" stroke="#64748B" stroke-width="2" /> <line x1="12" y1="12" x2="12" y2="52" stroke="#64748B" stroke-width="2" /> <path d="M18 16Q36 28 52 46" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="3 3" fill="none" /> <path d="M16 46Q34 16 50 46" stroke="#2563EB" stroke-width="3" fill="none" stroke-linecap="round" /> <circle cx="34" cy="23" r="3.5" fill="#EF4444" stroke="#FFFFFF" stroke-width="1.5" /> <line x1="34" y1="23" x2="34" y2="52" stroke="#EF4444" stroke-width="1" stroke-dasharray="2 2" /> </svg> Proctor Compaction Curve Analyzer</h1>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#EFF6FF" /> <line x1="12" y1="52" x2="54" y2="52" stroke="#64748B" stroke-width="2" /> <line x1="12" y1="12" x2="12" y2="52" stroke="#64748B" stroke-width="2" /> <path d="M18 16Q36 28 52 46" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="3 3" fill="none" /> <path d="M16 46Q34 16 50 46" stroke="#2563EB" stroke-width="3" fill="none" stroke-linecap="round" /> <circle cx="34" cy="23" r="3.5" fill="#EF4444" stroke="#FFFFFF" stroke-width="1.5" /> <line x1="34" y1="23" x2="34" y2="52" stroke="#EF4444" stroke-width="1" stroke-dasharray="2 2" /> </svg>Proctor Compaction Curve Analyzer</h1>
     <p class="subtitle">Quadratic regression for optimum moisture content (OMC), maximum dry density (MDD) and the zero air voids (ZAV) curve.</p>
   </header>
 

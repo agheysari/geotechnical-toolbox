@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Fit the Mohr-Coulomb failure envelope to triaxial test stages: effective cohesion, friction angle, regression R2 and Mohr circles.">
-<title>Mohr-Coulomb Failure Envelope Analyzer | Geotechnical Tools</title>
+<title>Mohr-Coulomb / Triaxial Test Analyzer | Geotechnical Toolbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -626,19 +626,25 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta property="og:site_name" content="Geotechnical Toolbox">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Mohr-Coulomb Failure Envelope Analyzer">
+<meta property="og:title" content="Mohr-Coulomb / Triaxial Test Analyzer">
 <meta property="og:description" content="Fit the Mohr-Coulomb failure envelope to triaxial test stages: effective cohesion, friction angle, regression R2 and Mohr circles.">
 <meta property="og:url" content="https://agheysari.github.io/geotechnical-toolbox/mohr_coulomb_analyzer.html">
 <meta property="og:image" content="https://agheysari.github.io/geotechnical-toolbox/og/mohr_coulomb_analyzer.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Mohr-Coulomb Failure Envelope Analyzer: free online calculator">
+<meta property="og:image:alt" content="Mohr-Coulomb / Triaxial Test Analyzer: free online calculator">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Mohr-Coulomb Failure Envelope Analyzer">
+<meta name="twitter:title" content="Mohr-Coulomb / Triaxial Test Analyzer">
 <meta name="twitter:description" content="Fit the Mohr-Coulomb failure envelope to triaxial test stages: effective cohesion, friction angle, regression R2 and Mohr circles.">
 <meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/mohr_coulomb_analyzer.png">
-<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Mohr-Coulomb Failure Envelope Analyzer", "url": "https://agheysari.github.io/geotechnical-toolbox/mohr_coulomb_analyzer.html", "description": "Fit the Mohr-Coulomb failure envelope to triaxial test stages: effective cohesion, friction angle, regression R2 and Mohr circles.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Mohr-Coulomb Failure Envelope Analyzer", "item": "https://agheysari.github.io/geotechnical-toolbox/mohr_coulomb_analyzer.html"}]}]</script>
+<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Mohr-Coulomb / Triaxial Test Analyzer", "url": "https://agheysari.github.io/geotechnical-toolbox/mohr_coulomb_analyzer.html", "description": "Fit the Mohr-Coulomb failure envelope to triaxial test stages: effective cohesion, friction angle, regression R2 and Mohr circles.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Mohr-Coulomb / Triaxial Test Analyzer", "item": "https://agheysari.github.io/geotechnical-toolbox/mohr_coulomb_analyzer.html"}]}]</script>
 <!-- seo:end -->
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
 </head>
 <body>
 
@@ -646,7 +652,7 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 
   <header class="tool-header">
     <a class="back-link" href="index.html">&larr; All calculators</a>
-    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="14" fill="#F5F3FF"/><path d="M10 50H56" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round"/><path d="M12 50A14 14 0 0 1 40 50" stroke="#7C3AED" stroke-width="2.5"/><path d="M26 50A14 14 0 0 1 54 50" stroke="#7C3AED" stroke-width="2.5"/><path d="M10 40L56 16" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round"/></svg> Mohr-Coulomb Failure Envelope Analyzer</h1>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="14" fill="#F5F3FF"/><path d="M10 50H56" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round"/><path d="M12 50A14 14 0 0 1 40 50" stroke="#7C3AED" stroke-width="2.5"/><path d="M26 50A14 14 0 0 1 54 50" stroke="#7C3AED" stroke-width="2.5"/><path d="M10 40L56 16" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round"/></svg>Mohr-Coulomb / Triaxial Test Analyzer</h1>
     <p class="subtitle">Determine the effective cohesion (c') and friction angle (&phi;') from triaxial test stages by linear regression of &sigma;<sub>1</sub> on &sigma;<sub>3</sub>, and plot the Mohr circles with the failure envelope.</p>
   </header>
 

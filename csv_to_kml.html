@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Borehole and CPT coordinate transformation into styled Google Earth KML placemarks.">
-<title>CSV to KML Batch Converter | Geotechnical Tools</title>
+<title>CSV to KML Batch Point Converter | Geotechnical Toolbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -476,19 +476,25 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta property="og:site_name" content="Geotechnical Toolbox">
 <meta property="og:type" content="website">
-<meta property="og:title" content="CSV to KML Batch Converter">
+<meta property="og:title" content="CSV to KML Batch Point Converter">
 <meta property="og:description" content="Borehole and CPT coordinate transformation into styled Google Earth KML placemarks.">
 <meta property="og:url" content="https://agheysari.github.io/geotechnical-toolbox/csv_to_kml.html">
 <meta property="og:image" content="https://agheysari.github.io/geotechnical-toolbox/og/csv_to_kml.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="CSV to KML Batch Converter: free online calculator">
+<meta property="og:image:alt" content="CSV to KML Batch Point Converter: free online calculator">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="CSV to KML Batch Converter">
+<meta name="twitter:title" content="CSV to KML Batch Point Converter">
 <meta name="twitter:description" content="Borehole and CPT coordinate transformation into styled Google Earth KML placemarks.">
 <meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/csv_to_kml.png">
-<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "CSV to KML Batch Converter", "url": "https://agheysari.github.io/geotechnical-toolbox/csv_to_kml.html", "description": "Borehole and CPT coordinate transformation into styled Google Earth KML placemarks.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "CSV to KML Batch Converter", "item": "https://agheysari.github.io/geotechnical-toolbox/csv_to_kml.html"}]}]</script>
+<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "CSV to KML Batch Point Converter", "url": "https://agheysari.github.io/geotechnical-toolbox/csv_to_kml.html", "description": "Borehole and CPT coordinate transformation into styled Google Earth KML placemarks.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "CSV to KML Batch Point Converter", "item": "https://agheysari.github.io/geotechnical-toolbox/csv_to_kml.html"}]}]</script>
 <!-- seo:end -->
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
 </head>
 <body>
 
@@ -496,7 +502,7 @@
 
   <header class="tool-header">
     <a class="back-link" href="index.html">&larr; All calculators</a>
-    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#EFF6FF" /> <rect x="10" y="14" width="22" height="36" rx="2" fill="#FFFFFF" stroke="#3B82F6" stroke-width="1.5" /> <line x1="10" y1="24" x2="32" y2="24" stroke="#93C5FD" stroke-width="1" /> <line x1="10" y1="34" x2="32" y2="34" stroke="#93C5FD" stroke-width="1" /> <line x1="20" y1="14" x2="20" y2="50" stroke="#93C5FD" stroke-width="1" /> <path d="M34 32H40M40 32L37 29M40 32L37 35" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /> <path d="M48 20C44.7 20 42 22.7 42 26C42 30.5 48 38 48 38C48 38 54 30.5 54 26C54 22.7 51.3 20 48 20Z" fill="#EF4444" stroke="#DC2626" stroke-width="1.5" /> <circle cx="48" cy="26" r="2" fill="#FFFFFF" /> </svg> CSV to KML Batch Converter</h1>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#EFF6FF" /> <rect x="10" y="14" width="22" height="36" rx="2" fill="#FFFFFF" stroke="#3B82F6" stroke-width="1.5" /> <line x1="10" y1="24" x2="32" y2="24" stroke="#93C5FD" stroke-width="1" /> <line x1="10" y1="34" x2="32" y2="34" stroke="#93C5FD" stroke-width="1" /> <line x1="20" y1="14" x2="20" y2="50" stroke="#93C5FD" stroke-width="1" /> <path d="M34 32H40M40 32L37 29M40 32L37 35" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /> <path d="M48 20C44.7 20 42 22.7 42 26C42 30.5 48 38 48 38C48 38 54 30.5 54 26C54 22.7 51.3 20 48 20Z" fill="#EF4444" stroke="#DC2626" stroke-width="1.5" /> <circle cx="48" cy="26" r="2" fill="#FFFFFF" /> </svg>CSV to KML Batch Point Converter</h1>
     <p class="subtitle">Borehole and CPT coordinate transformation into styled Google Earth KML placemarks.</p>
   </header>
 

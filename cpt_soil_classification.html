@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Robertson (1990/2016) normalized SBTn charts and geotechnical parameter correlations (ASTM D5778 / ISO 22476-1).">
-<title>CPT Soil Behavior Type &amp; Correlation Calculator | Geotechnical Tools</title>
+<title>CPT SBT Classifier | Geotechnical Toolbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -542,19 +542,25 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta property="og:site_name" content="Geotechnical Toolbox">
 <meta property="og:type" content="website">
-<meta property="og:title" content="CPT Soil Behavior Type &amp; Correlation Calculator">
+<meta property="og:title" content="CPT Soil Behavior Type (SBT) &amp; Correlation Calculator">
 <meta property="og:description" content="Robertson (1990/2016) normalized SBTn charts and geotechnical parameter correlations (ASTM D5778 / ISO 22476-1).">
 <meta property="og:url" content="https://agheysari.github.io/geotechnical-toolbox/cpt_soil_classification.html">
 <meta property="og:image" content="https://agheysari.github.io/geotechnical-toolbox/og/cpt_soil_classification.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="CPT Soil Behavior Type &amp; Correlation Calculator: free online calculator">
+<meta property="og:image:alt" content="CPT Soil Behavior Type (SBT) &amp; Correlation Calculator: free online calculator">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="CPT Soil Behavior Type &amp; Correlation Calculator">
+<meta name="twitter:title" content="CPT Soil Behavior Type (SBT) &amp; Correlation Calculator">
 <meta name="twitter:description" content="Robertson (1990/2016) normalized SBTn charts and geotechnical parameter correlations (ASTM D5778 / ISO 22476-1).">
 <meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/cpt_soil_classification.png">
-<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "CPT Soil Behavior Type & Correlation Calculator", "url": "https://agheysari.github.io/geotechnical-toolbox/cpt_soil_classification.html", "description": "Robertson (1990/2016) normalized SBTn charts and geotechnical parameter correlations (ASTM D5778 / ISO 22476-1).", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "CPT Soil Behavior Type & Correlation Calculator", "item": "https://agheysari.github.io/geotechnical-toolbox/cpt_soil_classification.html"}]}]</script>
+<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "CPT Soil Behavior Type (SBT) & Correlation Calculator", "url": "https://agheysari.github.io/geotechnical-toolbox/cpt_soil_classification.html", "description": "Robertson (1990/2016) normalized SBTn charts and geotechnical parameter correlations (ASTM D5778 / ISO 22476-1).", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "CPT Soil Behavior Type (SBT) & Correlation Calculator", "item": "https://agheysari.github.io/geotechnical-toolbox/cpt_soil_classification.html"}]}]</script>
 <!-- seo:end -->
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
 </head>
 <body>
 
@@ -562,7 +568,7 @@
 
   <header class="tool-header">
     <a class="back-link" href="index.html">&larr; All calculators</a>
-    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F0FDFA" /> <rect x="8" y="16" width="48" height="12" fill="#FDE68A" fill-opacity="0.4" /> <rect x="8" y="28" width="48" height="14" fill="#93C5FD" fill-opacity="0.3" /> <rect x="8" y="42" width="48" height="14" fill="#FCA5A5" fill-opacity="0.3" /> <line x1="8" y1="16" x2="56" y2="16" stroke="#94A3B8" stroke-width="2" stroke-dasharray="3 3" /> <rect x="28" y="6" width="8" height="28" fill="#475569" rx="1" /> <rect x="27" y="34" width="10" height="12" fill="#0284C7" stroke="#0369A1" stroke-width="1" rx="1" /> <rect x="28.5" y="46" width="7" height="3" fill="#38BDF8" /> <path d="M27 49L32 58L37 49H27Z" fill="#0D9488" stroke="#0F766E" stroke-width="1" /> <path d="M22 40L25 40M25 40L23 38M25 40L23 42" stroke="#0284C7" stroke-width="1.5" stroke-linecap="round" /> <path d="M42 40L39 40M39 40L41 38M39 40L41 42" stroke="#0284C7" stroke-width="1.5" stroke-linecap="round" /> <circle cx="32" cy="53" r="1.5" fill="#FFFFFF" /> </svg> CPT Soil Behavior Type &amp; Correlation Calculator</h1>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F0FDFA" /> <rect x="8" y="16" width="48" height="12" fill="#FDE68A" fill-opacity="0.4" /> <rect x="8" y="28" width="48" height="14" fill="#93C5FD" fill-opacity="0.3" /> <rect x="8" y="42" width="48" height="14" fill="#FCA5A5" fill-opacity="0.3" /> <line x1="8" y1="16" x2="56" y2="16" stroke="#94A3B8" stroke-width="2" stroke-dasharray="3 3" /> <rect x="28" y="6" width="8" height="28" fill="#475569" rx="1" /> <rect x="27" y="34" width="10" height="12" fill="#0284C7" stroke="#0369A1" stroke-width="1" rx="1" /> <rect x="28.5" y="46" width="7" height="3" fill="#38BDF8" /> <path d="M27 49L32 58L37 49H27Z" fill="#0D9488" stroke="#0F766E" stroke-width="1" /> <path d="M22 40L25 40M25 40L23 38M25 40L23 42" stroke="#0284C7" stroke-width="1.5" stroke-linecap="round" /> <path d="M42 40L39 40M39 40L41 38M39 40L41 42" stroke="#0284C7" stroke-width="1.5" stroke-linecap="round" /> <circle cx="32" cy="53" r="1.5" fill="#FFFFFF" /> </svg>CPT Soil Behavior Type (SBT) &amp; Correlation Calculator</h1>
     <p class="subtitle">Robertson (1990/2016) normalized SBTn charts and geotechnical parameter correlations (ASTM D5778 / ISO 22476-1).</p>
   </header>
 

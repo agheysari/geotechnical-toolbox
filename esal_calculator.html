@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Calculate Equivalent Single Axle Loads (ESALs) for pavement design using AASHTO traffic growth methodologies.">
-<title>ESAL Calculator | Geotechnical Tools</title>
+<title>ESAL Calculator | Geotechnical Toolbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -93,26 +93,32 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta property="og:site_name" content="Geotechnical Toolbox">
 <meta property="og:type" content="website">
-<meta property="og:title" content="ESAL Calculator">
+<meta property="og:title" content="Equivalent Single Axle Load (ESAL) Calculator">
 <meta property="og:description" content="Calculate Equivalent Single Axle Loads (ESALs) for pavement design using AASHTO traffic growth methodologies.">
 <meta property="og:url" content="https://agheysari.github.io/geotechnical-toolbox/esal_calculator.html">
 <meta property="og:image" content="https://agheysari.github.io/geotechnical-toolbox/og/esal_calculator.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="ESAL Calculator: free online calculator">
+<meta property="og:image:alt" content="Equivalent Single Axle Load (ESAL) Calculator: free online calculator">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="ESAL Calculator">
+<meta name="twitter:title" content="Equivalent Single Axle Load (ESAL) Calculator">
 <meta name="twitter:description" content="Calculate Equivalent Single Axle Loads (ESALs) for pavement design using AASHTO traffic growth methodologies.">
 <meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/esal_calculator.png">
-<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "ESAL Calculator", "url": "https://agheysari.github.io/geotechnical-toolbox/esal_calculator.html", "description": "Calculate Equivalent Single Axle Loads (ESALs) for pavement design using AASHTO traffic growth methodologies.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "ESAL Calculator", "item": "https://agheysari.github.io/geotechnical-toolbox/esal_calculator.html"}]}]</script>
+<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Equivalent Single Axle Load (ESAL) Calculator", "url": "https://agheysari.github.io/geotechnical-toolbox/esal_calculator.html", "description": "Calculate Equivalent Single Axle Loads (ESALs) for pavement design using AASHTO traffic growth methodologies.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Equivalent Single Axle Load (ESAL) Calculator", "item": "https://agheysari.github.io/geotechnical-toolbox/esal_calculator.html"}]}]</script>
 <!-- seo:end -->
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
 </head>
 <body>
 
 <div class="container">
     <div class="tool-header">
         <a href="index.html" class="back-link">← Back to Tools</a>
-        <h1>ESAL Calculator</h1>
+        <h1>Equivalent Single Axle Load (ESAL) Calculator</h1>
         <p class="subtitle">Estimate cumulative traffic loading (\(W_{18}\)) over a pavement design life using AASHTO methodologies.</p>
     </div>
 

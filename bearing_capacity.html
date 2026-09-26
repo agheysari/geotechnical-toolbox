@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Terzaghi, Meyerhof, Hansen and Vesic general formulations with shape, depth, load inclination and groundwater corrections.">
-<title>Shallow Bearing Capacity Calculator | Geotechnical Tools</title>
+<title>Bearing Capacity Calculator | Geotechnical Toolbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -478,19 +478,25 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta property="og:site_name" content="Geotechnical Toolbox">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Shallow Bearing Capacity Calculator">
+<meta property="og:title" content="Bearing Capacity Calculator (Shallow Footings)">
 <meta property="og:description" content="Terzaghi, Meyerhof, Hansen and Vesic general formulations with shape, depth, load inclination and groundwater corrections.">
 <meta property="og:url" content="https://agheysari.github.io/geotechnical-toolbox/bearing_capacity.html">
 <meta property="og:image" content="https://agheysari.github.io/geotechnical-toolbox/og/bearing_capacity.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Shallow Bearing Capacity Calculator: free online calculator">
+<meta property="og:image:alt" content="Bearing Capacity Calculator (Shallow Footings): free online calculator">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Shallow Bearing Capacity Calculator">
+<meta name="twitter:title" content="Bearing Capacity Calculator (Shallow Footings)">
 <meta name="twitter:description" content="Terzaghi, Meyerhof, Hansen and Vesic general formulations with shape, depth, load inclination and groundwater corrections.">
 <meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/bearing_capacity.png">
-<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Shallow Bearing Capacity Calculator", "url": "https://agheysari.github.io/geotechnical-toolbox/bearing_capacity.html", "description": "Terzaghi, Meyerhof, Hansen and Vesic general formulations with shape, depth, load inclination and groundwater corrections.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Shallow Bearing Capacity Calculator", "item": "https://agheysari.github.io/geotechnical-toolbox/bearing_capacity.html"}]}]</script>
+<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Bearing Capacity Calculator (Shallow Footings)", "url": "https://agheysari.github.io/geotechnical-toolbox/bearing_capacity.html", "description": "Terzaghi, Meyerhof, Hansen and Vesic general formulations with shape, depth, load inclination and groundwater corrections.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Bearing Capacity Calculator (Shallow Footings)", "item": "https://agheysari.github.io/geotechnical-toolbox/bearing_capacity.html"}]}]</script>
 <!-- seo:end -->
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
 </head>
 <body>
 
@@ -498,7 +504,7 @@
 
   <header class="tool-header">
     <a class="back-link" href="index.html">&larr; All calculators</a>
-    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F0FDF4" /> <line x1="8" y1="26" x2="56" y2="26" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="3 3" /> <path d="M16 34L32 54L48 34H16Z" fill="#10B981" fill-opacity="0.15" stroke="#10B981" stroke-width="1.5" stroke-dasharray="2 2" /> <rect x="18" y="24" width="28" height="10" rx="2" fill="#059669" /> <rect x="27" y="12" width="10" height="12" rx="1.5" fill="#34D399" /> <path d="M32 4V11M32 11L29 8M32 11L35 8" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /> </svg> Shallow Bearing Capacity Calculator</h1>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F0FDF4" /> <line x1="8" y1="26" x2="56" y2="26" stroke="#94A3B8" stroke-width="2.5" stroke-dasharray="3 3" /> <path d="M16 34L32 54L48 34H16Z" fill="#10B981" fill-opacity="0.15" stroke="#10B981" stroke-width="1.5" stroke-dasharray="2 2" /> <rect x="18" y="24" width="28" height="10" rx="2" fill="#059669" /> <rect x="27" y="12" width="10" height="12" rx="1.5" fill="#34D399" /> <path d="M32 4V11M32 11L29 8M32 11L35 8" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /> </svg>Bearing Capacity Calculator (Shallow Footings)</h1>
     <p class="subtitle">Terzaghi, Meyerhof, Hansen and Vesic general formulations with shape, depth, load inclination and groundwater corrections.</p>
   </header>
 

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Boussinesq point, line and area load vertical stress increase with depth profiles and stress isobar contours.">
-<title>Stress Distribution Calculator | Geotechnical Tools</title>
+<title>Stress Distribution Calculator | Geotechnical Toolbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -627,6 +627,12 @@
 <meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/stress_calculator.png">
 <script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Stress Distribution Calculator", "url": "https://agheysari.github.io/geotechnical-toolbox/stress_calculator.html", "description": "Boussinesq point, line and area load vertical stress increase with depth profiles and stress isobar contours.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Stress Distribution Calculator", "item": "https://agheysari.github.io/geotechnical-toolbox/stress_calculator.html"}]}]</script>
 <!-- seo:end -->
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
 </head>
 <body>
 
@@ -634,7 +640,7 @@
 
   <header class="tool-header">
     <a class="back-link" href="index.html">&larr; All calculators</a>
-    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#EEF2FF" /> <path d="M32 6V18M32 18L28 14M32 18L36 14" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /> <line x1="10" y1="18" x2="54" y2="18" stroke="#64748B" stroke-width="2" /> <path d="M26 18C26 26 30 30 32 30C34 30 38 26 38 18" stroke="#4F46E5" stroke-width="2" fill="none" /> <path d="M20 18C20 34 28 42 32 42C36 42 44 34 44 18" stroke="#6366F1" stroke-width="1.8" fill="none" /> <path d="M14 18C14 42 26 54 32 54C38 54 50 42 50 18" stroke="#818CF8" stroke-width="1.5" fill="none" stroke-dasharray="3 2" /> </svg> Stress Distribution Calculator</h1>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#EEF2FF" /> <path d="M32 6V18M32 18L28 14M32 18L36 14" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /> <line x1="10" y1="18" x2="54" y2="18" stroke="#64748B" stroke-width="2" /> <path d="M26 18C26 26 30 30 32 30C34 30 38 26 38 18" stroke="#4F46E5" stroke-width="2" fill="none" /> <path d="M20 18C20 34 28 42 32 42C36 42 44 34 44 18" stroke="#6366F1" stroke-width="1.8" fill="none" /> <path d="M14 18C14 42 26 54 32 54C38 54 50 42 50 18" stroke="#818CF8" stroke-width="1.5" fill="none" stroke-dasharray="3 2" /> </svg>Stress Distribution Calculator</h1>
     <p class="subtitle">Boussinesq point, line and area load vertical stress increase with depth profiles and stress isobar contours.</p>
   </header>
 

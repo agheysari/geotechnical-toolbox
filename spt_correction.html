@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Correct raw Standard Penetration Test blow counts to N60 and (N1)60 with overburden, energy, rod length, borehole and sampler corrections.">
-<title>SPT N-Value Correction Calculator | Geotechnical Tools</title>
+<title>SPT N-Value Correction Calculator | Geotechnical Toolbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -638,6 +638,12 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 <meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/spt_correction.png">
 <script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "SPT N-Value Correction Calculator", "url": "https://agheysari.github.io/geotechnical-toolbox/spt_correction.html", "description": "Correct raw Standard Penetration Test blow counts to N60 and (N1)60 with overburden, energy, rod length, borehole and sampler corrections.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "SPT N-Value Correction Calculator", "item": "https://agheysari.github.io/geotechnical-toolbox/spt_correction.html"}]}]</script>
 <!-- seo:end -->
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
 </head>
 <body>
 
@@ -645,7 +651,7 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 
   <header class="tool-header">
     <a class="back-link" href="index.html">&larr; All calculators</a>
-    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="14" fill="#FFF7ED"/><rect x="26" y="8" width="12" height="8" rx="2" fill="#475569"/><rect x="29" y="16" width="6" height="30" fill="#94A3B8"/><path d="M29 46H35L32 56Z" fill="#EA580C"/><path d="M8 24H56" stroke="#94A3B8" stroke-width="2" stroke-dasharray="3 3"/><path d="M12 30H20M12 38H20M12 46H20" stroke="#0284C7" stroke-width="2.5" stroke-linecap="round"/></svg> SPT N-Value Correction Calculator</h1>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="14" fill="#FFF7ED"/><rect x="26" y="8" width="12" height="8" rx="2" fill="#475569"/><rect x="29" y="16" width="6" height="30" fill="#94A3B8"/><path d="M29 46H35L32 56Z" fill="#EA580C"/><path d="M8 24H56" stroke="#94A3B8" stroke-width="2" stroke-dasharray="3 3"/><path d="M12 30H20M12 38H20M12 46H20" stroke="#0284C7" stroke-width="2.5" stroke-linecap="round"/></svg>SPT N-Value Correction Calculator</h1>
     <p class="subtitle">Correct raw Standard Penetration Test (SPT) blow counts to N<sub>60</sub> and standard (N<sub>1</sub>)<sub>60</sub> values by applying overburden, energy, rod length, borehole and sampler corrections.</p>
   </header>
 

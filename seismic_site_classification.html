@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Weighted average 30 m profile analysis (Vs30, Nͥ60, su), automated Site Class assignment (ASCE 7 and Eurocode 8), site coefficients, and design acceleration spectrum.">
-<title>Seismic Site Classification &amp; Response Spectrum | Geotechnical Tools</title>
+<title>Seismic Site Classification Calculator | Geotechnical Toolbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -675,6 +675,12 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 <meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/seismic_site_classification.png">
 <script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Seismic Site Classification & Response Spectrum", "url": "https://agheysari.github.io/geotechnical-toolbox/seismic_site_classification.html", "description": "Weighted average 30 m profile analysis (Vs30, Nͥ60, su), automated Site Class assignment (ASCE 7 and Eurocode 8), site coefficients, and design acceleration spectrum.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Seismic Site Classification & Response Spectrum", "item": "https://agheysari.github.io/geotechnical-toolbox/seismic_site_classification.html"}]}]</script>
 <!-- seo:end -->
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
 </head>
 <body>
 
@@ -682,7 +688,7 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 
   <header class="tool-header">
     <a class="back-link" href="index.html">&larr; All calculators</a>
-    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#FEF3C7" /> <rect x="10" y="36" width="44" height="6" fill="#FDE68A" /> <rect x="10" y="42" width="44" height="8" fill="#FCD34D" /> <rect x="10" y="50" width="44" height="6" rx="1" fill="#F59E0B" /> <path d="M10 26H22L26 14L32 38L38 20L42 30H54" stroke="#D97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M12 28C18 20 28 14 36 14C44 14 50 20 54 26" stroke="#2563EB" stroke-width="1.5" stroke-dasharray="3 2" fill="none" /> <path d="M32 4L26 14H32L30 22L38 12H32L34 4H32Z" fill="#DC2626" /> </svg> Seismic Site Classification &amp; Response Spectrum</h1>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#FEF3C7" /> <rect x="10" y="36" width="44" height="6" fill="#FDE68A" /> <rect x="10" y="42" width="44" height="8" fill="#FCD34D" /> <rect x="10" y="50" width="44" height="6" rx="1" fill="#F59E0B" /> <path d="M10 26H22L26 14L32 38L38 20L42 30H54" stroke="#D97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M12 28C18 20 28 14 36 14C44 14 50 20 54 26" stroke="#2563EB" stroke-width="1.5" stroke-dasharray="3 2" fill="none" /> <path d="M32 4L26 14H32L30 22L38 12H32L34 4H32Z" fill="#DC2626" /> </svg>Seismic Site Classification &amp; Response Spectrum</h1>
     <p class="subtitle">Weighted average 30 m profile analysis (Vs30, Nͥ60, su), automated Site Class assignment (ASCE 7 and Eurocode 8), site coefficients, and design acceleration spectrum.</p>
   </header>
 

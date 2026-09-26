@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Constant head, falling head and Hazen empirical hydraulic conductivity methods (ASTM D2434 / ASTM D5084).">
-<title>Soil Permeability Calculator | Geotechnical Tools</title>
+<title>Soil Permeability Calculator | Geotechnical Toolbox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -540,6 +540,12 @@
 <meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/soil_permeability.png">
 <script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Soil Permeability Calculator", "url": "https://agheysari.github.io/geotechnical-toolbox/soil_permeability.html", "description": "Constant head, falling head and Hazen empirical hydraulic conductivity methods (ASTM D2434 / ASTM D5084).", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Soil Permeability Calculator", "item": "https://agheysari.github.io/geotechnical-toolbox/soil_permeability.html"}]}]</script>
 <!-- seo:end -->
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
 </head>
 <body>
 
@@ -547,7 +553,7 @@
 
   <header class="tool-header">
     <a class="back-link" href="index.html">&larr; All calculators</a>
-    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F0FDF4" /> <rect x="20" y="24" width="24" height="32" rx="2" fill="#D97706" fill-opacity="0.2" stroke="#B45309" stroke-width="2" /> <circle cx="26" cy="30" r="2" fill="#92400E" /> <circle cx="34" cy="34" r="2" fill="#92400E" /> <circle cx="28" cy="40" r="2.5" fill="#92400E" /> <circle cx="36" cy="44" r="1.5" fill="#92400E" /> <circle cx="26" cy="50" r="2" fill="#92400E" /> <circle cx="38" cy="50" r="2" fill="#92400E" /> <rect x="28" y="8" width="8" height="16" fill="#3B82F6" fill-opacity="0.3" stroke="#2563EB" stroke-width="1.5" /> <line x1="28" y1="12" x2="36" y2="12" stroke="#2563EB" stroke-width="2" stroke-dasharray="2 2" /> <path d="M32 14V22M32 22L30 20M32 22L34 20" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M32 58V62M32 62L30 60M32 62L34 60" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> </svg> Soil Permeability Calculator</h1>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F0FDF4" /> <rect x="20" y="24" width="24" height="32" rx="2" fill="#D97706" fill-opacity="0.2" stroke="#B45309" stroke-width="2" /> <circle cx="26" cy="30" r="2" fill="#92400E" /> <circle cx="34" cy="34" r="2" fill="#92400E" /> <circle cx="28" cy="40" r="2.5" fill="#92400E" /> <circle cx="36" cy="44" r="1.5" fill="#92400E" /> <circle cx="26" cy="50" r="2" fill="#92400E" /> <circle cx="38" cy="50" r="2" fill="#92400E" /> <rect x="28" y="8" width="8" height="16" fill="#3B82F6" fill-opacity="0.3" stroke="#2563EB" stroke-width="1.5" /> <line x1="28" y1="12" x2="36" y2="12" stroke="#2563EB" stroke-width="2" stroke-dasharray="2 2" /> <path d="M32 14V22M32 22L30 20M32 22L34 20" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M32 58V62M32 62L30 60M32 62L34 60" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> </svg>Soil Permeability Calculator</h1>
     <p class="subtitle">Constant head, falling head and Hazen empirical hydraulic conductivity methods (ASTM D2434 / ASTM D5084).</p>
   </header>
 
