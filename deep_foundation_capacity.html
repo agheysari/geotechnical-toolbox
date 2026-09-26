@@ -652,6 +652,7 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
       <button class="btn btn-secondary btn-sm" data-preset="2">Shaft: belled on IGM</button>
       <button class="btn btn-secondary btn-sm" data-preset="3">Driven: sand over clay</button>
       <button class="btn btn-secondary btn-sm" data-preset="4">Driven: square, lambda</button>
+      <button class="btn btn-secondary btn-sm" data-preset="5">Shaft: rock socket</button>
       <button class="btn btn-secondary btn-sm btn-clear-inputs" id="clearBtn">Clear</button>
     </div>
 
@@ -690,6 +691,29 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
         <div class="form-group only-drilled">
           <label for="bellDiameter">Bell Diameter, D<sub>b</sub> (m)</label>
           <input type="number" id="bellDiameter" placeholder="Optional, straight shaft" step="0.05" min="0">
+        </div>
+        <div class="form-group only-drilled">
+          <label for="socketC">Rock socket side shear, C</label>
+          <input type="number" id="socketC" placeholder="0.65 (0 = neglect)" step="0.05" min="0" title="fs = C&middot;&alpha;E&middot;pa&middot;&radic;(qu/pa). 0.65 (GEC-10 / Horvath &amp; Kenney); up to about 1.0 for rough sockets.">
+        </div>
+        <div class="form-group only-drilled">
+          <label for="alphaE">Rock joint factor, &alpha;<sub>E</sub></label>
+          <input type="number" id="alphaE" placeholder="1.0 (intact rock)" step="0.05" min="0" max="1">
+        </div>
+        <div class="form-group only-drilled">
+          <label for="rockTipMethod">Rock end bearing method</label>
+          <select id="rockTipMethod">
+            <option value="gec10">GEC-10: q<sub>b</sub> = 2.5 q<sub>u</sub></option>
+            <option value="cgs">CFEM (Canadian): 3 k<sub>s</sub> d<sub>f</sub> q<sub>u</sub></option>
+          </select>
+        </div>
+        <div class="form-group only-drilled cgs-only">
+          <label for="jointSpacing">Rock joint spacing, s (m)</label>
+          <input type="number" id="jointSpacing" placeholder="e.g. 0.3" step="0.05" min="0">
+        </div>
+        <div class="form-group only-drilled cgs-only">
+          <label for="jointAperture">Rock joint aperture, &delta; (mm)</label>
+          <input type="number" id="jointAperture" placeholder="e.g. 1" step="0.5" min="0">
         </div>
         <div class="form-group">
           <label for="gwDepth">Groundwater Depth (m)</label>
@@ -797,7 +821,9 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
       <h4>Method summary (drilled shaft)</h4>
       <strong>Clay (&alpha; method):</strong> \( f_s = \alpha\, s_u \); \( \alpha = 0.55 \) for \( s_u/p_a \le 1.5 \), \( \alpha = 0.55 - 0.1\,(s_u/p_a - 1.5) \) for \( 1.5 < s_u/p_a \le 2.5 \).<br>
       <strong>Sand (&beta; method):</strong> \( f_s = \beta\, \sigma'_v \le 200 \) kPa, with \( \beta = 1.5 - 0.245\sqrt{z} \), bounded to \( 0.25 \le \beta \le 1.20 \).<br>
-      <strong>Cohesive IGM:</strong> \( f_s = 0.65\, p_a \sqrt{q_u/p_a} \). Rock side resistance is neglected.<br>
+      <strong>Cohesive IGM:</strong> \( f_s = 0.65\, p_a \sqrt{q_u/p_a} \). <br>
+      <strong>Rock socket:</strong> \( f_s = C\,\alpha_E\,p_a\sqrt{q_u/p_a} \), \( C \approx 0.65 \) (up to about 1.0 for rough sockets); set C = 0 to neglect socket friction.<br>
+      <strong>Rock base:</strong> GEC-10 \( q_b = 2.5\,q_u \), or CFEM \( q_b = 3\,k_s\,d_f\,q_u \) with \( k_s = \dfrac{3 + s/D}{10\sqrt{1 + 300\,\delta/s}} \), \( d_f = 1 + 0.4\,L_s/D \le 3.4 \).<br>
       <strong>Base:</strong> clay \( q_b = \psi N_c s_u \) with \( N_c = \min(9,\; 6[1 + 0.2 L/D_b]) \); sand \( q_b = N_q \sigma'_{v,tip} \le 4800 \) kPa; IGM / rock \( q_b = 2.5\, q_u \).<br>
       \( Q_u = Q_s + Q_b \), \( Q_{all} = Q_u / FS \), with \( p_a = 101.325 \) kPa.
     </div>
@@ -972,10 +998,14 @@ function calculateDrilledShaft(inputs) {
         coeffLabel = 'fs/pa';
         typeLabel = `IGM (qu=${qu.toFixed(0)} kPa)`;
       } else {
-        fs = 0;
-        coeff = 0;
-        coeffLabel = '—';
-        typeLabel = 'Rock (shaft friction neglected)';
+        // Rock socket: fs = C * alphaE * pa * sqrt(qu/pa) (Horvath & Kenney 1979; O'Neill & Reese 1999 / GEC-10)
+        const qu = layer.qu ?? 5000;
+        const C = inputs.socketC ?? 0.65;
+        const aE = inputs.alphaE ?? 1;
+        fs = C * aE * PA_KPA * Math.sqrt(qu / PA_KPA);
+        coeff = C * aE * Math.sqrt(qu / PA_KPA);
+        coeffLabel = 'fs/pa';
+        typeLabel = C > 0 ? `Rock socket (qu=${qu.toFixed(0)} kPa, C=${C})` : 'Rock (socket friction neglected)';
       }
 
       const qsLayer = seg.excluded ? 0 : fs * perimeter * segDz;
@@ -987,12 +1017,14 @@ function calculateDrilledShaft(inputs) {
         sigmaV: segSigmaV, coeff, coeffLabel, fs, qs: qsLayer,
       });
 
-      if (!seg.excluded && segDz > 0 && layer.type !== 'rock') {
-        const name = layer.type === 'clay' ? 'Clay' : layer.type === 'sand' ? 'Sand' : 'IGM';
+      if (!seg.excluded && segDz > 0 && !(layer.type === 'rock' && fs === 0)) {
+        const name = layer.type === 'clay' ? 'Clay' : layer.type === 'sand' ? 'Sand' : layer.type === 'rock' ? 'Rock socket' : 'IGM';
         const fsExpr = coeffLabel === 'α'
           ? `\\alpha \\cdot s_u = (${coeff.toFixed(3)})(${(layer.su ?? 0).toFixed(1)})`
           : coeffLabel === 'β'
           ? `\\beta \\cdot \\sigma'_v = (${coeff.toFixed(3)})(${segSigmaV.toFixed(1)})`
+          : layer.type === 'rock'
+          ? `C\\,\\alpha_E\\, p_a \\sqrt{q_u / p_a} = (${inputs.socketC ?? 0.65})(${inputs.alphaE ?? 1})(${PA_KPA.toFixed(1)})\\sqrt{${(layer.qu ?? 5000).toFixed(0)}/${PA_KPA.toFixed(1)}}`
           : `0.65 p_a \\sqrt{q_u / p_a} = (0.65)(${PA_KPA.toFixed(1)})\\sqrt{${(layer.qu ?? 0).toFixed(0)}/${PA_KPA.toFixed(1)}}`;
         steps.push({
           title: `Shaft Friction — ${name} (z = ${seg.top.toFixed(2)}–${seg.bot.toFixed(2)} m)`,
@@ -1057,6 +1089,26 @@ function calculateDrilledShaft(inputs) {
         Q_b &= q_b \\cdot A_{base} = (${qb.toFixed(1)})(${baseArea.toFixed(4)}) = \\mathbf{${Qb.toFixed(1)}} \\text{ kN}
         \\end{aligned}`,
         explanation: "Nq interpolated from O'Neill & Reese (1999) Table 11-8; tip stress capped at 4800 kPa per GEC-10.",
+      });
+    } else if (tipLayer.type === 'rock' && inputs.rockTipMethod === 'cgs') {
+      const qu = tipLayer.qu ?? 5000;
+      const s = Math.max(inputs.jointSpacing ?? 0.3, 1e-6);
+      const delta = Math.max(inputs.jointAperture ?? 1, 0);
+      const Ls = Math.max(0, L - Math.max(tipLayer.top, 0));
+      const ks = (3 + s / Db) / (10 * Math.sqrt(1 + 300 * ((delta / 1000) / s)));
+      const df = Math.min(3.4, 1 + 0.4 * (Ls / Db));
+      qb = Math.min(3 * ks * df * qu, 40000);
+      Qb = qb * baseArea;
+      tipDetails = `Rock base (CFEM): q<sub>u</sub> = ${qu.toFixed(0)} kPa, k<sub>s</sub> = ${ks.toFixed(3)}, d<sub>f</sub> = ${df.toFixed(2)} &rarr; q<sub>b</sub> = ${qb.toFixed(0)} kPa &rarr; Q<sub>b</sub> = ${Qb.toFixed(1)} kN`;
+      steps.push({
+        title: 'Tip Bearing — Rock (CFEM / Canadian method)',
+        formula: `\\begin{aligned}
+        k_s &= \\frac{3 + s/D_b}{10\\sqrt{1 + 300\\,\\delta/s}} = ${ks.toFixed(3)} \\\\
+        d_f &= \\min\\left(3.4,\\, 1 + 0.4\\frac{L_s}{D_b}\\right) = ${df.toFixed(2)} \\\\
+        q_b &= 3 k_s d_f q_u = 3(${ks.toFixed(3)})(${df.toFixed(2)})(${qu.toFixed(0)}) = \\mathbf{${qb.toFixed(0)}} \\text{ kPa} \\\\
+        Q_b &= q_b \\cdot A_{base} = (${qb.toFixed(0)})(${baseArea.toFixed(4)}) = \\mathbf{${Qb.toFixed(1)}} \\text{ kN}
+        \\end{aligned}`,
+        explanation: 'Canadian Foundation Engineering Manual: rock with spaced discontinuities (s = spacing, delta = aperture, Ls = socket length). Valid for roughly 0.05 < s/D < 2 and delta/s <= 0.02. Check the structural capacity of the shaft concrete separately.',
       });
     } else {
       const qu = tipLayer.qu ?? 1000;
@@ -1354,6 +1406,14 @@ const PRESETS = [
       { top: 8, bottom: 25, type: 'clay', gamma: 18.5, su: 65 },
     ],
   },
+  {
+    installation: 'drilled', diameter: 1.0, length: 11, gwDepth: 3.0, fos: 2.5, shaftGamma: 24.0,
+    socketC: 0.65, alphaE: 1, rockTipMethod: 'cgs', jointSpacing: 0.5, jointAperture: 1,
+    layers: [
+      { top: 0, bottom: 6, type: 'clay', gamma: 18.5, su: 100 },
+      { top: 6, bottom: 20, type: 'rock', gamma: 25.0, qu: 12000 },
+    ],
+  },
 ];
 
 // which strength column each material uses
@@ -1371,6 +1431,8 @@ function setMode() {
   const driven = isDriven();
   document.querySelectorAll('.only-driven').forEach(e => e.classList.toggle('hidden', !driven));
   document.querySelectorAll('.only-drilled').forEach(e => e.classList.toggle('hidden', driven));
+  const cgs = document.getElementById('rockTipMethod').value === 'cgs';
+  document.querySelectorAll('.cgs-only').forEach(e => e.classList.toggle('hidden', driven || !cgs));
   document.getElementById('diameterLabel').innerHTML = driven ? 'Diameter / Width, B (m)' : 'Shaft Diameter, D (m)';
   document.getElementById('intro').innerHTML = driven
     ? 'Assumes consistent SI units (kN, m, kPa). Driven piles use the static &alpha; / &lambda; (clay) and &beta; (sand) methods with no exclusion zones, and also report uplift capacity.'
@@ -1430,6 +1492,11 @@ function loadPreset(p) {
   setField('diameter', p.diameter);
   setField('length', p.length);
   setField('bellDiameter', p.bellDiameter);
+  setField('socketC', p.socketC);
+  setField('alphaE', p.alphaE);
+  setField('rockTipMethod', p.rockTipMethod || 'gec10');
+  setField('jointSpacing', p.jointSpacing);
+  setField('jointAperture', p.jointAperture);
   setField('gwDepth', p.gwDepth);
   setField('fos', p.fos);
   setField('shaftGamma', p.shaftGamma);
@@ -1516,6 +1583,11 @@ function readInputs() {
     methodClay: document.getElementById('methodClay').value,
     diameter, length,
     bellDiameter: driven ? undefined : (bell || undefined),
+    socketC: num(document.getElementById('socketC')) ?? undefined,
+    alphaE: num(document.getElementById('alphaE')) ?? undefined,
+    rockTipMethod: document.getElementById('rockTipMethod').value,
+    jointSpacing: num(document.getElementById('jointSpacing')) ?? undefined,
+    jointAperture: num(document.getElementById('jointAperture')) ?? undefined,
     gwDepth: num(gwEl) ?? 999,   // blank = water table below the foundation
     fos: fos ?? 2.5,
     shaftGamma: num(gcEl) ?? 24.0,
@@ -1654,6 +1726,7 @@ installationEl.addEventListener('change', () => {
   setMode();
   document.getElementById('resultsArea').classList.add('hidden');
 });
+document.getElementById('rockTipMethod').addEventListener('change', setMode);
 document.getElementById('calcBtn').addEventListener('click', () => {
   calculate();
   if (!document.getElementById('resultsArea').classList.contains('hidden')) {
