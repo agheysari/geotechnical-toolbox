@@ -492,6 +492,15 @@
 mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
 mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
 </style>
+<style id="fullsite-style">
+.fullsite { margin: 12px 0 0; font-size: 13px; }
+.fullsite a {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+  border: 1px solid var(--border, #e2e8f0); border-radius: 999px;
+  color: var(--primary, #0284c7); font-weight: 600; text-decoration: none;
+}
+.fullsite a:hover { border-color: var(--primary, #0284c7); }
+</style>
 </head>
 <body>
 
@@ -501,6 +510,7 @@ mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; paddi
     <a class="back-link" href="index.html">&larr; All calculators</a>
     <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#EEF2FF" /> <path d="M32 6V18M32 18L28 14M32 18L36 14" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /> <line x1="10" y1="18" x2="54" y2="18" stroke="#64748B" stroke-width="2" /> <path d="M26 18C26 26 30 30 32 30C34 30 38 26 38 18" stroke="#4F46E5" stroke-width="2" fill="none" /> <path d="M20 18C20 34 28 42 32 42C36 42 44 34 44 18" stroke="#6366F1" stroke-width="1.8" fill="none" /> <path d="M14 18C14 42 26 54 32 54C38 54 50 42 50 18" stroke="#818CF8" stroke-width="1.5" fill="none" stroke-dasharray="3 2" /> </svg> Stress Distribution Calculator (Simple Edition)</h1>
     <p class="subtitle">Lightweight single-point Boussinesq and Westergaard vertical stress increase solver.</p>
+    <p class="fullsite"><a href="https://geotechnica.ca/tools/stress-calculator">Open the full version on geotechnica.ca &rarr;</a></p>
   </header>
 
   <main class="card">
@@ -585,6 +595,8 @@ mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; paddi
     </span>
     <span class="sep">&bull;</span>
     <a href="index.html">All calculators</a>
+    <span class="sep">&bull;</span>
+    <a href="https://geotechnica.ca/tools/stress-calculator">geotechnica.ca</a>
     <span class="sep">&bull;</span>
     <a href="https://github.com/agheysari/geotechnical-toolbox" target="_blank" rel="noopener noreferrer">Source</a>
     <span class="sep">&bull;</span>

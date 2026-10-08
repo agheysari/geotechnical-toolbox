@@ -546,6 +546,15 @@
 mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
 mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
 </style>
+<style id="fullsite-style">
+.fullsite { margin: 12px 0 0; font-size: 13px; }
+.fullsite a {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+  border: 1px solid var(--border, #e2e8f0); border-radius: 999px;
+  color: var(--primary, #0284c7); font-weight: 600; text-decoration: none;
+}
+.fullsite a:hover { border-color: var(--primary, #0284c7); }
+</style>
 </head>
 <body>
 
@@ -555,6 +564,7 @@ mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; paddi
     <a class="back-link" href="index.html">&larr; All calculators</a>
     <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" > <rect width="64" height="64" rx="14" fill="#F0FDF4" /> <rect x="20" y="24" width="24" height="32" rx="2" fill="#D97706" fill-opacity="0.2" stroke="#B45309" stroke-width="2" /> <circle cx="26" cy="30" r="2" fill="#92400E" /> <circle cx="34" cy="34" r="2" fill="#92400E" /> <circle cx="28" cy="40" r="2.5" fill="#92400E" /> <circle cx="36" cy="44" r="1.5" fill="#92400E" /> <circle cx="26" cy="50" r="2" fill="#92400E" /> <circle cx="38" cy="50" r="2" fill="#92400E" /> <rect x="28" y="8" width="8" height="16" fill="#3B82F6" fill-opacity="0.3" stroke="#2563EB" stroke-width="1.5" /> <line x1="28" y1="12" x2="36" y2="12" stroke="#2563EB" stroke-width="2" stroke-dasharray="2 2" /> <path d="M32 14V22M32 22L30 20M32 22L34 20" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M32 58V62M32 62L30 60M32 62L34 60" stroke="#3B82F6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /> </svg>Soil Permeability Calculator</h1>
     <p class="subtitle">Constant head, falling head and Hazen empirical hydraulic conductivity methods (ASTM D2434 / ASTM D5084).</p>
+    <p class="fullsite"><a href="https://geotechnica.ca/tools/soil-permeability">Open the full version on geotechnica.ca &rarr;</a></p>
   </header>
 
   <main id="soil-permeability-tool" class="card">
@@ -726,6 +736,8 @@ mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; paddi
     </span>
     <span class="sep">&bull;</span>
     <a href="index.html">All calculators</a>
+    <span class="sep">&bull;</span>
+    <a href="https://geotechnica.ca/tools/soil-permeability">geotechnica.ca</a>
     <span class="sep">&bull;</span>
     <a href="https://github.com/agheysari/geotechnical-toolbox" target="_blank" rel="noopener noreferrer">Source</a>
     <span class="sep">&bull;</span>

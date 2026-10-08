@@ -644,6 +644,15 @@ const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2
 mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
 mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
 </style>
+<style id="fullsite-style">
+.fullsite { margin: 12px 0 0; font-size: 13px; }
+.fullsite a {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+  border: 1px solid var(--border, #e2e8f0); border-radius: 999px;
+  color: var(--primary, #0284c7); font-weight: 600; text-decoration: none;
+}
+.fullsite a:hover { border-color: var(--primary, #0284c7); }
+</style>
 </head>
 <body>
 
@@ -653,6 +662,7 @@ mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; paddi
     <a class="back-link" href="index.html">&larr; All calculators</a>
     <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="64" height="64" rx="14" fill="#F0F9FF"/><path d="M12 14V50H54" stroke="#94A3B8" stroke-width="2.5" stroke-linecap="round"/><path d="M16 22C26 28 38 38 52 44" stroke="#0284C7" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="25" r="3" fill="#D97706"/><circle cx="30" cy="32" r="3" fill="#D97706"/><circle cx="42" cy="39" r="3" fill="#D97706"/><rect x="33" y="30" width="7" height="7" transform="rotate(45 36.5 33.5)" fill="#DC2626"/></svg>Atterberg Limits &amp; Flow Curve Plotter</h1>
     <p class="subtitle">Plot the liquid limit flow curve (moisture content vs. number of blows on a semi-log scale) to interpolate the Liquid Limit, Flow Index, Plasticity Index and Liquidity Index.</p>
+    <p class="fullsite"><a href="https://geotechnica.ca/tools/atterberg-limits">Open the full version on geotechnica.ca &rarr;</a></p>
   </header>
 
   <main class="card">
@@ -722,6 +732,8 @@ mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; paddi
     </span>
     <span class="sep">&bull;</span>
     <a href="index.html">All calculators</a>
+    <span class="sep">&bull;</span>
+    <a href="https://geotechnica.ca/tools/atterberg-limits">geotechnica.ca</a>
     <span class="sep">&bull;</span>
     <a href="https://github.com/agheysari/geotechnical-toolbox" target="_blank" rel="noopener noreferrer">Source</a>
     <span class="sep">&bull;</span>
