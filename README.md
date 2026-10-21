@@ -1,6 +1,6 @@
 # 🌍 Open-Source Geotechnical Engineering & Geospatial Calculators
 
-A collection of **35 standalone, client-side HTML/JavaScript calculation tools** for geotechnical
+A collection of **37 standalone, client-side HTML/JavaScript calculation tools** for geotechnical
 engineers, civil engineering researchers, and geospatial analysts, developed by
 **Ali Gheysari, PhD P.Eng.**.
 
@@ -10,7 +10,7 @@ engineers, civil engineering researchers, and geospatial analysts, developed by
 
 [![Live portal](https://img.shields.io/badge/Live%20portal-GitHub%20Pages-success.svg)](https://agheysari.github.io/geotechnical-toolbox/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Calculators](https://img.shields.io/badge/Calculators-35-blue.svg)](https://github.com/agheysari/geotechnical-toolbox)
+[![Calculators](https://img.shields.io/badge/Calculators-37-blue.svg)](https://github.com/agheysari/geotechnical-toolbox)
 
 ---
 
@@ -24,7 +24,7 @@ engineers, civil engineering researchers, and geospatial analysts, developed by
   (m, kPa, kN/m³, mm, years). Settlements are reported in mm, times in years.
 * **Report-ready figures.** Charts share one theme, with consistent type, palette, gridlines and
   axis labelling, so a figure can be pasted straight into a report.
-* **Consistent page shell.** All 35 pages share the same header, container, results and footer
+* **Consistent page shell.** All 37 pages share the same header, container, results and footer
   structure, and validate your inputs the same way before calculating.
 
 ---
@@ -68,6 +68,8 @@ engineers, civil engineering researchers, and geospatial analysts, developed by
 | 33 | **Drawdown Analyzer (Pumping Test)** | [Launch](https://agheysari.github.io/geotechnical-toolbox/pumping_test.html) | [Open](https://geotechnica.ca/tools/pumping-test) | [`pumping_test.html`](./pumping_test.html) | Cooper-Jacob straight-line transmissivity and storativity |
 | 34 | **RQD & Core Recovery Log** | [Launch](https://agheysari.github.io/geotechnical-toolbox/rqd_core_recovery.html) | [Open](https://geotechnica.ca/tools/rqd-core-recovery) | [`rqd_core_recovery.html`](./rqd_core_recovery.html) | Rock Quality Designation and total core recovery from core run lengths |
 | 35 | **Stereonet Plotter** | [Launch](https://agheysari.github.io/geotechnical-toolbox/stereonet_plotter.html) | [Open](https://geotechnica.ca/tools/stereonet-plotter) | [`stereonet_plotter.html`](./stereonet_plotter.html) | Kinematic stereonet of dip / dip direction structural data |
+| 36 | **Sheet Pile Wall Design** | [Launch](https://agheysari.github.io/geotechnical-toolbox/sheet_pile_wall.html) | [Open](https://geotechnica.ca/tools/sheet-pile-wall) | [`sheet_pile_wall.html`](./sheet_pile_wall.html) | Cantilever (simplified method), anchored free and fixed earth support (Blum), layered c'-φ' soil, hydrostatic or seepage water, moment and section modulus |
+| 37 | **Seismic Earth Pressure (Mononobe-Okabe)** | [Launch](https://agheysari.github.io/geotechnical-toolbox/seismic_earth_pressure.html) | [Open](https://geotechnica.ca/tools/seismic-earth-pressure) | [`seismic_earth_pressure.html`](./seismic_earth_pressure.html) | K_AE / K_PE with wall friction, slope and batter, Seed & Whitman dynamic increment, submerged backfill, critical wedge |
 
 ---
 

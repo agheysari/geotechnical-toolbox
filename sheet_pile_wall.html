@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Embedment depth, maximum bending moment and anchor force for cantilever and anchored sheet pile walls (free and fixed earth support) in layered soil with water.">
+<title>Sheet Pile Wall Calculator | Geotechnical Toolbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>window.MathJax = { chtml: { displayAlign: 'left', displayIndent: '0' } };</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2,2,2], [3,3], [8,4]];
+
+/* ==========================================================================
+   Geotechnical Tools: shared figure theme
+   Identical on every page that draws a plot. Gives all charts one look:
+   Inter type, muted slate ink, hairline grid, and a consistent series
+   palette, so a figure can be pasted straight into a report.
+   ========================================================================== */
+(function () {
+  var FONT  = "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  var INK   = '#0f172a';
+  var MUTED = '#475569';
+  var GRID  = '#e8edf3';
+  var AXIS  = '#cbd5e1';
+  var SERIES = ['#0284c7', '#dc2626', '#059669', '#d97706', '#7c3aed', '#0f766e', '#be185d', '#475569'];
+  window.GEO_SERIES = SERIES;
+
+  /* ---- Chart.js ---------------------------------------------------------- */
+  if (typeof Chart !== 'undefined') {
+    var d = Chart.defaults;
+    d.font.family = FONT;
+    d.font.size = 12;
+    d.color = MUTED;
+    d.responsive = true;
+    d.maintainAspectRatio = false;      /* fill the figure box, not a 2:1 slab */
+    d.layout.padding = 4;
+    d.elements.line.borderWidth = 2.25;
+    d.elements.point.hitRadius = 8;
+    d.elements.point.borderWidth = 1.5;
+
+    d.plugins.title.color = INK;
+    d.plugins.title.font = { family: FONT, size: 13, weight: '700' };
+    d.plugins.title.padding = { top: 2, bottom: 14 };
+    d.plugins.legend.labels.usePointStyle = false;
+    d.plugins.legend.labels.boxHeight = 2;
+    d.plugins.legend.labels.boxWidth = 36;
+    d.plugins.legend.labels.padding = 14;
+    d.plugins.legend.labels.color = MUTED;
+    d.plugins.legend.labels.font = { family: FONT, size: 11 };
+    d.plugins.tooltip.backgroundColor = 'rgba(15,23,42,0.92)';
+    d.plugins.tooltip.padding = 10;
+    d.plugins.tooltip.cornerRadius = 8;
+    d.plugins.tooltip.titleFont = { family: FONT, size: 12, weight: '700' };
+    d.plugins.tooltip.bodyFont = { family: FONT, size: 12 };
+    d.plugins.tooltip.displayColors = false;
+
+    if (d.scale) {
+      d.scale.grid.color = GRID;
+      d.scale.grid.lineWidth = 1;
+      d.scale.grid.tickColor = AXIS;
+      d.scale.border = d.scale.border || {};
+      d.scale.border.color = AXIS;
+      d.scale.ticks.color = MUTED;
+      d.scale.ticks.padding = 6;
+      d.scale.ticks.font = { family: FONT, size: 11 };
+      d.scale.title.color = INK;
+      d.scale.title.font = { family: FONT, size: 12, weight: '600' };
+    }
+  }
+
+  /* ---- Plotly ------------------------------------------------------------ */
+  if (typeof Plotly !== 'undefined') {
+    var axisBase = {
+      gridcolor: GRID,
+      zerolinecolor: AXIS,
+      linecolor: AXIS,
+      linewidth: 1,
+      ticks: 'outside',
+      tickcolor: AXIS,
+      ticklen: 5,
+      tickfont: { family: FONT, size: 11, color: MUTED },
+      title: { font: { family: FONT, size: 12, color: INK } },
+      automargin: true
+    };
+    window.GEO_PLOTLY_LAYOUT = {
+      font: { family: FONT, size: 12, color: MUTED },
+      plot_bgcolor: '#ffffff',
+      paper_bgcolor: '#ffffff',
+      colorway: SERIES,
+      margin: { t: 54, b: 58, l: 72, r: 28 },
+      title: { font: { family: FONT, size: 13, color: INK }, x: 0, xanchor: 'left',
+               y: 0.96, yanchor: 'top', pad: { l: 16, t: 12 } },
+      legend: { font: { family: FONT, size: 11, color: MUTED },
+                bgcolor: 'rgba(255,255,255,0.88)', bordercolor: '#e2e8f0', borderwidth: 1 },
+      hoverlabel: { bgcolor: INK, bordercolor: INK,
+                    font: { family: FONT, size: 12, color: '#ffffff' } },
+      xaxis: axisBase,
+      yaxis: axisBase
+    };
+    window.GEO_PLOTLY_CONFIG = {
+      responsive: true,
+      displaylogo: false,
+      modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+      toImageButtonOptions: { format: 'png', scale: 2 }
+    };
+    function mergeTitle(base, t) {
+      if (typeof t === 'string') return Object.assign({}, base, { text: t });
+      if (t && typeof t === 'object') return Object.assign({}, base, t);
+      return Object.assign({}, base);
+    }
+    function mergeAxis(base, ax) {
+      var out = Object.assign({}, base, ax || {});
+      out.tickfont = Object.assign({}, base.tickfont, (ax || {}).tickfont);
+      out.title = mergeTitle(base.title, (ax || {}).title);
+      return out;
+    }
+    /* Merge a page's own layout over the shared theme, preserving its specifics. */
+    window.geoLayout = function (layout) {
+      layout = layout || {};
+      var B = window.GEO_PLOTLY_LAYOUT;
+      var out = Object.assign({}, B, layout);
+      out.font = Object.assign({}, B.font, layout.font);
+      out.margin = Object.assign({}, B.margin, layout.margin);
+      out.legend = Object.assign({}, B.legend, layout.legend);
+      out.hoverlabel = Object.assign({}, B.hoverlabel, layout.hoverlabel);
+      out.title = mergeTitle(B.title, layout.title);
+      ['xaxis', 'yaxis', 'xaxis2', 'yaxis2'].forEach(function (k) {
+        if (layout[k] || k === 'xaxis' || k === 'yaxis') {
+          out[k] = mergeAxis(k.charAt(0) === 'x' ? B.xaxis : B.yaxis, layout[k]);
+        }
+      });
+      return out;
+    };
+  }
+})();
+</script>
+<style>
+    /* ==========================================================================
+       Geotechnical Tools: shared shell
+       This block is identical on every page. Edit it in one page and mirror the
+       change to the rest; page-specific rules live in the section below it.
+       ========================================================================== */
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --surface: #ffffff;
+      --background: #f8fafc;
+      --surface-alt: #f1f5f9;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #059669;
+      --success-bg: #ecfdf5;
+      --warning: #b45309;
+      --warning-bg: #fffbeb;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 28px 16px 8px;
+      background: var(--background);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    /* --- Page header ------------------------------------------------------- */
+    .tool-header { margin-bottom: 20px; }
+    .tool-header h1 {
+      margin: 0;
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: -0.015em;
+      line-height: 1.25;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tool-header .subtitle {
+      margin: 8px 0 0;
+      max-width: 90ch;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .tool-header .back-link {
+      display: inline-block;
+      margin-bottom: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .tool-header .back-link:hover { color: var(--primary); }
+    .tool-header h1 .tool-icon { flex: none; border-radius: 9px; }
+
+    /* --- Surfaces ---------------------------------------------------------- */
+    .card {
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+    .card + .card { margin-top: 16px; }
+    /* the two-column pages stack several components inside one card; give them
+       an even rhythm instead of whatever margins each component brings */
+    .layout-grid .card > * { margin-top: 0; margin-bottom: 0; }
+    .layout-grid .card > * + * { margin-top: 18px; }
+    .card-title {
+      margin: 0 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-title {
+      margin: 26px 0 14px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+    .section-title:first-child { margin-top: 0; }
+
+    /* --- Input groups -------------------------------------------------------
+       Convention: a grey bordered panel is something you fill in; a white or
+       tinted box is a result the tool gives back. Legacy group names below are
+       aliases so older markup picks up the same treatment. */
+    .field-set,
+    .panel, .control-group, .settings-panel, .manual-entry {
+      margin: 0 0 18px;
+      padding: 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .field-set > :first-child,
+    .panel > :first-child, .control-group > :first-child,
+    .settings-panel > :first-child, .manual-entry > :first-child { margin-top: 0; }
+    .field-set > :last-child,
+    .panel > :last-child, .control-group > :last-child,
+    .settings-panel > :last-child, .manual-entry > :last-child { margin-bottom: 0; }
+
+    /* legacy grid names share the responsive form grid */
+    .grid-2, .grid-3, .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .grid-2 > *, .grid-3 > *, .grid-container > * { min-width: 0; }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 10px;
+    }
+    .checkbox-group:last-child { margin-bottom: 0; }
+    .checkbox-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    h1, h2, h3, h4 { font-family: var(--font); color: var(--text); }
+    h2 { font-size: 19px; font-weight: 700; margin: 0 0 12px; }
+    h3 { font-size: 15px; font-weight: 700; margin: 0 0 10px; }
+    h4 { font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+
+    /* --- Forms ------------------------------------------------------------- */
+    .form-row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .form-row > * { flex: 1 1 0; min-width: 0; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    /* grid/flex children default to min-width:auto, which refuses to shrink and
+       pushes the page wider than the viewport on phones */
+    .layout-grid > *, .form-grid > *, .results-grid > *, .form-row > * { min-width: 0; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    @media (max-width: 768px) { .form-row { flex-direction: column; gap: 12px; } }
+
+    label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    input[type="checkbox"], input[type="radio"] { width: auto; }
+    textarea {
+      min-height: 170px;
+      resize: none;
+      line-height: 1.55;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+    input[type="range"] { padding: 0; }
+    .input-error { border-color: var(--danger) !important; background: var(--danger-bg) !important; }
+
+    .hint, .help-text, .note {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    /* block footnote under a results panel, not an inline field hint */
+    .note { display: block; margin-top: 18px; }
+
+    /* row of buttons that acts on the table above it */
+    .table-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin: 16px 0 4px;
+    }
+    .table-actions .spacer { margin-left: auto; }
+
+    /* --- Buttons ----------------------------------------------------------- */
+    button, .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 16px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--primary);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    button:hover:not(:disabled), .btn:hover:not(:disabled) { background: var(--primary-dark); }
+    button:disabled, .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+    .calc-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .btn-secondary { background: var(--surface-alt); color: #475569; border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { background: #e2e8f0; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; font-weight: 600; }
+    .btn-success { background: var(--success); }
+    .btn-success:hover:not(:disabled) { background: #047857; }
+    .btn-danger, .btn-clear { background: var(--danger); }
+    .btn-danger:hover:not(:disabled), .btn-clear:hover:not(:disabled) { background: #b91c1c; }
+
+    /* --- Tabs -------------------------------------------------------------- */
+    .tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      background: var(--surface-alt);
+      border-radius: 8px;
+    }
+    .tab-btn:hover:not(.active) { background: #e2e8f0; }
+    .tab-btn.active { background: var(--primary); color: #fff; }
+    .tab-panel { display: none; }
+    .tab-panel.active {
+      display: block;
+      margin-bottom: 18px;
+      padding: 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .tab-panel.active > :first-child { margin-top: 0; }
+    .tab-panel.active > :last-child { margin-bottom: 0; }
+
+    /* --- Results ----------------------------------------------------------- */
+    .result-box {
+      margin-top: 20px;
+      padding: 18px 20px;
+      background: var(--primary-light);
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .result-box.success { background: var(--success-bg); border-color: #a7f3d0; border-left-color: var(--success); }
+    .result-box.warning { background: var(--warning-bg); border-color: #fde68a; border-left-color: #f59e0b; }
+    .result-box.danger  { background: var(--danger-bg);  border-color: #fecaca; border-left-color: var(--danger); }
+    .result-value {
+      margin: 6px 0 0;
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--primary-dark);
+    }
+    .success .result-value { color: var(--success); }
+    .warning .result-value { color: var(--warning); }
+    .danger  .result-value { color: var(--danger); }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .stat-box {
+      padding: 14px 12px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+    .stat-val {
+      margin: 5px 0 0;
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+    .stat-sub { font-size: 10px; color: var(--text-muted); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+    }
+
+    .formula-box {
+      margin: 18px 0;
+      padding: 16px 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-size: 13px;
+    }
+    .formula-box h3, .formula-box h4 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    /* --- Tables ------------------------------------------------------------ */
+    .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      background: var(--background);
+    }
+    td input, td select { padding: 6px 8px; font-size: 13px; }
+
+    /* --- Figures ------------------------------------------------------------ */
+    .chart-container, .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      margin: 22px 0 4px;
+      padding: 14px 14px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    @media (max-width: 600px) {
+      .chart-container, .chart-wrapper { height: 320px; padding: 10px 8px 6px; }
+    }
+
+    /* --- Uploads ------------------------------------------------------------ */
+    .upload-area {
+      margin-bottom: 16px;
+      padding: 24px;
+      text-align: center;
+      background: var(--background);
+      border: 2px dashed #cbd5e1;
+      border-radius: var(--radius);
+      transition: border-color 0.15s ease;
+    }
+    .upload-area:hover { border-color: var(--primary); }
+    .upload-area input { width: auto; max-width: 100%; }
+    .upload-area input[type="file"] { width: 100%; }
+
+    /* --- Support line & footer ---------------------------------------------- */
+    .support-note {
+      margin: 20px 0 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .support-note a {
+      color: var(--primary);
+      text-decoration: none;
+      border-bottom: 1px solid var(--primary-light);
+    }
+    .support-note a:hover { border-bottom-color: var(--primary); }
+
+    .site-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 32px;
+      padding: 22px 12px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .site-footer a { color: var(--text-muted); text-decoration: none; }
+    .site-footer a:hover { color: var(--primary); }
+    .site-footer .sep { color: #cbd5e1; }
+    .site-footer .social { display: inline-flex; align-items: center; gap: 9px; }
+    .site-footer .social a { display: inline-flex; color: var(--text-muted); }
+    .site-footer .social a:hover { color: var(--primary); }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 600px) {
+      body { padding: 20px 12px 8px; }
+      .card { padding: 18px 16px; }
+      th, td { padding: 8px 9px; }
+    }
+
+    /* ==========================================================================
+       Page-specific styles
+       ========================================================================== */
+    .preset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 18px; }
+    .preset-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-right: 2px; }
+    .btn-clear-inputs { background: transparent !important; color: var(--danger) !important; border: 1px dashed #fca5a5 !important; }
+    .btn-clear-inputs:hover:not(:disabled) { background: var(--danger-bg) !important; }
+    .grid-container .hint a { color: var(--primary); }
+    td input:disabled { background: var(--surface-alt); }
+    td.layer-no { font-weight: 700; color: var(--text-muted); }
+    .step { margin: 0 0 12px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; }
+    .step h4 { margin: 0 0 6px; font-size: 13px; }
+    .step .step-note { margin: 6px 0 0; font-size: 12px; color: var(--text-muted); }
+    #warnings:empty { display: none; }
+    #warnings { margin-top: 16px; padding: 12px 16px; background: var(--warning-bg); border: 1px solid #fde68a; border-left: 4px solid #f59e0b; border-radius: var(--radius); font-size: 13px; color: var(--warning); }
+    #warnings ul { margin: 0; padding-left: 18px; }
+    .sketch { max-width: 640px; margin: 0 auto 8px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .sketch svg { display: block; width: 100%; height: auto; }
+    .chart-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 0 16px; }
+    .chart-pair > * { min-width: 0; height: 420px; }
+  </style>
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
+<style id="fullsite-style">
+.fullsite { margin: 12px 0 0; font-size: 13px; }
+.fullsite a {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+  border: 1px solid var(--border, #e2e8f0); border-radius: 999px;
+  color: var(--primary, #0284c7); font-weight: 600; text-decoration: none;
+}
+.fullsite a:hover { border-color: var(--primary, #0284c7); }
+</style>
+<!-- seo:start -->
+<link rel="canonical" href="https://agheysari.github.io/geotechnical-toolbox/sheet_pile_wall.html">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="Ali Gheysari">
+<meta name="theme-color" content="#2143AA">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta property="og:site_name" content="Geotechnical Toolbox">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sheet Pile Wall Design (Cantilever &amp; Anchored)">
+<meta property="og:description" content="Embedment depth, maximum bending moment and anchor force for cantilever and anchored sheet pile walls (free and fixed earth support) in layered soil with water.">
+<meta property="og:url" content="https://agheysari.github.io/geotechnical-toolbox/sheet_pile_wall.html">
+<meta property="og:image" content="https://agheysari.github.io/geotechnical-toolbox/og/sheet_pile_wall.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Sheet Pile Wall Design (Cantilever &amp; Anchored): free online calculator">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Sheet Pile Wall Design (Cantilever &amp; Anchored)">
+<meta name="twitter:description" content="Embedment depth, maximum bending moment and anchor force for cantilever and anchored sheet pile walls (free and fixed earth support) in layered soil with water.">
+<meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/sheet_pile_wall.png">
+<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Sheet Pile Wall Design (Cantilever & Anchored)", "url": "https://agheysari.github.io/geotechnical-toolbox/sheet_pile_wall.html", "description": "Embedment depth, maximum bending moment and anchor force for cantilever and anchored sheet pile walls (free and fixed earth support) in layered soil with water.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Sheet Pile Wall Design (Cantilever & Anchored)", "item": "https://agheysari.github.io/geotechnical-toolbox/sheet_pile_wall.html"}]}]</script>
+<!-- seo:end -->
+</head>
+<body>
+
+<div class="container">
+
+  <header class="tool-header">
+    <a class="back-link" href="index.html">&larr; All calculators</a>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="64" height="64" rx="14" fill="#F1F5F9" /> <path d="M31 14H56V56H31V14Z" fill="#D97706" fill-opacity="0.18" /> <path d="M8 36H31V56H8V36Z" fill="#D97706" fill-opacity="0.1" /> <line x1="31" y1="14" x2="56" y2="14" stroke="#94A3B8" stroke-width="2" /> <line x1="8" y1="36" x2="31" y2="36" stroke="#94A3B8" stroke-width="2" stroke-dasharray="3 3" /> <path d="M31 10L28 16L31 22L28 28L31 34L28 40L31 46L28 52L30 56" stroke="#475569" stroke-width="3" stroke-linejoin="round" /> <line x1="31" y1="20" x2="49" y2="20" stroke="#334155" stroke-width="2" /> <rect x="49" y="15" width="4" height="10" rx="1" fill="#64748B" /> <path d="M28 22C20 28 20 34 28 42" stroke="#EF4444" stroke-width="2" stroke-dasharray="3 2" /> </svg>Sheet Pile Wall Design (Cantilever &amp; Anchored)</h1>
+    <p class="subtitle">Embedment depth, maximum bending moment and anchor force for cantilever and anchored sheet pile walls (free and fixed earth support) in layered soil with water.</p>
+    <p class="fullsite"><a href="https://geotechnica.ca/tools/sheet-pile-wall">Open the full version on geotechnica.ca &rarr;</a></p>
+  </header>
+
+  <main class="card">
+    <div class="preset-row">
+      <span class="preset-label">Demo:</span>
+      <button class="btn btn-secondary btn-sm" data-preset="0">Cantilever in sand</button>
+      <button class="btn btn-secondary btn-sm" data-preset="1">Anchored bulkhead, free earth</button>
+      <button class="btn btn-secondary btn-sm" data-preset="2">Anchored into clay, fixed earth</button>
+      <button class="btn btn-secondary btn-sm btn-clear-inputs" id="clearBtn">Clear</button>
+    </div>
+
+    <section class="field-set">
+      <div class="section-title">1. Wall Type &amp; Geometry</div>
+      <div class="grid-container">
+        <div class="form-group">
+          <label for="support">Support Condition</label>
+          <select id="support">
+            <option value="cantilever">Cantilever (no anchor)</option>
+            <option value="free-earth">Anchored: free earth support</option>
+            <option value="fixed-earth">Anchored: fixed earth support (Blum)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="H">Retained Height, H (m)</label>
+          <input type="number" id="H" step="any" placeholder="e.g., 5.0">
+          <span class="hint">Top of wall to excavation level</span>
+        </div>
+        <div class="form-group">
+          <label for="surcharge">Surcharge, q (kPa)</label>
+          <input type="number" id="surcharge" step="any" placeholder="e.g., 10">
+          <span class="hint">Uniform, on the retained side</span>
+        </div>
+        <div class="form-group only-anchored hidden">
+          <label for="anchorDepth">Anchor Depth, a (m)</label>
+          <input type="number" id="anchorDepth" step="any" placeholder="e.g., 1.5">
+          <span class="hint">Below top of wall</span>
+        </div>
+        <div class="form-group only-anchored hidden">
+          <label for="anchorSpacing">Anchor Spacing, s (m)</label>
+          <input type="number" id="anchorSpacing" step="any" placeholder="Optional, e.g., 2.5">
+          <span class="hint">For the load per anchor</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-title">2. Soil Layers</div>
+    <p class="hint" style="margin: 0 0 12px;">Depths are measured from the top of the wall on the retained side. The last layer continues below the toe. For undrained clay, enter &phi;' = 0 and the undrained shear strength s<sub>u</sub> as c.</p>
+    <div class="table-scroll">
+      <table id="layersTable">
+        <thead>
+          <tr>
+            <th>Layer</th>
+            <th>Bottom (m)</th>
+            <th>&gamma; (kN/m³)</th>
+            <th>&gamma;<sub>sat</sub> (kN/m³)</th>
+            <th>&phi;' (deg)</th>
+            <th>c' or s<sub>u</sub> (kPa)</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="layersBody"></tbody>
+      </table>
+    </div>
+    <div class="table-actions">
+      <button class="btn" id="addLayerBtn">+ Add Layer</button>
+    </div>
+
+    <section class="field-set" style="margin-top: 18px;">
+      <div class="section-title">3. Groundwater</div>
+      <div class="grid-container">
+        <div class="form-group">
+          <label for="seepage">Water Pressure Model</label>
+          <select id="seepage">
+            <option value="hydrostatic">Hydrostatic on both sides</option>
+            <option value="seepage">Steady seepage around the toe</option>
+          </select>
+          <span class="hint">Seepage: head lost uniformly along the wall; matters only where the water levels differ</span>
+        </div>
+        <div class="form-group">
+          <label for="waterBack">Water Table, Retained Side (m)</label>
+          <input type="number" id="waterBack" step="any" placeholder="None">
+          <span class="hint">Depth below top of wall; blank for dry soil</span>
+        </div>
+        <div class="form-group">
+          <label for="waterFront">Water Level, Excavation Side (m)</label>
+          <input type="number" id="waterFront" step="any" placeholder="Excavation level">
+          <span class="hint">Depth below top of wall; less than H for free water in front</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="field-set">
+      <div class="section-title">4. Design Margins &amp; Steel Section</div>
+      <div class="grid-container">
+        <div class="form-group">
+          <label for="passiveFactor">Factor on Passive, F<sub>p</sub></label>
+          <input type="number" id="passiveFactor" step="any" placeholder="e.g., 1.0">
+          <span class="hint">Passive pressure &divide; F<sub>p</sub>; 1.5&ndash;2.0 is common when no extra embedment is added</span>
+        </div>
+        <div class="form-group">
+          <label for="embedmentIncrease">Embedment Increase (%)</label>
+          <input type="number" id="embedmentIncrease" step="any" placeholder="e.g., 20">
+          <span class="hint">Added to D<sub>0</sub>: typically 20&ndash;40% with F<sub>p</sub> = 1, less when F<sub>p</sub> &gt; 1</span>
+        </div>
+        <div class="form-group">
+          <label for="allowableStress">Allowable Bending Stress (MPa)</label>
+          <input type="number" id="allowableStress" step="any" placeholder="Optional, e.g., 210">
+          <span class="hint">Often 0.6&ndash;0.65 f<sub>y</sub>, for the required section modulus</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-title">Cross-Section Sketch</div>
+    <div class="sketch" id="sketch"></div>
+
+    <p id="formMsg" class="hint" style="color: var(--danger); margin: 12px 0 0;"></p>
+    <button class="btn btn-success calc-btn" id="calcBtn">Calculate Embedment &amp; Moment</button>
+
+    <div id="resultsArea" class="hidden">
+      <div class="section-title" style="margin-top: 28px;">Results</div>
+      <div id="warnings"></div>
+      <div class="results-grid" id="resultsGrid"></div>
+
+      <div class="chart-container" style="height: 480px;">
+        <canvas id="pressureChart"></canvas>
+      </div>
+      <div class="chart-pair">
+        <div class="chart-container"><canvas id="shearChart"></canvas></div>
+        <div class="chart-container"><canvas id="momentChart"></canvas></div>
+      </div>
+
+      <div class="section-title" style="margin-top: 28px;">Step-by-Step Calculation</div>
+      <div id="stepsContainer"></div>
+    </div>
+
+    <div class="formula-box">
+      <h4>Method summary</h4>
+      <strong>Pressures (Rankine, smooth wall):</strong> \( p_a = K_a\sigma'_v - 2c'\sqrt{K_a} \ge 0 \), \( p_p = (K_p\sigma'_{v,f} + 2c'\sqrt{K_p})/F_p \), plus water pressure on each side.<br>
+      <strong>Cantilever (simplified method):</strong> \( \sum M_O = \int_0^{H+D_0} p_{net}(H + D_0 - z)\,dz = 0 \); the counter-pressure below the point of rotation O is replaced by a force R, developed by the extra embedment.<br>
+      <strong>Anchored, free earth support:</strong> \( \sum M_A = \int_0^{H+D_0} p_{net}(z - a)\,dz = 0 \), \( T = \int_0^{H+D_0} p_{net}\,dz \). Shortest pile, largest moment.<br>
+      <strong>Anchored, fixed earth support (Blum):</strong> zero moment at the point of contraflexure \( z_c \), taken at zero net pressure; \( T = \frac{1}{z_c - a}\int_0^{z_c} p_{net}(z_c - z)\,dz \), then \( R_c x + \int_{z_c}^{z_c+x} p_{net}(z_c + x - z)\,dz = 0 \). Longer pile, smaller moment.<br>
+      <strong>Water:</strong> hydrostatic pressures carry any difference in water level to the toe. Steady seepage loses the head uniformly along the flow path round the toe, which also lowers the passive effective stress in front; neither model is always conservative.<br>
+      \( D = (1 + \text{increase})\,D_0 \), \( Z_{req} = M_{max}/\sigma_{all} \).
+    </div>
+
+    <p class="support-note">Free and open-source. You can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a> to support this project.</p>
+  </main>
+
+  <footer class="site-footer">
+    <span>&copy; 2026 <strong>Ali Gheysari, PhD P.Eng.</strong></span>
+    <span class="social">
+      <a href="https://github.com/agheysari" target="_blank" rel="noopener noreferrer" aria-label="Ali Gheysari on GitHub" title="GitHub"><svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+      <a href="https://www.linkedin.com/in/aligheysari/" target="_blank" rel="noopener noreferrer" aria-label="Ali Gheysari on LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.55V9h3.57v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg></a>
+    </span>
+    <span class="sep">&bull;</span>
+    <a href="index.html">All calculators</a>
+    <span class="sep">&bull;</span>
+    <a href="https://geotechnica.ca/tools/sheet-pile-wall">geotechnica.ca</a>
+    <span class="sep">&bull;</span>
+    <a href="https://github.com/agheysari/geotechnical-toolbox" target="_blank" rel="noopener noreferrer">Source</a>
+    <span class="sep">&bull;</span>
+    <a href="index.html#disclaimer">Disclaimer</a>
+    <span class="sep">&bull;</span>
+    <a href="LICENSE">GNU GPL v3.0</a>
+  </footer>
+
+</div>
+
+<script>
+/* ==========================================================================
+   Calculation: port of lib/calculations/sheetPile.ts (types removed).
+   Keep the two in sync.
+   ========================================================================== */
+/**
+ * Sheet Pile Wall Embedment & Bending Moment
+ * Cantilever walls: simplified method (rotation about a point near the toe, counter-force R there)
+ * Anchored walls: free earth support, and fixed earth support (Blum's equivalent beam method)
+ * Rankine pressures in layered c'-φ' soil, uniform surcharge behind the wall, and water on both sides:
+ * hydrostatic, or steady seepage around the toe with the head lost uniformly along the wall
+ */
+const rad = (deg) => (deg * Math.PI) / 180;
+const f = (v, d = 2) => v.toFixed(d);
+function calculateSheetPile(inputs) {
+  const { support, H, layers } = inputs;
+  const q = inputs.surcharge ?? 0;
+  const gammaW = inputs.gammaW ?? 9.81;
+  const Fp = inputs.passiveFactor ?? 1;
+  const inc = inputs.embedmentIncrease ?? 20;
+  const anchored = support !== 'cantilever';
+  const a = anchored ? inputs.anchorDepth ?? 0 : 0;
+  if (!(H > 0))
+    throw new Error('Retained height H must be greater than zero.');
+  if (layers.length === 0)
+    throw new Error('At least one soil layer is required.');
+  if (Fp < 1)
+    throw new Error('The factor on passive resistance Fp must be at least 1.0.');
+  if (inc < 0)
+    throw new Error('The embedment increase cannot be negative.');
+  if (anchored && (a < 0 || a >= H))
+    throw new Error('The anchor must lie between the top of the wall and the excavation level.');
+  const soil = [];
+  layers.forEach((l, i) => {
+    const top = i === 0 ? 0 : soil[i - 1].bottom;
+    const bottom = i === layers.length - 1 ? Infinity : l.bottom ?? NaN;
+    if (!(bottom > top))
+      throw new Error(`Layer ${i + 1}: the bottom depth must be below the top of the layer.`);
+    if (!(l.gamma > 0))
+      throw new Error(`Layer ${i + 1}: unit weight must be greater than zero.`);
+    if (l.phi < 0 || l.phi > 50)
+      throw new Error(`Layer ${i + 1}: friction angle must be between 0° and 50°.`);
+    soil.push({
+      top,
+      bottom,
+      gamma: l.gamma,
+      gammaSat: l.gammaSat ?? l.gamma,
+      phi: l.phi,
+      c: l.c ?? 0,
+      Ka: Math.tan(rad(45 - l.phi / 2)) ** 2,
+      Kp: Math.tan(rad(45 + l.phi / 2)) ** 2,
+    });
+  });
+  const wb = Math.max(0, inputs.waterBack ?? Infinity);
+  const wf = inputs.waterFront ?? (inputs.waterBack !== undefined ? Math.max(inputs.waterBack, H) : Infinity);
+  const zSoilFront = Math.max(H, wf); // where the seepage path leaves the soil in front
+  const seepage = !!inputs.seepage && Number.isFinite(wb) && Number.isFinite(wf) && Math.abs(wf - wb) > 1e-9;
+  const dh = wf - wb; // head difference driving the flow, m (positive: flow from the retained side)
+  // Seepage path: down the back of the wall from the water table, round the toe and up the front.
+  // The head is lost uniformly along it, so the pore pressures on both faces meet at the toe.
+  let zFlowToe = Infinity;
+  const pathLength = () => zFlowToe - wb + (zFlowToe - zSoilFront);
+  const uBack = (z) => {
+    if (z <= wb)
+      return 0;
+    if (!seepage)
+      return gammaW * (z - wb);
+    return gammaW * (z - wb) * (1 - dh / pathLength());
+  };
+  const uFront = (z) => {
+    if (z <= wf)
+      return 0;
+    if (!seepage || z <= H)
+      return gammaW * (z - wf);
+    return gammaW * (z - wb - (dh * (zFlowToe - wb + (zFlowToe - z))) / pathLength());
+  };
+  const layerAt = (z) => soil.find((s) => z < s.bottom) ?? soil[soil.length - 1];
+  // total overburden between two depths, saturated below the water table wt
+  const sigmaT = (from, to, wt) => {
+    let s = 0;
+    for (const L of soil) {
+      const top = Math.max(from, L.top);
+      const bot = Math.min(to, L.bottom);
+      if (bot <= top)
+        continue;
+      const dry = Math.max(0, Math.min(bot, wt) - top);
+      s += L.gamma * dry + L.gammaSat * (bot - top - dry);
+    }
+    return s;
+  };
+  let quick = false; // upward seepage removed the effective stress in front of the wall
+  const pressureAt = (z, L = layerAt(z), front = z > H) => {
+    const ub = uBack(z);
+    const uf = uFront(z);
+    const sv = Math.max(0, q + sigmaT(0, z, wb) - ub);
+    const pa = Math.max(0, L.Ka * sv - 2 * L.c * Math.sqrt(L.Ka));
+    let svf = 0;
+    if (front) {
+      svf = sigmaT(H, z, wf) + gammaW * Math.max(0, H - wf) - uf;
+      if (svf < -1e-6)
+        quick = true;
+      svf = Math.max(0, svf);
+    }
+    const pp = front ? (L.Kp * svf + 2 * L.c * Math.sqrt(L.Kp)) / Fp : 0;
+    return { sv, svf, pa, ub, pp, uf, active: pa + ub, passive: pp + uf, net: pa + ub - pp - uf };
+  };
+  const zMax = H + Math.max(30, 10 * H);
+  const N = 12000;
+  const dz = zMax / N;
+  const noSolution = () => new Error(`No equilibrium was found within ${f(zMax - H, 0)} m of embedment: the passive resistance below the excavation is too small for this wall. For clay with φ = 0, the net passive pressure 4c − σv at excavation level must be positive.`);
+  /** Integrates the net pressure for the current water model and solves the chosen support condition. */
+  const analyse = () => {
+    // Resultant F(z) and first moment G(z) of the net pressure above depth z (midpoint rule, so the
+    // pressure jumps at layer boundaries and at excavation level never sit on an evaluation point)
+    const F = new Float64Array(N + 1);
+    const G = new Float64Array(N + 1);
+    for (let i = 0; i < N; i++) {
+      const zm = (i + 0.5) * dz;
+      const p = pressureAt(zm).net;
+      F[i + 1] = F[i] + p * dz;
+      G[i + 1] = G[i] + p * zm * dz;
+    }
+    const at = (arr, z) => {
+      const t = Math.min(N, Math.max(0, z / dz));
+      const i = Math.min(N - 1, Math.floor(t));
+      return arr[i] + (arr[i + 1] - arr[i]) * (t - i);
+    };
+    // moment about depth z of the net pressure above it
+    const Mz = (z) => z * at(F, z) - at(G, z);
+    // first depth below `from` where fn falls from positive to zero
+    const descend = (fn, from) => {
+      let prevZ = from;
+      let prev = fn(from);
+      let seenPositive = prev > 0;
+      for (let i = Math.floor(from / dz) + 1; i <= N; i++) {
+        const zi = i * dz;
+        const v = fn(zi);
+        if (seenPositive && v <= 0)
+          return prevZ + ((zi - prevZ) * prev) / (prev - v);
+        if (v > 0)
+          seenPositive = true;
+        prevZ = zi;
+        prev = v;
+      }
+      return null;
+    };
+    // depth below the excavation where the net pressure first reaches zero
+    let zeroNetDepth = null;
+    let prevZ = H;
+    let prev = pressureAt(H, layerAt(H), true).net;
+    if (prev <= 0)
+      zeroNetDepth = H;
+    for (let i = Math.floor(H / dz) + 1; zeroNetDepth === null && i <= N; i++) {
+      const zi = i * dz;
+      const v = pressureAt(zi).net;
+      if (v <= 0)
+        zeroNetDepth = prevZ + ((zi - prevZ) * prev) / (prev - v);
+      prevZ = zi;
+      prev = v;
+    }
+    let zt;
+    let T = 0;
+    let R = null;
+    let Rc = 0;
+    if (support === 'cantilever') {
+      zt = descend(Mz, H);
+      if (zt === null)
+        throw noSolution();
+      R = -at(F, zt);
+    }
+    else if (support === 'free-earth') {
+      zt = descend((z) => at(G, z) - a * at(F, z), H);
+      if (zt === null)
+        throw noSolution();
+      T = at(F, zt);
+    }
+    else {
+      if (zeroNetDepth === null)
+        throw noSolution();
+      const zc = zeroNetDepth;
+      T = Mz(zc) / (zc - a);
+      const Fc = at(F, zc);
+      const Gc = at(G, zc);
+      Rc = Fc - T;
+      if (!(Rc > 0)) {
+        throw new Error('The anchor carries all of the load above the point of contraflexure, so the equivalent beam method does not apply. Use free earth support instead.');
+      }
+      zt = descend((z) => Rc * (z - zc) + z * (at(F, z) - Fc) - (at(G, z) - Gc), zc);
+      if (zt === null)
+        throw noSolution();
+      R = -(Rc + at(F, zt) - Fc);
+    }
+    return { F, G, at, Mz, zeroNetDepth, zt, T, R, Rc };
+  };
+  // With seepage the pore pressures depend on the toe depth: iterate from a first guess of 2H
+  if (seepage)
+    zFlowToe = 2 * H;
+  let sol = analyse();
+  if (seepage) {
+    for (let it = 0; it < 50; it++) {
+      if (sol.zt <= Math.max(wb, zSoilFront))
+        break; // toe above the water: no flow around it
+      const prevZt = sol.zt;
+      zFlowToe = sol.zt;
+      sol = analyse();
+      if (Math.abs(sol.zt - prevZt) < 1e-4)
+        break;
+    }
+    zFlowToe = sol.zt;
+  }
+  const { F, at, Mz, zeroNetDepth, zt, T, R, Rc } = sol;
+  const contraflexureDepth = support === 'fixed-earth' ? zeroNetDepth : null;
+  const exitGradient = seepage && zt > zSoilFront ? dh / pathLength() : null;
+  const steps = [];
+  const warnings = [];
+  steps.push({
+    title: 'Rankine earth pressure coefficients',
+    formula: `\\begin{aligned}
+  ${soil
+      .map((L, i) => `&\\text{Layer ${i + 1}}\\ (\\phi' = ${L.phi}^\\circ): && K_a = \\tan^2\\!\\left(45^\\circ - \\tfrac{\\phi'}{2}\\right) = ${f(L.Ka, 3)}, && K_p = \\tan^2\\!\\left(45^\\circ + \\tfrac{\\phi'}{2}\\right) = ${f(L.Kp, 3)}`)
+      .join(' \\\\\n    ')}
+  \\end{aligned}`,
+    explanation: Fp > 1
+      ? `Passive pressures are divided by $F_p = ${f(Fp, 2)}$. Active pressure in cohesive layers is $K_a\\sigma'_v - 2c\\sqrt{K_a}$, taken as zero where that is negative.`
+      : `Smooth wall ($\\delta = 0$). Active pressure in cohesive layers is $K_a\\sigma'_v - 2c\\sqrt{K_a}$, taken as zero where that is negative.`,
+  });
+  if (seepage && exitGradient !== null) {
+    steps.push({
+      title: 'Steady seepage around the toe',
+      formula: `\\begin{aligned}
+    L_{flow} &= (z_{toe} - z_{w,b}) + (z_{toe} - z_{w,f}) = (${f(zt)} - ${f(wb)}) + (${f(zt)} - ${f(zSoilFront)}) = ${f(pathLength())} \\text{ m} \\\\
+    i &= \\frac{\\Delta h}{L_{flow}} = \\frac{${f(dh)}}{${f(pathLength())}} = \\mathbf{${f(exitGradient, 3)}}
+    \\end{aligned}`,
+      explanation: 'The head difference between the two water levels is lost uniformly along the flow path down the back of the wall and up the front. Pore pressure behind is reduced by $\\gamma_w i$ per metre and increased in front, which also lowers the effective stress (and passive resistance) on the excavation side. Solved iteratively with the toe depth.',
+    });
+  }
+  const pH = pressureAt(H, layerAt(H), false);
+  const LH = layerAt(H);
+  steps.push({
+    title: `Pressures behind the wall at excavation level ($z = H = ${f(H)}$ m)`,
+    formula: `\\begin{aligned}
+  \\sigma'_v &= q + \\textstyle\\sum \\gamma_i h_i - u_b = ${f(pH.sv, 1)} \\text{ kPa} \\\\
+  p_a &= K_a \\sigma'_v - 2c\\sqrt{K_a} = (${f(LH.Ka, 3)})(${f(pH.sv, 1)}) - 2(${f(LH.c, 1)})\\sqrt{${f(LH.Ka, 3)}} = ${f(pH.pa, 1)} \\text{ kPa} \\\\
+  p_{net} &= p_a + u_b - u_f = ${f(pH.pa, 1)} + ${f(pH.ub, 1)} - ${f(pH.uf, 1)} = \\mathbf{${f(pH.net, 1)}} \\text{ kPa}
+  \\end{aligned}`,
+    explanation: seepage
+      ? 'Pore pressures from the steady seepage model above.'
+      : 'Water pressures are hydrostatic on both sides (no seepage): any difference in water level acts as a net water pressure all the way to the toe.',
+  });
+  steps.push({
+    title: 'Net pressure below the excavation',
+    formula: `\\begin{aligned}
+  p_{net}(z) &= p_a(z) + u_b(z) - \\frac{K_p \\sigma'_{v,f}(z) + 2c\\sqrt{K_p}}{F_p} - u_f(z) \\\\
+  ${zeroNetDepth !== null ? `p_{net} &= 0 \\text{ at } z = ${f(zeroNetDepth)} \\text{ m}\\quad (a_0 = ${f(zeroNetDepth - H)} \\text{ m below excavation level})` : `p_{net} &> 0 \\text{ at all depths}`}
+  \\end{aligned}`,
+    explanation: "$\\sigma'_{v,f}$ is the effective overburden in front of the wall, measured from excavation level.",
+  });
+  if (support === 'cantilever') {
+    steps.push({
+      title: 'Moment equilibrium about the point of rotation (simplified method)',
+      formula: `\\begin{aligned}
+    \\textstyle\\sum M_O &= \\int_0^{H + D_0} p_{net}(z)\\,(H + D_0 - z)\\,dz = 0 \\\\
+    \\Rightarrow D_0 &= \\mathbf{${f(zt - H)}} \\text{ m}
+    \\end{aligned}`,
+      explanation: 'Below the point of rotation O the wall pushes back into the retained soil. The simplified method replaces that counter-pressure by a single force R at O and makes up for it with extra embedment.',
+    });
+    steps.push({
+      title: 'Counter-force at the point of rotation',
+      formula: `\\begin{aligned}
+    R &= -\\int_0^{H + D_0} p_{net}\\,dz = \\mathbf{${f(R, 1)}} \\text{ kN/m}
+    \\end{aligned}`,
+    });
+  }
+  else if (support === 'free-earth') {
+    steps.push({
+      title: 'Moment equilibrium about the anchor (free earth support)',
+      formula: `\\begin{aligned}
+    \\textstyle\\sum M_A &= \\int_0^{H + D_0} p_{net}(z)\\,(z - a)\\,dz = 0, \\quad a = ${f(a)} \\text{ m} \\\\
+    \\Rightarrow D_0 &= \\mathbf{${f(zt - H)}} \\text{ m}
+    \\end{aligned}`,
+      explanation: 'The toe is free to rotate: the full passive resistance develops in front of the wall and there is no fixity below.',
+    });
+    steps.push({
+      title: 'Anchor force from horizontal equilibrium',
+      formula: `\\begin{aligned}
+    T &= \\int_0^{H + D_0} p_{net}\\,dz = \\mathbf{${f(T, 1)}} \\text{ kN/m}
+    \\end{aligned}`,
+    });
+  }
+  else {
+    const zc = zeroNetDepth;
+    steps.push({
+      title: 'Upper beam: anchor force (fixed earth support, equivalent beam)',
+      formula: `\\begin{aligned}
+    z_c &= ${f(zc)} \\text{ m (point of contraflexure, taken at zero net pressure)} \\\\
+    T &= \\frac{1}{z_c - a} \\int_0^{z_c} p_{net}(z)\\,(z_c - z)\\,dz = \\frac{${f(Mz(zc), 1)}}{${f(zc)} - ${f(a)}} = \\mathbf{${f(T, 1)}} \\text{ kN/m} \\\\
+    R_c &= \\int_0^{z_c} p_{net}\\,dz - T = ${f(at(F, zc), 1)} - ${f(T, 1)} = ${f(Rc, 1)} \\text{ kN/m}
+    \\end{aligned}`,
+      explanation: "Blum's equivalent beam: the wall is fixed in the ground, the bending moment is zero at the point of contraflexure, and the wall above it acts as a simply supported beam between the anchor and that point.",
+    });
+    steps.push({
+      title: 'Lower beam: depth below the point of contraflexure',
+      formula: `\\begin{aligned}
+    R_c\\,x + \\int_{z_c}^{z_c + x} p_{net}(z)\\,(z_c + x - z)\\,dz &= 0 \\Rightarrow x = ${f(zt - zc)} \\text{ m} \\\\
+    D_0 = z_c - H + x &= \\mathbf{${f(zt - H)}} \\text{ m}
+    \\end{aligned}`,
+      explanation: `The shear $R_c$ from the upper beam is carried by the passive resistance below; the counter-force at the toe is $R = ${f(R, 1)}$ kN/m.`,
+    });
+  }
+  const D0 = zt - H;
+  const D = D0 * (1 + inc / 100);
+  steps.push({
+    title: 'Design embedment and pile length',
+    formula: `\\begin{aligned}
+  D &= \\left(1 + \\tfrac{${f(inc, 0)}}{100}\\right) D_0 = (${f(1 + inc / 100, 2)})(${f(D0)}) = \\mathbf{${f(D)}} \\text{ m} \\\\
+  L &= H + D = ${f(H)} + ${f(D)} = \\mathbf{${f(H + D)}} \\text{ m}
+  \\end{aligned}`,
+  });
+  // wall shear and bending moment, from the top to the theoretical toe
+  const shearAt = (z) => at(F, z) - (anchored && z >= a ? T : 0);
+  const momentAt = (z) => Mz(z) - (anchored ? T * Math.max(0, z - a) : 0);
+  let Mmax = 0;
+  let zMmax = 0;
+  for (let i = 0; i * dz <= zt; i++) {
+    const m = momentAt(i * dz);
+    if (Math.abs(m) > Math.abs(Mmax)) {
+      Mmax = m;
+      zMmax = i * dz;
+    }
+  }
+  Mmax = Math.abs(Mmax);
+  const sigmaAll = inputs.allowableStress;
+  const Zreq = sigmaAll && sigmaAll > 0 ? (1000 * Mmax) / sigmaAll : null;
+  steps.push({
+    title: 'Maximum bending moment',
+    formula: `\\begin{aligned}
+  M_{max} &= \\mathbf{${f(Mmax, 1)}} \\text{ kN·m/m} \\text{ at } z = ${f(zMmax)} \\text{ m (zero shear)}${Zreq !== null
+      ? ` \\\\
+  Z_{req} &= \\frac{M_{max}}{\\sigma_{all}} = \\frac{${f(Mmax, 1)} \\times 10^3}{${f(sigmaAll, 0)}} = \\mathbf{${f(Zreq, 0)}} \\text{ cm}^3\\text{/m}`
+      : ''}
+  \\end{aligned}`,
+    explanation: 'Moment from the theoretical embedment. The extra embedment adds little to the maximum moment.',
+  });
+  const anchorLoad = anchored && inputs.anchorSpacing && inputs.anchorSpacing > 0 ? T * inputs.anchorSpacing : null;
+  if (support === 'cantilever' && H > 6) {
+    warnings.push('Cantilever sheet pile walls are normally limited to about 5–6 m of retained height. Consider an anchored wall.');
+  }
+  if (Fp === 1 && inc === 0) {
+    warnings.push('No margin is applied: use a factor on passive resistance Fp > 1 or increase the embedment.');
+  }
+  // chart profile: an even spread of depths plus both sides of every pressure jump
+  const marks = [];
+  const nProfile = 240;
+  for (let i = 0; i <= nProfile; i++)
+    marks.push({ z: (zt * i) / nProfile, below: false });
+  const jumps = [H, ...soil.slice(0, -1).map((L) => L.bottom)].filter((z) => z > 0 && z < zt);
+  for (const z of jumps)
+    marks.push({ z, below: false }, { z, below: true });
+  marks.sort((m1, m2) => m1.z - m2.z || Number(m1.below) - Number(m2.below));
+  quick = false;
+  const profile = marks.map(({ z, below }) => {
+    const L = below ? layerAt(z) : soil.find((s) => z <= s.bottom) ?? soil[soil.length - 1];
+    const p = pressureAt(z, L, z > H || (z === H && below));
+    return { depth: z, active: p.active, passive: p.passive, net: p.net, shear: shearAt(z), moment: momentAt(z) };
+  });
+  if (quick) {
+    warnings.push('Upward seepage removes the effective stress in front of the wall: the excavation base is at risk of piping or heave. Lengthen the wall or lower the head difference.');
+  }
+  else if (exitGradient !== null && exitGradient > 0.5) {
+    warnings.push(`The upward seepage gradient in front of the wall (i = ${f(exitGradient, 2)}) is high. Check piping and base heave.`);
+  }
+  return {
+    support,
+    D0,
+    D,
+    totalLength: H + D,
+    zToe: zt,
+    zeroNetDepth,
+    contraflexureDepth,
+    Mmax,
+    zMmax,
+    T: anchored ? T : null,
+    anchorLoad,
+    R,
+    Zreq,
+    seepage,
+    exitGradient,
+    layers: soil,
+    profile,
+    steps,
+    warnings,
+  };
+}
+
+/* ==========================================================================
+   Page logic
+   ========================================================================== */
+const PRESETS = [
+  {
+    support: 'cantilever', H: 4.5, surcharge: 10, waterBack: 3.5, waterFront: '', seepage: 'seepage',
+    passiveFactor: 1.0, embedmentIncrease: 20, allowableStress: 210,
+    layers: [{ bottom: '', gamma: 17.5, gammaSat: 20, phi: 32, c: 0 }],
+  },
+  {
+    support: 'free-earth', H: 7.0, surcharge: 10, anchorDepth: 1.5, anchorSpacing: 2.5, waterBack: 2.5, waterFront: 3.0,
+    seepage: 'hydrostatic', passiveFactor: 1.5, embedmentIncrease: 0, allowableStress: 210,
+    layers: [{ bottom: '', gamma: 17.5, gammaSat: 20, phi: 34, c: 0 }],
+  },
+  {
+    support: 'fixed-earth', H: 6.0, surcharge: 10, anchorDepth: 1.2, anchorSpacing: 3.0, waterBack: 3.0, waterFront: 6.0,
+    seepage: 'hydrostatic', passiveFactor: 1.0, embedmentIncrease: 20, allowableStress: 210,
+    layers: [
+      { bottom: 6.0, gamma: 18, gammaSat: 20, phi: 32, c: 0 },
+      { bottom: '', gamma: 19, gammaSat: 19, phi: 0, c: 70 },
+    ],
+  },
+];
+const FIELDS = ['H', 'surcharge', 'anchorDepth', 'anchorSpacing', 'waterBack', 'waterFront', 'passiveFactor', 'embedmentIncrease', 'allowableStress'];
+
+const $ = (id) => document.getElementById(id);
+const num = (id) => {
+  const v = $(id).value.trim();
+  return v === '' ? undefined : parseFloat(v);
+};
+const fmt = (v, d = 2) => (Number.isFinite(v) ? v.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }) : '-');
+const anchoredMode = () => $('support').value !== 'cantilever';
+let charts = [];
+
+function addLayerRow(l = {}, refresh = true) {
+  const body = $('layersBody');
+  const tr = document.createElement('tr');
+  const cell = (key, ph) => `<td><input type="number" step="any" data-key="${key}" placeholder="${ph}" value="${l[key] ?? ''}"></td>`;
+  tr.innerHTML = `<td class="layer-no"></td>${cell('bottom', 'e.g., 6.0')}${cell('gamma', 'e.g., 18')}${cell('gammaSat', 'Default γ')}${cell('phi', 'e.g., 32')}${cell('c', 'e.g., 0')}<td><button class="btn btn-secondary btn-sm" title="Remove layer">&times;</button></td>`;
+  tr.querySelector('button').addEventListener('click', () => {
+    if (body.rows.length > 1) tr.remove();
+    refreshLayers();
+  });
+  body.append(tr);
+  if (refresh) refreshLayers();
+}
+
+// the last layer continues down, so its bottom depth is not needed
+function refreshLayers() {
+  const rows = [...$('layersBody').rows];
+  rows.forEach((tr, i) => {
+    tr.querySelector('.layer-no').textContent = i + 1;
+    const bottom = tr.querySelector('[data-key="bottom"]');
+    const last = i === rows.length - 1;
+    bottom.disabled = last;
+    if (last) bottom.value = '';
+    bottom.placeholder = last ? 'Continues' : 'e.g., 6.0';
+    tr.querySelector('button').disabled = rows.length === 1;
+  });
+  drawSketch();
+}
+
+function readLayers() {
+  return [...$('layersBody').rows].map((tr) => {
+    const get = (k) => {
+      const v = tr.querySelector(`[data-key="${k}"]`).value.trim();
+      return v === '' ? undefined : parseFloat(v);
+    };
+    return { bottom: get('bottom'), gamma: get('gamma'), gammaSat: get('gammaSat'), phi: get('phi'), c: get('c') ?? 0 };
+  });
+}
+
+function setMode() {
+  document.querySelectorAll('.only-anchored').forEach((el) => el.classList.toggle('hidden', !anchoredMode()));
+  drawSketch();
+}
+
+function loadPreset(p) {
+  $('support').value = p.support;
+  $('seepage').value = p.seepage;
+  FIELDS.forEach((k) => ($(k).value = p[k] ?? ''));
+  $('layersBody').innerHTML = '';
+  // add every row before refreshing, or each row would be cleared while it is briefly the last one
+  p.layers.forEach((l) => addLayerRow(l, false));
+  refreshLayers();
+  setMode();
+  calculate();
+}
+
+function clearAll() {
+  FIELDS.forEach((k) => ($(k).value = ''));
+  $('support').value = 'cantilever';
+  $('seepage').value = 'hydrostatic';
+  $('layersBody').innerHTML = '';
+  addLayerRow();
+  document.querySelectorAll('.input-error').forEach((el) => el.classList.remove('input-error'));
+  $('formMsg').textContent = '';
+  $('resultsArea').classList.add('hidden');
+  setMode();
+}
+
+/* Cross-section drawn to scale from the inputs: retained side on the right */
+function drawSketch(D) {
+  const H = num('H') ?? 5;
+  const anchorDepth = anchoredMode() ? num('anchorDepth') ?? 1.5 : undefined;
+  const waterBack = num('waterBack');
+  const wfIn = num('waterFront');
+  const wf = wfIn ?? (waterBack !== undefined ? Math.max(waterBack, H) : undefined);
+  const bottoms = readLayers().slice(0, -1).map((l) => l.bottom).filter((z) => Number.isFinite(z));
+  const q = (num('surcharge') ?? 0) > 0;
+  const W = 560, Ht = 360, top = 46, xWall = 300, xL = 120, xR = 540;
+  const emb = D > 0 ? D : 0.9 * H;
+  const total = H + emb;
+  const ground = total * 1.08;
+  const s = (Ht - top - 22) / ground;
+  const y = (z) => top + z * s;
+  const yH = y(H), yToe = y(total), yBot = y(ground);
+  const water = (x1, x2, z) => {
+    const yy = y(z), xm = (x1 + x2) / 2;
+    return `<line x1="${x1}" x2="${x2}" y1="${yy}" y2="${yy}" stroke="#0284c7" stroke-width="1.5"/><path d="M${xm - 6} ${yy - 9} L${xm + 6} ${yy - 9} L${xm} ${yy - 1} Z" fill="#0284c7"/><line x1="${xm - 5}" x2="${xm + 5}" y1="${yy + 4}" y2="${yy + 4}" stroke="#0284c7"/><line x1="${xm - 3}" x2="${xm + 3}" y1="${yy + 7}" y2="${yy + 7}" stroke="#0284c7"/>`;
+  };
+  const dim = (x, z1, z2, label) =>
+    `<g stroke="#1d4ed8" fill="#1d4ed8"><line x1="${x}" x2="${x}" y1="${y(z1)}" y2="${y(z2)}" stroke-width="1.2"/><line x1="${x - 5}" x2="${x + 5}" y1="${y(z1)}" y2="${y(z1)}" stroke-width="1.2"/><line x1="${x - 5}" x2="${x + 5}" y1="${y(z2)}" y2="${y(z2)}" stroke-width="1.2"/><text x="${x - 8}" y="${(y(z1) + y(z2)) / 2 + 4}" text-anchor="end" stroke="none" font-size="12" font-weight="700">${label}</text></g>`;
+  let svg = `<svg viewBox="0 0 ${W} ${Ht}" role="img" aria-label="Sheet pile wall cross-section"><rect width="${W}" height="${Ht}" fill="#f8fafc"/>`;
+  svg += `<rect x="${xWall}" y="${top}" width="${xR - xWall}" height="${yBot - top}" fill="#d4c4a8"/><rect x="${xL}" y="${yH}" width="${xWall - xL}" height="${yBot - yH}" fill="#e6dabb"/>`;
+  if (wf !== undefined && wf < H) svg += `<rect x="${xL}" y="${y(wf)}" width="${xWall - xL}" height="${yH - y(wf)}" fill="#bae6fd" opacity="0.7"/>`;
+  svg += `<line x1="${xWall}" x2="${xR}" y1="${top}" y2="${top}" stroke="#8d6e63" stroke-width="2"/><line x1="${xL}" x2="${xWall}" y1="${yH}" y2="${yH}" stroke="#8d6e63" stroke-width="2"/>`;
+  bottoms.filter((z) => z > 0 && z < ground).forEach((z) => {
+    svg += `<line x1="${z < H ? xWall : xL}" x2="${xR}" y1="${y(z)}" y2="${y(z)}" stroke="#8d6e63" stroke-dasharray="5 4"/>`;
+  });
+  if (waterBack !== undefined && waterBack < ground) svg += water(xWall + 20, xR - 20, waterBack);
+  if (wf !== undefined && wf < ground) svg += water(xL + 20, xWall - 20, wf);
+  if (q) {
+    svg += '<g stroke="#dc2626" stroke-width="1.5" fill="none">';
+    for (let i = 0; i < 5; i++) {
+      const x = xWall + 40 + i * 42;
+      svg += `<path d="M${x} ${top - 24} V${top - 4} M${x - 4} ${top - 9} L${x} ${top - 3} L${x + 4} ${top - 9}"/>`;
+    }
+    svg += `</g><text x="${xWall + 124}" y="${top - 30}" text-anchor="middle" fill="#dc2626" font-size="12" font-style="italic">q</text>`;
+  }
+  if (anchorDepth !== undefined) {
+    const ya = y(anchorDepth);
+    svg += `<line x1="${xWall}" x2="${xR - 46}" y1="${ya}" y2="${ya}" stroke="#334155" stroke-width="2"/><rect x="${xR - 46}" y="${ya - 14}" width="10" height="28" fill="#64748b"/><text x="${xR - 52}" y="${ya - 6}" text-anchor="end" fill="#334155" font-size="11" font-weight="600">T</text>`;
+    if (anchorDepth > 0) {
+      svg += `<g stroke="#1d4ed8" fill="#1d4ed8"><line x1="${xWall + 14}" x2="${xWall + 14}" y1="${top}" y2="${ya}" stroke-width="1.2"/><text x="${xWall + 20}" y="${(top + ya) / 2 + 4}" stroke="none" font-size="12" font-weight="700">a = ${fmt(anchorDepth)} m</text></g>`;
+    }
+  }
+  svg += `<rect x="${xWall - 4}" y="${top - 6}" width="8" height="${yToe - top + 6}" fill="#475569"/><path d="M${xWall - 4} ${yToe} L${xWall} ${yToe + 6} L${xWall + 4} ${yToe} Z" fill="#475569"/>`;
+  svg += dim(xL - 14, 0, H, `H = ${fmt(H)} m`) + dim(xL - 14, H, total, D > 0 ? `D = ${fmt(D)} m` : 'D');
+  svg += `<text x="${xR - 6}" y="${Ht - 8}" text-anchor="end" fill="#475569" font-size="11" font-weight="600">Retained side</text><text x="${xL + 6}" y="${yH - 6}" fill="#475569" font-size="11" font-weight="600">Excavation level</text></svg>`;
+  $('sketch').innerHTML = svg;
+}
+
+function calculate() {
+  document.querySelectorAll('.input-error').forEach((el) => el.classList.remove('input-error'));
+  const msg = $('formMsg');
+  msg.textContent = '';
+  const required = ['H'];
+  if (anchoredMode()) required.push('anchorDepth');
+  let missing = false;
+  required.forEach((id) => {
+    if ($(id).value.trim() === '') {
+      $(id).classList.add('input-error');
+      missing = true;
+    }
+  });
+  const rows = [...$('layersBody').rows];
+  rows.forEach((tr, i) => {
+    ['gamma', 'phi', ...(i < rows.length - 1 ? ['bottom'] : [])].forEach((k) => {
+      const el = tr.querySelector(`[data-key="${k}"]`);
+      if (el.value.trim() === '') {
+        el.classList.add('input-error');
+        missing = true;
+      }
+    });
+  });
+  if (missing) {
+    msg.textContent = 'Fill in the highlighted fields.';
+    $('resultsArea').classList.add('hidden');
+    return;
+  }
+
+  let r;
+  try {
+    r = calculateSheetPile({
+      support: $('support').value,
+      H: num('H'),
+      layers: readLayers(),
+      waterBack: num('waterBack'),
+      waterFront: num('waterFront'),
+      seepage: $('seepage').value === 'seepage',
+      surcharge: num('surcharge') ?? 0,
+      anchorDepth: anchoredMode() ? num('anchorDepth') : undefined,
+      anchorSpacing: num('anchorSpacing'),
+      passiveFactor: num('passiveFactor') ?? 1,
+      embedmentIncrease: num('embedmentIncrease') ?? 20,
+      allowableStress: num('allowableStress'),
+    });
+  } catch (e) {
+    msg.textContent = e.message;
+    $('resultsArea').classList.add('hidden');
+    return;
+  }
+  render(r);
+}
+
+function render(r) {
+  const H = num('H');
+  const inc = num('embedmentIncrease') ?? 20;
+  const label = { cantilever: 'Cantilever (simplified method)', 'free-earth': 'Anchored, free earth support', 'fixed-earth': 'Anchored, fixed earth support' }[r.support];
+  const box = (title, value, sub) => `<div class="stat-box"><div class="stat-label">${title}</div><div class="stat-val">${value}</div><div class="stat-sub">${sub}</div></div>`;
+  const boxes = [
+    box('Design Embedment, D', `${fmt(r.D)} m`, `D<sub>0</sub> = ${fmt(r.D0)} m + ${fmt(inc, 0)}%`),
+    box('Total Pile Length, L', `${fmt(r.totalLength)} m`, `D/H = ${fmt(r.D / H)}`),
+    box('Max Bending Moment', `${fmt(r.Mmax, 1)}`, `kN·m/m at ${fmt(r.zMmax)} m`),
+  ];
+  if (r.T !== null) boxes.push(box('Anchor Force, T', `${fmt(r.T, 1)}`, r.anchorLoad !== null ? `kN/m; ${fmt(r.anchorLoad, 1)} kN per anchor` : 'kN/m'));
+  if (r.R !== null) boxes.push(box('Toe Counter-Force, R', `${fmt(r.R, 1)}`, 'kN/m, from the extra embedment'));
+  boxes.push(box('Theoretical Embedment, D<sub>0</sub>', `${fmt(r.D0)} m`, label));
+  boxes.push(box('Zero Net Pressure, a<sub>0</sub>', r.zeroNetDepth !== null ? `${fmt(r.zeroNetDepth - H)} m` : '-', 'Below excavation level'));
+  if (r.Zreq !== null) boxes.push(box('Required Section Modulus', `${fmt(r.Zreq, 0)}`, `cm³/m (σ<sub>all</sub> = ${fmt(num('allowableStress'), 0)} MPa)`));
+  if (r.exitGradient !== null) boxes.push(box('Seepage Gradient, i', fmt(r.exitGradient, 3), 'Average, round the toe'));
+  $('resultsGrid').innerHTML = boxes.join('');
+  $('warnings').innerHTML = r.warnings.length ? `<ul>${r.warnings.map((w) => `<li>${w}</li>`).join('')}</ul>` : '';
+
+  renderSteps(r.steps);
+  $('resultsArea').classList.remove('hidden');
+  drawSketch(r.D);
+  plotCharts(r, label);
+}
+
+// step titles and notes use $...$ for inline maths; MathJax here reads \( ... \)
+const inlineMath = (text) => text.replace(/\$([^$]+)\$/g, '\\($1\\)');
+
+function renderSteps(steps) {
+  const stepsEl = $('stepsContainer');
+  stepsEl.innerHTML = '';
+  steps.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'step';
+    const h = document.createElement('h4');
+    h.textContent = `${i + 1}. ${inlineMath(s.title)}`;
+    const f = document.createElement('div');
+    f.textContent = `\\[ ${s.formula} \\]`;
+    div.append(h, f);
+    if (s.explanation) {
+      const p = document.createElement('p');
+      p.className = 'step-note';
+      p.textContent = inlineMath(s.explanation);
+      div.append(p);
+    }
+    stepsEl.append(div);
+  });
+  if (window.MathJax && MathJax.typesetPromise) {
+    MathJax.typesetClear && MathJax.typesetClear([stepsEl]);
+    MathJax.typesetPromise([stepsEl]).catch((err) => console.error('MathJax typeset failed:', err));
+  }
+}
+
+function plotCharts(r, label) {
+  const S = window.GEO_SERIES;
+  const H = num('H');
+  charts.forEach((c) => c.destroy());
+  const p = r.profile;
+  const line = (lbl, data, color, dash = [], width = 2.25) => ({ label: lbl, data, borderColor: color, borderDash: dash, borderWidth: width, showLine: true, pointRadius: 0 });
+  const excavation = (xs) => line('Excavation level', [{ x: Math.min(0, ...xs), y: H }, { x: Math.max(0, ...xs), y: H }], '#94a3b8', [5, 5], 1.5);
+  const depthAxis = { type: 'linear', reverse: true, min: 0, title: { display: true, text: 'Depth below top of wall (m)' } };
+  const make = (id, title, datasets, xTitle) =>
+    new Chart($(id), {
+      type: 'scatter',
+      data: { datasets },
+      options: {
+        plugins: { title: { display: true, text: title } },
+        scales: { x: { type: 'linear', title: { display: true, text: xTitle } }, y: depthAxis },
+      },
+    });
+
+  const pressures = p.flatMap((pt) => [pt.active, -pt.passive]);
+  charts = [
+    make(
+      'pressureChart',
+      `Lateral pressure diagram: ${label}, theoretical toe at ${fmt(r.zToe)} m`,
+      [
+        line('Net pressure', p.map((pt) => ({ x: pt.net, y: pt.depth })), S[0], [], 3),
+        line('Active + water (retained side)', p.map((pt) => ({ x: pt.active, y: pt.depth })), S[3], [5, 5]),
+        line('Passive + water (excavation side, plotted negative)', p.map((pt) => ({ x: -pt.passive, y: pt.depth })), S[2], [10, 5]),
+        excavation(pressures),
+      ],
+      'Lateral pressure (kPa), positive towards the excavation'
+    ),
+    make('shearChart', 'Shear force', [line('Shear force V (kN/m)', p.map((pt) => ({ x: pt.shear, y: pt.depth })), S[4]), excavation(p.map((pt) => pt.shear))], 'V (kN/m)'),
+    make(
+      'momentChart',
+      `Bending moment (max ${fmt(r.Mmax, 1)} kN·m/m)`,
+      [line('Bending moment M (kN·m/m)', p.map((pt) => ({ x: pt.moment, y: pt.depth })), S[1]), excavation(p.map((pt) => pt.moment))],
+      'M (kN·m/m)'
+    ),
+  ];
+}
+
+document.querySelectorAll('[data-preset]').forEach((b) => b.addEventListener('click', () => loadPreset(PRESETS[+b.dataset.preset])));
+$('clearBtn').addEventListener('click', clearAll);
+$('addLayerBtn').addEventListener('click', () => addLayerRow());
+$('support').addEventListener('change', setMode);
+$('calcBtn').addEventListener('click', () => {
+  calculate();
+  if (!$('resultsArea').classList.contains('hidden')) $('resultsArea').scrollIntoView({ behavior: 'smooth' });
+});
+document.addEventListener('input', (e) => {
+  if (e.target.classList && e.target.classList.contains('input-error')) e.target.classList.remove('input-error');
+  drawSketch();
+});
+
+addLayerRow();
+setMode();
+</script>
+
+</body>
+</html>

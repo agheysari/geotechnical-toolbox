@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Mononobe–Okabe seismic active and passive earth pressure with wall friction, sloping backfill and batter: dynamic increment, resultant height and failure wedge.">
+<title>Seismic Earth Pressure Calculator | Geotechnical Toolbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>window.MathJax = { chtml: { displayAlign: 'left', displayIndent: '0' } };</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2,2,2], [3,3], [8,4]];
+
+/* ==========================================================================
+   Geotechnical Tools: shared figure theme
+   Identical on every page that draws a plot. Gives all charts one look:
+   Inter type, muted slate ink, hairline grid, and a consistent series
+   palette, so a figure can be pasted straight into a report.
+   ========================================================================== */
+(function () {
+  var FONT  = "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  var INK   = '#0f172a';
+  var MUTED = '#475569';
+  var GRID  = '#e8edf3';
+  var AXIS  = '#cbd5e1';
+  var SERIES = ['#0284c7', '#dc2626', '#059669', '#d97706', '#7c3aed', '#0f766e', '#be185d', '#475569'];
+  window.GEO_SERIES = SERIES;
+
+  /* ---- Chart.js ---------------------------------------------------------- */
+  if (typeof Chart !== 'undefined') {
+    var d = Chart.defaults;
+    d.font.family = FONT;
+    d.font.size = 12;
+    d.color = MUTED;
+    d.responsive = true;
+    d.maintainAspectRatio = false;      /* fill the figure box, not a 2:1 slab */
+    d.layout.padding = 4;
+    d.elements.line.borderWidth = 2.25;
+    d.elements.point.hitRadius = 8;
+    d.elements.point.borderWidth = 1.5;
+
+    d.plugins.title.color = INK;
+    d.plugins.title.font = { family: FONT, size: 13, weight: '700' };
+    d.plugins.title.padding = { top: 2, bottom: 14 };
+    d.plugins.legend.labels.usePointStyle = false;
+    d.plugins.legend.labels.boxHeight = 2;
+    d.plugins.legend.labels.boxWidth = 36;
+    d.plugins.legend.labels.padding = 14;
+    d.plugins.legend.labels.color = MUTED;
+    d.plugins.legend.labels.font = { family: FONT, size: 11 };
+    d.plugins.tooltip.backgroundColor = 'rgba(15,23,42,0.92)';
+    d.plugins.tooltip.padding = 10;
+    d.plugins.tooltip.cornerRadius = 8;
+    d.plugins.tooltip.titleFont = { family: FONT, size: 12, weight: '700' };
+    d.plugins.tooltip.bodyFont = { family: FONT, size: 12 };
+    d.plugins.tooltip.displayColors = false;
+
+    if (d.scale) {
+      d.scale.grid.color = GRID;
+      d.scale.grid.lineWidth = 1;
+      d.scale.grid.tickColor = AXIS;
+      d.scale.border = d.scale.border || {};
+      d.scale.border.color = AXIS;
+      d.scale.ticks.color = MUTED;
+      d.scale.ticks.padding = 6;
+      d.scale.ticks.font = { family: FONT, size: 11 };
+      d.scale.title.color = INK;
+      d.scale.title.font = { family: FONT, size: 12, weight: '600' };
+    }
+  }
+
+  /* ---- Plotly ------------------------------------------------------------ */
+  if (typeof Plotly !== 'undefined') {
+    var axisBase = {
+      gridcolor: GRID,
+      zerolinecolor: AXIS,
+      linecolor: AXIS,
+      linewidth: 1,
+      ticks: 'outside',
+      tickcolor: AXIS,
+      ticklen: 5,
+      tickfont: { family: FONT, size: 11, color: MUTED },
+      title: { font: { family: FONT, size: 12, color: INK } },
+      automargin: true
+    };
+    window.GEO_PLOTLY_LAYOUT = {
+      font: { family: FONT, size: 12, color: MUTED },
+      plot_bgcolor: '#ffffff',
+      paper_bgcolor: '#ffffff',
+      colorway: SERIES,
+      margin: { t: 54, b: 58, l: 72, r: 28 },
+      title: { font: { family: FONT, size: 13, color: INK }, x: 0, xanchor: 'left',
+               y: 0.96, yanchor: 'top', pad: { l: 16, t: 12 } },
+      legend: { font: { family: FONT, size: 11, color: MUTED },
+                bgcolor: 'rgba(255,255,255,0.88)', bordercolor: '#e2e8f0', borderwidth: 1 },
+      hoverlabel: { bgcolor: INK, bordercolor: INK,
+                    font: { family: FONT, size: 12, color: '#ffffff' } },
+      xaxis: axisBase,
+      yaxis: axisBase
+    };
+    window.GEO_PLOTLY_CONFIG = {
+      responsive: true,
+      displaylogo: false,
+      modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+      toImageButtonOptions: { format: 'png', scale: 2 }
+    };
+    function mergeTitle(base, t) {
+      if (typeof t === 'string') return Object.assign({}, base, { text: t });
+      if (t && typeof t === 'object') return Object.assign({}, base, t);
+      return Object.assign({}, base);
+    }
+    function mergeAxis(base, ax) {
+      var out = Object.assign({}, base, ax || {});
+      out.tickfont = Object.assign({}, base.tickfont, (ax || {}).tickfont);
+      out.title = mergeTitle(base.title, (ax || {}).title);
+      return out;
+    }
+    /* Merge a page's own layout over the shared theme, preserving its specifics. */
+    window.geoLayout = function (layout) {
+      layout = layout || {};
+      var B = window.GEO_PLOTLY_LAYOUT;
+      var out = Object.assign({}, B, layout);
+      out.font = Object.assign({}, B.font, layout.font);
+      out.margin = Object.assign({}, B.margin, layout.margin);
+      out.legend = Object.assign({}, B.legend, layout.legend);
+      out.hoverlabel = Object.assign({}, B.hoverlabel, layout.hoverlabel);
+      out.title = mergeTitle(B.title, layout.title);
+      ['xaxis', 'yaxis', 'xaxis2', 'yaxis2'].forEach(function (k) {
+        if (layout[k] || k === 'xaxis' || k === 'yaxis') {
+          out[k] = mergeAxis(k.charAt(0) === 'x' ? B.xaxis : B.yaxis, layout[k]);
+        }
+      });
+      return out;
+    };
+  }
+})();
+</script>
+<style>
+    /* ==========================================================================
+       Geotechnical Tools: shared shell
+       This block is identical on every page. Edit it in one page and mirror the
+       change to the rest; page-specific rules live in the section below it.
+       ========================================================================== */
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --surface: #ffffff;
+      --background: #f8fafc;
+      --surface-alt: #f1f5f9;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #059669;
+      --success-bg: #ecfdf5;
+      --warning: #b45309;
+      --warning-bg: #fffbeb;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 28px 16px 8px;
+      background: var(--background);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    /* --- Page header ------------------------------------------------------- */
+    .tool-header { margin-bottom: 20px; }
+    .tool-header h1 {
+      margin: 0;
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: -0.015em;
+      line-height: 1.25;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tool-header .subtitle {
+      margin: 8px 0 0;
+      max-width: 90ch;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .tool-header .back-link {
+      display: inline-block;
+      margin-bottom: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .tool-header .back-link:hover { color: var(--primary); }
+    .tool-header h1 .tool-icon { flex: none; border-radius: 9px; }
+
+    /* --- Surfaces ---------------------------------------------------------- */
+    .card {
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+    .card + .card { margin-top: 16px; }
+    /* the two-column pages stack several components inside one card; give them
+       an even rhythm instead of whatever margins each component brings */
+    .layout-grid .card > * { margin-top: 0; margin-bottom: 0; }
+    .layout-grid .card > * + * { margin-top: 18px; }
+    .card-title {
+      margin: 0 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-title {
+      margin: 26px 0 14px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+    .section-title:first-child { margin-top: 0; }
+
+    /* --- Input groups -------------------------------------------------------
+       Convention: a grey bordered panel is something you fill in; a white or
+       tinted box is a result the tool gives back. Legacy group names below are
+       aliases so older markup picks up the same treatment. */
+    .field-set,
+    .panel, .control-group, .settings-panel, .manual-entry {
+      margin: 0 0 18px;
+      padding: 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .field-set > :first-child,
+    .panel > :first-child, .control-group > :first-child,
+    .settings-panel > :first-child, .manual-entry > :first-child { margin-top: 0; }
+    .field-set > :last-child,
+    .panel > :last-child, .control-group > :last-child,
+    .settings-panel > :last-child, .manual-entry > :last-child { margin-bottom: 0; }
+
+    /* legacy grid names share the responsive form grid */
+    .grid-2, .grid-3, .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .grid-2 > *, .grid-3 > *, .grid-container > * { min-width: 0; }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 10px;
+    }
+    .checkbox-group:last-child { margin-bottom: 0; }
+    .checkbox-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    h1, h2, h3, h4 { font-family: var(--font); color: var(--text); }
+    h2 { font-size: 19px; font-weight: 700; margin: 0 0 12px; }
+    h3 { font-size: 15px; font-weight: 700; margin: 0 0 10px; }
+    h4 { font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+
+    /* --- Forms ------------------------------------------------------------- */
+    .form-row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .form-row > * { flex: 1 1 0; min-width: 0; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    /* grid/flex children default to min-width:auto, which refuses to shrink and
+       pushes the page wider than the viewport on phones */
+    .layout-grid > *, .form-grid > *, .results-grid > *, .form-row > * { min-width: 0; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    @media (max-width: 768px) { .form-row { flex-direction: column; gap: 12px; } }
+
+    label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    input[type="checkbox"], input[type="radio"] { width: auto; }
+    textarea {
+      min-height: 170px;
+      resize: none;
+      line-height: 1.55;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+    input[type="range"] { padding: 0; }
+    .input-error { border-color: var(--danger) !important; background: var(--danger-bg) !important; }
+
+    .hint, .help-text, .note {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    /* block footnote under a results panel, not an inline field hint */
+    .note { display: block; margin-top: 18px; }
+
+    /* row of buttons that acts on the table above it */
+    .table-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin: 16px 0 4px;
+    }
+    .table-actions .spacer { margin-left: auto; }
+
+    /* --- Buttons ----------------------------------------------------------- */
+    button, .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 16px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--primary);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    button:hover:not(:disabled), .btn:hover:not(:disabled) { background: var(--primary-dark); }
+    button:disabled, .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+    .calc-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .btn-secondary { background: var(--surface-alt); color: #475569; border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { background: #e2e8f0; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; font-weight: 600; }
+    .btn-success { background: var(--success); }
+    .btn-success:hover:not(:disabled) { background: #047857; }
+    .btn-danger, .btn-clear { background: var(--danger); }
+    .btn-danger:hover:not(:disabled), .btn-clear:hover:not(:disabled) { background: #b91c1c; }
+
+    /* --- Tabs -------------------------------------------------------------- */
+    .tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      background: var(--surface-alt);
+      border-radius: 8px;
+    }
+    .tab-btn:hover:not(.active) { background: #e2e8f0; }
+    .tab-btn.active { background: var(--primary); color: #fff; }
+    .tab-panel { display: none; }
+    .tab-panel.active {
+      display: block;
+      margin-bottom: 18px;
+      padding: 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .tab-panel.active > :first-child { margin-top: 0; }
+    .tab-panel.active > :last-child { margin-bottom: 0; }
+
+    /* --- Results ----------------------------------------------------------- */
+    .result-box {
+      margin-top: 20px;
+      padding: 18px 20px;
+      background: var(--primary-light);
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .result-box.success { background: var(--success-bg); border-color: #a7f3d0; border-left-color: var(--success); }
+    .result-box.warning { background: var(--warning-bg); border-color: #fde68a; border-left-color: #f59e0b; }
+    .result-box.danger  { background: var(--danger-bg);  border-color: #fecaca; border-left-color: var(--danger); }
+    .result-value {
+      margin: 6px 0 0;
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--primary-dark);
+    }
+    .success .result-value { color: var(--success); }
+    .warning .result-value { color: var(--warning); }
+    .danger  .result-value { color: var(--danger); }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .stat-box {
+      padding: 14px 12px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+    .stat-val {
+      margin: 5px 0 0;
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+    .stat-sub { font-size: 10px; color: var(--text-muted); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+    }
+
+    .formula-box {
+      margin: 18px 0;
+      padding: 16px 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-size: 13px;
+    }
+    .formula-box h3, .formula-box h4 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    /* --- Tables ------------------------------------------------------------ */
+    .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      background: var(--background);
+    }
+    td input, td select { padding: 6px 8px; font-size: 13px; }
+
+    /* --- Figures ------------------------------------------------------------ */
+    .chart-container, .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      margin: 22px 0 4px;
+      padding: 14px 14px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    @media (max-width: 600px) {
+      .chart-container, .chart-wrapper { height: 320px; padding: 10px 8px 6px; }
+    }
+
+    /* --- Uploads ------------------------------------------------------------ */
+    .upload-area {
+      margin-bottom: 16px;
+      padding: 24px;
+      text-align: center;
+      background: var(--background);
+      border: 2px dashed #cbd5e1;
+      border-radius: var(--radius);
+      transition: border-color 0.15s ease;
+    }
+    .upload-area:hover { border-color: var(--primary); }
+    .upload-area input { width: auto; max-width: 100%; }
+    .upload-area input[type="file"] { width: 100%; }
+
+    /* --- Support line & footer ---------------------------------------------- */
+    .support-note {
+      margin: 20px 0 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .support-note a {
+      color: var(--primary);
+      text-decoration: none;
+      border-bottom: 1px solid var(--primary-light);
+    }
+    .support-note a:hover { border-bottom-color: var(--primary); }
+
+    .site-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 32px;
+      padding: 22px 12px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .site-footer a { color: var(--text-muted); text-decoration: none; }
+    .site-footer a:hover { color: var(--primary); }
+    .site-footer .sep { color: #cbd5e1; }
+    .site-footer .social { display: inline-flex; align-items: center; gap: 9px; }
+    .site-footer .social a { display: inline-flex; color: var(--text-muted); }
+    .site-footer .social a:hover { color: var(--primary); }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 600px) {
+      body { padding: 20px 12px 8px; }
+      .card { padding: 18px 16px; }
+      th, td { padding: 8px 9px; }
+    }
+
+    /* ==========================================================================
+       Page-specific styles
+       ========================================================================== */
+    .preset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 18px; }
+    .preset-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-right: 2px; }
+    .btn-clear-inputs { background: transparent !important; color: var(--danger) !important; border: 1px dashed #fca5a5 !important; }
+    .btn-clear-inputs:hover:not(:disabled) { background: var(--danger-bg) !important; }
+    .grid-container .hint a { color: var(--primary); }
+    td input:disabled { background: var(--surface-alt); }
+    td.layer-no { font-weight: 700; color: var(--text-muted); }
+    .step { margin: 0 0 12px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; }
+    .step h4 { margin: 0 0 6px; font-size: 13px; }
+    .step .step-note { margin: 6px 0 0; font-size: 12px; color: var(--text-muted); }
+    #warnings:empty { display: none; }
+    #warnings { margin-top: 16px; padding: 12px 16px; background: var(--warning-bg); border: 1px solid #fde68a; border-left: 4px solid #f59e0b; border-radius: var(--radius); font-size: 13px; color: var(--warning); }
+    #warnings ul { margin: 0; padding-left: 18px; }
+    .sketch { max-width: 640px; margin: 0 auto 8px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .sketch svg { display: block; width: 100%; height: auto; }
+    .chart-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 0 16px; }
+    .chart-pair > * { min-width: 0; height: 420px; }
+  </style>
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
+<style id="fullsite-style">
+.fullsite { margin: 12px 0 0; font-size: 13px; }
+.fullsite a {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+  border: 1px solid var(--border, #e2e8f0); border-radius: 999px;
+  color: var(--primary, #0284c7); font-weight: 600; text-decoration: none;
+}
+.fullsite a:hover { border-color: var(--primary, #0284c7); }
+</style>
+<!-- seo:start -->
+<link rel="canonical" href="https://agheysari.github.io/geotechnical-toolbox/seismic_earth_pressure.html">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="Ali Gheysari">
+<meta name="theme-color" content="#2143AA">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta property="og:site_name" content="Geotechnical Toolbox">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Seismic Earth Pressure (Mononobe–Okabe)">
+<meta property="og:description" content="Mononobe–Okabe seismic active and passive earth pressure with wall friction, sloping backfill and batter: dynamic increment, resultant height and failure wedge.">
+<meta property="og:url" content="https://agheysari.github.io/geotechnical-toolbox/seismic_earth_pressure.html">
+<meta property="og:image" content="https://agheysari.github.io/geotechnical-toolbox/og/seismic_earth_pressure.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Seismic Earth Pressure (Mononobe–Okabe): free online calculator">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Seismic Earth Pressure (Mononobe–Okabe)">
+<meta name="twitter:description" content="Mononobe–Okabe seismic active and passive earth pressure with wall friction, sloping backfill and batter: dynamic increment, resultant height and failure wedge.">
+<meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/seismic_earth_pressure.png">
+<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Seismic Earth Pressure (Mononobe–Okabe)", "url": "https://agheysari.github.io/geotechnical-toolbox/seismic_earth_pressure.html", "description": "Mononobe–Okabe seismic active and passive earth pressure with wall friction, sloping backfill and batter: dynamic increment, resultant height and failure wedge.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Seismic Earth Pressure (Mononobe–Okabe)", "item": "https://agheysari.github.io/geotechnical-toolbox/seismic_earth_pressure.html"}]}]</script>
+<!-- seo:end -->
+</head>
+<body>
+
+<div class="container">
+
+  <header class="tool-header">
+    <a class="back-link" href="index.html">&larr; All calculators</a>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="64" height="64" rx="14" fill="#FEF2F2" /> <rect x="16" y="16" width="6" height="38" rx="1.5" fill="#64748B" /> <path d="M22 18L40 54H22V18Z" fill="#F59E0B" fill-opacity="0.22" stroke="#F59E0B" stroke-width="1.5" /> <path d="M22 18H34L28 54H22V18Z" fill="#EF4444" fill-opacity="0.18" stroke="#EF4444" stroke-width="1.5" stroke-dasharray="3 2" /> <path d="M8 10L13 6L18 12L23 6L28 12L33 6L38 12L43 6L48 12L53 6L56 9" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /> <path d="M54 34H44M44 34L47.5 31M44 34L47.5 37" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /> </svg>Seismic Earth Pressure (Mononobe&ndash;Okabe)</h1>
+    <p class="subtitle">Mononobe–Okabe seismic active and passive earth pressure with wall friction, sloping backfill and batter: dynamic increment, resultant height and failure wedge.</p>
+    <p class="fullsite"><a href="https://geotechnica.ca/tools/seismic-earth-pressure">Open the full version on geotechnica.ca &rarr;</a></p>
+  </header>
+
+  <main class="card">
+    <div class="preset-row">
+      <span class="preset-label">Demo:</span>
+      <button class="btn btn-secondary btn-sm" data-preset="0">Cantilever wall, kh = 0.5 PGA</button>
+      <button class="btn btn-secondary btn-sm" data-preset="1">Gravity wall, sloping backfill</button>
+      <button class="btn btn-secondary btn-sm" data-preset="2">Quay wall, submerged</button>
+      <button class="btn btn-secondary btn-sm" data-preset="3">Passive at the toe</button>
+      <button class="btn btn-secondary btn-sm btn-clear-inputs" id="clearBtn">Clear</button>
+    </div>
+
+    <section class="field-set">
+      <div class="section-title">1. Pressure State &amp; Seismic Coefficients</div>
+      <div class="grid-container">
+        <div class="form-group">
+          <label for="state">Pressure State</label>
+          <select id="state">
+            <option value="active">Active (K<sub>AE</sub>): thrust on the wall</option>
+            <option value="passive">Passive (K<sub>PE</sub>): resistance in front</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="khMode">Horizontal Coefficient, k<sub>h</sub></label>
+          <select id="khMode">
+            <option value="direct">Enter kh directly</option>
+            <option value="pga">From peak ground acceleration</option>
+          </select>
+        </div>
+        <div class="form-group only-direct">
+          <label for="kh">k<sub>h</sub></label>
+          <input type="number" id="kh" step="any" placeholder="e.g., 0.15">
+        </div>
+        <div class="form-group only-pga hidden">
+          <label for="pga">PGA (g)</label>
+          <input type="number" id="pga" step="any" placeholder="e.g., 0.40">
+          <span class="hint">Site-adjusted (F<sub>PGA</sub> &times; PGA); see the <a href="seismic_site_classification.html">seismic site classification</a> tool</span>
+        </div>
+        <div class="form-group only-pga hidden">
+          <label for="khRatio">k<sub>h</sub> / PGA</label>
+          <input type="number" id="khRatio" step="any" placeholder="e.g., 0.5">
+          <span class="hint">0.5 for walls free to slide 25&ndash;50 mm (e.g. AASHTO LRFD); 1.0 where the wall cannot move</span>
+        </div>
+        <div class="form-group">
+          <label for="kv">k<sub>v</sub> (positive upwards)</label>
+          <input type="number" id="kv" step="any" placeholder="e.g., 0">
+          <span class="hint">Usually taken as 0</span>
+        </div>
+      </div>
+      <p class="hint only-pga hidden" id="khNote" style="margin: 0;"></p>
+    </section>
+
+    <section class="field-set">
+      <div class="section-title">2. Wall Geometry &amp; Backfill</div>
+      <div class="grid-container">
+        <div class="form-group">
+          <label for="H">Wall Height, H (m)</label>
+          <input type="number" id="H" step="any" placeholder="e.g., 6.0">
+        </div>
+        <div class="form-group">
+          <label for="gamma">Unit Weight, &gamma; (kN/m³)</label>
+          <input type="number" id="gamma" step="any" placeholder="e.g., 19.0">
+        </div>
+        <div class="form-group">
+          <label for="phi">Friction Angle, &phi;' (deg)</label>
+          <input type="number" id="phi" step="any" placeholder="e.g., 34">
+        </div>
+        <div class="form-group">
+          <label for="delta">Wall Friction, &delta; (deg)</label>
+          <input type="number" id="delta" step="any" placeholder="e.g., 17">
+          <span class="hint" id="deltaHint">Commonly &phi;/2 to 2&phi;/3</span>
+        </div>
+        <div class="form-group">
+          <label for="beta">Backfill Slope, &beta; (deg)</label>
+          <input type="number" id="beta" step="any" placeholder="e.g., 0">
+        </div>
+        <div class="form-group">
+          <label for="theta">Wall Back Inclination, &theta; (deg)</label>
+          <input type="number" id="theta" step="any" placeholder="e.g., 0">
+          <span class="hint">From vertical; negative when the wall back leans into the backfill</span>
+        </div>
+        <div class="form-group">
+          <label for="surcharge">Surcharge, q (kPa)</label>
+          <input type="number" id="surcharge" step="any" placeholder="e.g., 0">
+          <span class="hint">Uniform, on the backfill surface</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="field-set">
+      <div class="section-title">3. Groundwater &amp; Point of Application</div>
+      <div class="grid-container">
+        <div class="form-group">
+          <label for="water">Backfill Condition</label>
+          <select id="water">
+            <option value="dry">Dry or moist (above water table)</option>
+            <option value="submerged">Fully submerged, restrained pore water</option>
+          </select>
+        </div>
+        <div class="form-group only-submerged hidden">
+          <label for="gammaSat">Saturated &gamma;<sub>sat</sub> (kN/m³)</label>
+          <input type="number" id="gammaSat" step="any" placeholder="e.g., 20.0">
+        </div>
+        <div class="form-group only-active">
+          <label for="dynamicHeightRatio">Dynamic Increment Height (&times; H)</label>
+          <input type="number" id="dynamicHeightRatio" step="any" placeholder="e.g., 0.6">
+          <span class="hint">Above the base: 0.6 (Seed &amp; Whitman); 1/3 to 2/3 allowed</span>
+        </div>
+      </div>
+    </section>
+
+    <p id="formMsg" class="hint" style="color: var(--danger); margin: 12px 0 0;"></p>
+    <button class="btn btn-success calc-btn" id="calcBtn">Calculate Seismic Earth Pressure</button>
+
+    <div id="resultsArea" class="hidden">
+      <div class="section-title" style="margin-top: 28px;">Results</div>
+      <div id="warnings"></div>
+      <div class="results-grid" id="resultsGrid"></div>
+
+      <div class="chart-container only-active" id="pressureWrap" style="height: 460px;">
+        <canvas id="pressureChart"></canvas>
+      </div>
+      <div class="chart-container" style="height: 400px;">
+        <canvas id="curveChart"></canvas>
+      </div>
+
+      <div class="section-title" style="margin-top: 28px;">Step-by-Step Calculation</div>
+      <div id="stepsContainer"></div>
+    </div>
+
+    <div class="formula-box">
+      <h4>Method summary</h4>
+      <strong>Mononobe&ndash;Okabe:</strong> \( P_{AE} = \tfrac{1}{2} K_{AE}\,\gamma H^2 (1 - k_v) \), \( \psi = \tan^{-1}\frac{k_h}{1 - k_v} \),<br>
+      \( K_{AE} = \dfrac{\cos^2(\phi - \theta - \psi)}{\cos\psi \cos^2\theta \cos(\delta + \theta + \psi)\left[1 + \sqrt{\dfrac{\sin(\phi + \delta)\sin(\phi - \beta - \psi)}{\cos(\delta + \theta + \psi)\cos(\beta - \theta)}}\right]^2} \), valid while \( \phi - \beta - \psi \ge 0 \).<br>
+      <strong>Passive:</strong> \( K_{PE} \) uses \( \cos^2(\phi + \theta - \psi) \), \( \cos(\delta - \theta + \psi) \) and \( \left[1 - \sqrt{\cdot}\right]^2 \) with \( \sin(\phi + \beta - \psi) \); planar wedges overestimate resistance when \( \delta > \phi/2 \).<br>
+      <strong>Dynamic increment (Seed &amp; Whitman 1970):</strong> \( \Delta P_{AE} = P_{AE} - P_A \) acting at \( 0.6H \); for a vertical wall with level backfill \( \Delta K_{AE} \approx \tfrac{3}{4} k_h \).<br>
+      <strong>Submerged, restrained water (Matsuzawa et al. 1985):</strong> \( \psi_e = \tan^{-1}\!\left(\frac{\gamma_{sat}}{\gamma'}\frac{k_h}{1 - k_v}\right) \), \( P_{AE} = \tfrac{1}{2} K_{AE}(\psi_e)\,\gamma' H^2 (1 - k_v) + \tfrac{1}{2}\gamma_w H^2 \).<br>
+      <strong>Surcharge:</strong> \( P_q = K\,(1 - k_v)\,q H \frac{\cos\beta\cos\theta}{\cos(\beta - \theta)} \). The critical wedge angle comes from a trial wedge search.
+    </div>
+
+    <p class="support-note">Free and open-source. You can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a> to support this project.</p>
+  </main>
+
+  <footer class="site-footer">
+    <span>&copy; 2026 <strong>Ali Gheysari, PhD P.Eng.</strong></span>
+    <span class="social">
+      <a href="https://github.com/agheysari" target="_blank" rel="noopener noreferrer" aria-label="Ali Gheysari on GitHub" title="GitHub"><svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+      <a href="https://www.linkedin.com/in/aligheysari/" target="_blank" rel="noopener noreferrer" aria-label="Ali Gheysari on LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.55V9h3.57v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg></a>
+    </span>
+    <span class="sep">&bull;</span>
+    <a href="index.html">All calculators</a>
+    <span class="sep">&bull;</span>
+    <a href="https://geotechnica.ca/tools/seismic-earth-pressure">geotechnica.ca</a>
+    <span class="sep">&bull;</span>
+    <a href="https://github.com/agheysari/geotechnical-toolbox" target="_blank" rel="noopener noreferrer">Source</a>
+    <span class="sep">&bull;</span>
+    <a href="index.html#disclaimer">Disclaimer</a>
+    <span class="sep">&bull;</span>
+    <a href="LICENSE">GNU GPL v3.0</a>
+  </footer>
+
+</div>
+
+<script>
+/* ==========================================================================
+   Calculation: port of lib/calculations/seismicEarthPressure.ts (types removed).
+   Keep the two in sync.
+   ========================================================================== */
+/**
+ * Seismic Earth Pressure — Mononobe–Okabe (pseudo-static Coulomb wedge)
+ * Active (K_AE) and passive (K_PE) coefficients with wall friction, backfill slope and wall batter
+ * Dynamic increment located per Seed & Whitman (1970); submerged backfill with restrained pore water
+ * (Matsuzawa et al. 1985); critical wedge angle from a trial wedge search
+ */
+const rad = (deg) => (deg * Math.PI) / 180;
+const deg = (r) => (r * 180) / Math.PI;
+const f = (v, d = 2) => v.toFixed(d);
+/**
+ * Mononobe–Okabe coefficient (angles in degrees). psi = 0 gives the static Coulomb coefficient.
+ * Returns NaN when the wedge has no solution (φ − β − ψ < 0 for the active case).
+ */
+function mononobeOkabeK(state, phiDeg, deltaDeg, betaDeg, thetaDeg, psiDeg) {
+  const phi = rad(phiDeg);
+  const delta = rad(deltaDeg);
+  const beta = rad(betaDeg);
+  const theta = rad(thetaDeg);
+  const psi = rad(psiDeg);
+  if (state === 'active') {
+    if (phi - beta - psi < 0)
+      return NaN;
+    const inner = (Math.sin(phi + delta) * Math.sin(phi - beta - psi)) / (Math.cos(delta + theta + psi) * Math.cos(beta - theta));
+    return (Math.cos(phi - theta - psi) ** 2 /
+      (Math.cos(psi) * Math.cos(theta) ** 2 * Math.cos(delta + theta + psi) * (1 + Math.sqrt(inner)) ** 2));
+  }
+  if (phi + beta - psi < 0)
+    return NaN;
+  const inner = (Math.sin(phi + delta) * Math.sin(phi + beta - psi)) / (Math.cos(delta - theta + psi) * Math.cos(beta - theta));
+  if (inner >= 1)
+    return NaN;
+  return (Math.cos(phi + theta - psi) ** 2 /
+    (Math.cos(psi) * Math.cos(theta) ** 2 * Math.cos(delta - theta + psi) * (1 - Math.sqrt(inner)) ** 2));
+}
+/**
+ * Trial wedge with a planar failure surface at alpha (deg from horizontal) through the heel.
+ * Returns K = 2P / (γ' H² (1 − kv)), where tan ψ is the ratio of inertia to (1 − kv)·weight.
+ */
+function trialWedgeK(state, phiDeg, deltaDeg, betaDeg, thetaDeg, psiDeg, alphaDeg) {
+  const H = 1;
+  const phi = rad(phiDeg);
+  const delta = rad(deltaDeg);
+  const beta = rad(betaDeg);
+  const theta = rad(thetaDeg);
+  const psi = rad(psiDeg);
+  const alpha = rad(alphaDeg);
+  // heel at the origin, top of the wall back at A, failure plane meets the backfill surface at B
+  const Ax = -H * Math.tan(theta);
+  const Ay = H;
+  const t = (H * (Math.cos(alpha) + Math.tan(theta) * Math.sin(alpha))) / Math.sin(alpha - beta);
+  if (!(t > 0))
+    return NaN;
+  const s = (Ay + t * Math.sin(beta)) / Math.sin(alpha);
+  const Bx = s * Math.cos(alpha);
+  const By = s * Math.sin(alpha);
+  const W = 0.5 * Math.abs(Ax * By - Ay * Bx);
+  const active = state === 'active';
+  // body force (unit weight 1): inertia towards the wall for active, away from it for passive
+  const Fx = (active ? -1 : 1) * W * Math.tan(psi);
+  const Fy = -W;
+  // wall reaction and failure-plane reaction directions
+  const pAng = active ? theta + delta : theta - delta;
+  const px = Math.cos(pAng);
+  const py = Math.sin(pAng);
+  const rAng = active ? alpha - phi : alpha + phi;
+  const rx = -Math.sin(rAng);
+  const ry = Math.cos(rAng);
+  const det = px * ry - py * rx;
+  const P = (-Fx * ry + Fy * rx) / det;
+  return (2 * P) / (H * H);
+}
+/** Failure plane angle (deg from horizontal) that maximises (active) or minimises (passive) the thrust. */
+function criticalWedgeAngle(state, phiDeg, deltaDeg, betaDeg, thetaDeg, psiDeg) {
+  const sign = state === 'active' ? 1 : -1;
+  const value = (a) => {
+    const k = trialWedgeK(state, phiDeg, deltaDeg, betaDeg, thetaDeg, psiDeg, a);
+    return Number.isFinite(k) && k > 0 ? sign * k : -Infinity;
+  };
+  let lo = betaDeg + 0.01;
+  let hi = 90 + thetaDeg - 0.01;
+  // coarse scan, then golden-section refinement around the best point
+  const n = 400;
+  let best = lo;
+  let bestV = -Infinity;
+  for (let i = 0; i <= n; i++) {
+    const a = lo + ((hi - lo) * i) / n;
+    const v = value(a);
+    if (v > bestV) {
+      bestV = v;
+      best = a;
+    }
+  }
+  const step = (hi - lo) / n;
+  lo = Math.max(lo, best - step);
+  hi = Math.min(hi, best + step);
+  const g = (Math.sqrt(5) - 1) / 2;
+  for (let i = 0; i < 60; i++) {
+    const a1 = hi - g * (hi - lo);
+    const a2 = lo + g * (hi - lo);
+    if (value(a1) > value(a2))
+      hi = a2;
+    else
+      lo = a1;
+  }
+  return (lo + hi) / 2;
+}
+function calculateSeismicEarthPressure(inputs) {
+  const { state, H, gamma, phi, kh } = inputs;
+  const delta = inputs.delta ?? 0;
+  const beta = inputs.beta ?? 0;
+  const theta = inputs.theta ?? 0;
+  const kv = inputs.kv ?? 0;
+  const q = inputs.surcharge ?? 0;
+  const gammaW = inputs.gammaW ?? 9.81;
+  const water = inputs.water ?? 'dry';
+  const ratio = inputs.dynamicHeightRatio ?? 0.6;
+  const active = state === 'active';
+  if (!(H > 0))
+    throw new Error('Wall height H must be greater than zero.');
+  if (!(gamma > 0))
+    throw new Error('Unit weight must be greater than zero.');
+  if (!(phi > 0 && phi <= 50))
+    throw new Error('Friction angle must be between 0° and 50°.');
+  if (kh < 0)
+    throw new Error('kh cannot be negative.');
+  if (!(kv < 1 && kv > -1))
+    throw new Error('kv must be between −1 and 1.');
+  if (Math.abs(theta) >= 45)
+    throw new Error('Wall inclination θ must be within ±45° of vertical.');
+  if (active && beta >= phi)
+    throw new Error('Backfill slope β must be less than the friction angle φ.');
+  if (ratio < 1 / 3 - 1e-9 || ratio > 2 / 3 + 1e-9)
+    throw new Error('The dynamic increment height must be between H/3 and 2H/3.');
+  const submerged = water === 'submerged';
+  const gammaSat = inputs.gammaSat ?? gamma;
+  const gammaB = submerged ? gammaSat - gammaW : gamma;
+  if (submerged && !(gammaB > 0))
+    throw new Error('Saturated unit weight must exceed the unit weight of water.');
+  // restrained pore water moves with the soil: inertia from γsat, weight from γ'
+  const inertiaRatio = submerged ? gammaSat / gammaB : 1;
+  const psi = deg(Math.atan((inertiaRatio * kh) / (1 - kv)));
+  const psiQ = deg(Math.atan(kh / (1 - kv)));
+  const K = mononobeOkabeK(state, phi, delta, beta, theta, 0);
+  const KE = mononobeOkabeK(state, phi, delta, beta, theta, psi);
+  const KEq = submerged ? mononobeOkabeK(state, phi, delta, beta, theta, psiQ) : KE;
+  const khLimit = active ? ((1 - kv) * Math.tan(rad(phi - beta))) / inertiaRatio : null;
+  if (!Number.isFinite(KE) || !Number.isFinite(KEq)) {
+    throw new Error(active
+      ? `No Mononobe–Okabe solution: kh exceeds the limit kh = ${f(khLimit, 3)} at which φ − β − ψ = 0 and the backfill fails without a wall.`
+      : 'No Mononobe–Okabe passive solution for these angles.');
+  }
+  if (!Number.isFinite(K))
+    throw new Error('No Coulomb solution for these angles.');
+  // uniform surcharge as extra wedge weight: q per horizontal length of the backfill surface
+  const qFactor = (Math.cos(rad(beta)) * Math.cos(rad(theta))) / Math.cos(rad(beta - theta));
+  const P = 0.5 * K * gammaB * H * H + K * q * H * qFactor;
+  const PE = 0.5 * KE * gammaB * (1 - kv) * H * H + KEq * (1 - kv) * q * H * qFactor;
+  const dP = PE - P;
+  const cosInc = Math.cos(rad(delta + theta));
+  const Ph = P * cosInc;
+  const PEh = PE * cosInc;
+  const dPh = dP * cosInc;
+  const Pw = submerged ? 0.5 * gammaW * H * H : 0;
+  const totalH = PEh + Pw;
+  const Psoil = 0.5 * K * gammaB * H * H;
+  const Pq = P - Psoil;
+  const resultantHeight = active ? (Psoil * cosInc * (H / 3) + Pq * cosInc * (H / 2) + dPh * ratio * H + Pw * (H / 3)) / totalH : null;
+  const criticalAngle = criticalWedgeAngle(state, phi, delta, beta, theta, psi);
+  const criticalAngleStatic = criticalWedgeAngle(state, phi, delta, beta, theta, 0);
+  // where the failure plane meets the backfill surface, measured horizontally from the top of the wall back
+  const reach = (alphaDeg) => {
+    const al = rad(alphaDeg);
+    return ((H * (Math.cos(al) + Math.tan(rad(theta)) * Math.sin(al))) / Math.sin(al - rad(beta))) * Math.cos(rad(beta));
+  };
+  const wedgeWidth = reach(criticalAngle);
+  const wedgeWidthStatic = reach(criticalAngleStatic);
+  const seedWhitmanDK = active && theta === 0 && beta === 0 && !submerged ? 0.75 * kh : null;
+  const warnings = [];
+  if (!active && delta > phi / 2) {
+    warnings.push('Coulomb and Mononobe–Okabe passive coefficients overestimate resistance when δ > φ/2. Use a log-spiral method or limit δ.');
+  }
+  if (active && khLimit !== null && kh > 0.8 * khLimit) {
+    warnings.push(`kh is close to the limiting value ${f(khLimit, 3)}: K_AE rises steeply and is very sensitive to φ here.`);
+  }
+  if (kh > 0.4)
+    warnings.push('Mononobe–Okabe is generally considered unreliable for kh above about 0.4.');
+  // horizontal pressure profile (active): static triangle + surcharge, dynamic increment as a linear
+  // distribution with its resultant at ratio·H above the base, and hydrostatic water
+  const rho = (3 * ratio - 1) / (2 - 3 * ratio); // p_top / p_bottom of the dynamic increment
+  const pBot = Number.isFinite(rho) ? (2 * dPh) / (H * (1 + rho)) : 0;
+  const pTop = Number.isFinite(rho) ? rho * pBot : (2 * dPh) / H;
+  const profile = [];
+  const nP = 40;
+  for (let i = 0; i <= nP; i++) {
+    const z = (H * i) / nP;
+    const st = (K * gammaB * z + K * q * qFactor) * cosInc;
+    const dyn = pTop + ((pBot - pTop) * z) / H;
+    const w = submerged ? gammaW * z : 0;
+    profile.push({ depth: z, static: st, dynamic: dyn, water: w, total: st + dyn + w });
+  }
+  // K_E as kh varies, up to the active limit
+  const curve = [];
+  const khMax = active ? Math.min(0.6, khLimit * 0.999) : 0.6;
+  const nC = 60;
+  for (let i = 0; i <= nC; i++) {
+    const k = (khMax * i) / nC;
+    const ps = deg(Math.atan((inertiaRatio * k) / (1 - kv)));
+    const Kc = mononobeOkabeK(state, phi, delta, beta, theta, ps);
+    if (Number.isFinite(Kc))
+      curve.push({ kh: k, K: Kc });
+  }
+  const sub = active ? 'A' : 'P';
+  const steps = [];
+  steps.push({
+    title: 'Seismic inertia angle',
+    formula: `\\begin{aligned}
+  \\psi &= \\tan^{-1}\\!\\left(${submerged ? '\\frac{\\gamma_{sat}}{\\gamma\'}\\,' : ''}\\frac{k_h}{1 - k_v}\\right) = \\tan^{-1}\\!\\left(${submerged ? `\\frac{${f(gammaSat, 1)}}{${f(gammaB, 2)}}\\,` : ''}\\frac{${f(kh, 3)}}{1 ${kv < 0 ? '+' : '-'} ${f(Math.abs(kv), 3)}}\\right) = \\mathbf{${f(psi, 2)}^\\circ}
+  \\end{aligned}`,
+    explanation: submerged
+      ? "Submerged backfill with restrained pore water: the water moves with the soil, so the inertia uses $\\gamma_{sat}$ while the weight uses the buoyant $\\gamma'$."
+      : 'The pseudo-static inertia force $k_h W$ and the reduced weight $(1 - k_v)W$ tilt the resultant body force by $\\psi$ from vertical.',
+  });
+  steps.push({
+    title: `Static Coulomb coefficient $K_${sub}$ ($\\psi = 0$)`,
+    formula: `\\begin{aligned}
+  K_${sub} &= \\mathbf{${f(K, 4)}} \\quad (\\phi' = ${phi}^\\circ,\\ \\delta = ${delta}^\\circ,\\ \\beta = ${beta}^\\circ,\\ \\theta = ${theta}^\\circ)
+  \\end{aligned}`,
+  });
+  steps.push({
+    title: `Mononobe–Okabe coefficient $K_{${sub}E}$`,
+    formula: active
+      ? `\\begin{aligned}
+  K_{AE} &= \\frac{\\cos^2(\\phi - \\theta - \\psi)}{\\cos\\psi \\cos^2\\theta \\cos(\\delta + \\theta + \\psi)\\left[1 + \\sqrt{\\dfrac{\\sin(\\phi + \\delta)\\sin(\\phi - \\beta - \\psi)}{\\cos(\\delta + \\theta + \\psi)\\cos(\\beta - \\theta)}}\\right]^2} \\\\
+  K_{AE} &= \\mathbf{${f(KE, 4)}}
+  \\end{aligned}`
+      : `\\begin{aligned}
+  K_{PE} &= \\frac{\\cos^2(\\phi + \\theta - \\psi)}{\\cos\\psi \\cos^2\\theta \\cos(\\delta - \\theta + \\psi)\\left[1 - \\sqrt{\\dfrac{\\sin(\\phi + \\delta)\\sin(\\phi + \\beta - \\psi)}{\\cos(\\delta - \\theta + \\psi)\\cos(\\beta - \\theta)}}\\right]^2} \\\\
+  K_{PE} &= \\mathbf{${f(KE, 4)}}
+  \\end{aligned}`,
+    explanation: active ? `Valid while $\\phi - \\beta - \\psi \\ge 0$, i.e. $k_h \\le ${f(khLimit, 3)}$.` : undefined,
+  });
+  steps.push({
+    title: 'Static and seismic thrust',
+    formula: `\\begin{aligned}
+  P_${sub} &= \\tfrac{1}{2} K_${sub} \\gamma${submerged ? "'" : ''} H^2${q > 0 ? ` + K_${sub}\\, q H \\tfrac{\\cos\\beta\\cos\\theta}{\\cos(\\beta - \\theta)}` : ''} = \\mathbf{${f(P, 1)}} \\text{ kN/m} \\\\
+  P_{${sub}E} &= \\tfrac{1}{2} K_{${sub}E} \\gamma${submerged ? "'" : ''} (1 - k_v) H^2${q > 0 ? ` + K_{${sub}E} (1 - k_v)\\, q H \\tfrac{\\cos\\beta\\cos\\theta}{\\cos(\\beta - \\theta)}` : ''} = \\mathbf{${f(PE, 1)}} \\text{ kN/m} \\\\
+  \\Delta P_{${sub}E} &= P_{${sub}E} - P_${sub} = \\mathbf{${f(dP, 1)}} \\text{ kN/m}
+  \\end{aligned}`,
+    explanation: `Thrusts act at $\\delta + \\theta = ${f(delta + theta, 1)}^\\circ$ to the horizontal.${submerged && q > 0 ? ' The surcharge uses the dry inertia angle.' : ''}`,
+  });
+  if (active) {
+    steps.push({
+      title: 'Horizontal components and point of application',
+      formula: `\\begin{aligned}
+    P_{AE,h} &= P_{AE}\\cos(\\delta + \\theta) = ${f(PE, 1)} \\times ${f(cosInc, 3)} = \\mathbf{${f(PEh, 1)}} \\text{ kN/m}${submerged ? ` \\\\
+    P_w &= \\tfrac{1}{2}\\gamma_w H^2 = ${f(Pw, 1)} \\text{ kN/m}` : ''} \\\\
+    \\bar{h} &= \\frac{P_{A,h}^{soil}\\tfrac{H}{3} + P_{A,h}^{q}\\tfrac{H}{2} + \\Delta P_{AE,h}(${f(ratio, 2)}H)${submerged ? ' + P_w\\tfrac{H}{3}' : ''}}{P_{AE,h}${submerged ? ' + P_w' : ''}} = \\mathbf{${f(resultantHeight, 2)}} \\text{ m above the base}
+    \\end{aligned}`,
+      explanation: `Static soil thrust at $H/3$, surcharge at $H/2$, and the dynamic increment at $${f(ratio, 2)}H$ (Seed & Whitman 1970 recommend $0.6H$).`,
+    });
+  }
+  else {
+    steps.push({
+      title: 'Reduction of passive resistance',
+      formula: `\\begin{aligned}
+    \\frac{P_{PE}}{P_P} &= \\frac{${f(PE, 1)}}{${f(P, 1)}} = \\mathbf{${f(PE / P, 3)}}
+    \\end{aligned}`,
+    });
+  }
+  steps.push({
+    title: 'Critical failure wedge (trial wedge search)',
+    formula: `\\begin{aligned}
+  \\alpha_{${sub}E} &= \\mathbf{${f(criticalAngle, 1)}^\\circ} \\text{ from horizontal} \\quad (\\text{static: } ${f(criticalAngleStatic, 1)}^\\circ) \\\\
+  \\text{reach from the wall} &= ${f(wedgeWidth)} \\text{ m} \\quad (\\text{static: } ${f(wedgeWidthStatic)} \\text{ m})
+  \\end{aligned}`,
+    explanation: `The planar wedge through the heel that ${active ? 'maximises' : 'minimises'} the thrust. Earthquake shaking flattens the active wedge, so it reaches further behind the wall than the static one.`,
+  });
+  if (seedWhitmanDK !== null) {
+    steps.push({
+      title: 'Check: Seed & Whitman (1970) simplified increment',
+      formula: `\\begin{aligned}
+    \\Delta K_{AE} &\\approx \\tfrac{3}{4} k_h = ${f(seedWhitmanDK, 4)} \\quad \\text{vs.} \\quad K_{AE} - K_A = ${f(KE - K, 4)}
+    \\end{aligned}`,
+      explanation: 'Approximation for a vertical wall with level, dry backfill.',
+    });
+  }
+  return {
+    state,
+    psi,
+    K,
+    KE,
+    P,
+    PE,
+    dP,
+    Ph,
+    PEh,
+    dPh,
+    Pw,
+    totalH,
+    resultantHeight,
+    criticalAngle,
+    criticalAngleStatic,
+    wedgeWidth,
+    wedgeWidthStatic,
+    khLimit,
+    seedWhitmanDK,
+    profile,
+    curve,
+    steps,
+    warnings,
+  };
+}
+
+/* ==========================================================================
+   Page logic
+   ========================================================================== */
+const PRESETS = [
+  { state: 'active', khMode: 'pga', pga: 0.4, khRatio: 0.5, kv: 0, H: 6.0, gamma: 19.0, phi: 34, delta: 17, beta: 0, theta: 0, water: 'dry', dynamicHeightRatio: 0.6 },
+  { state: 'active', khMode: 'direct', kh: 0.15, kv: 0, H: 5.0, gamma: 18.5, phi: 33, delta: 22, beta: 10, theta: -5, surcharge: 10, water: 'dry', dynamicHeightRatio: 0.6 },
+  { state: 'active', khMode: 'direct', kh: 0.15, kv: 0, H: 8.0, gamma: 18.0, phi: 32, delta: 16, beta: 0, theta: 0, water: 'submerged', gammaSat: 20.0, dynamicHeightRatio: 0.6 },
+  { state: 'passive', khMode: 'direct', kh: 0.2, kv: 0, H: 1.5, gamma: 19.0, phi: 34, delta: 0, beta: 0, theta: 0, water: 'dry' },
+];
+const FIELDS = ['kh', 'pga', 'khRatio', 'kv', 'H', 'gamma', 'phi', 'delta', 'beta', 'theta', 'surcharge', 'gammaSat', 'dynamicHeightRatio'];
+const SELECTS = { state: 'active', khMode: 'direct', water: 'dry' };
+
+const $ = (id) => document.getElementById(id);
+const num = (id) => {
+  const v = $(id).value.trim();
+  return v === '' ? undefined : parseFloat(v);
+};
+const fmt = (v, d = 2) => (Number.isFinite(v) ? v.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }) : '-');
+let charts = [];
+
+function currentKh() {
+  if ($('khMode').value === 'direct') return num('kh');
+  const pga = num('pga');
+  return pga === undefined ? undefined : pga * (num('khRatio') ?? 0.5);
+}
+
+function setMode() {
+  const active = $('state').value === 'active';
+  const pga = $('khMode').value === 'pga';
+  document.querySelectorAll('.only-pga').forEach((el) => el.classList.toggle('hidden', !pga));
+  document.querySelectorAll('.only-direct').forEach((el) => el.classList.toggle('hidden', pga));
+  document.querySelectorAll('.only-submerged').forEach((el) => el.classList.toggle('hidden', $('water').value !== 'submerged'));
+  document.querySelectorAll('.field-set .only-active').forEach((el) => el.classList.toggle('hidden', !active));
+  $('deltaHint').innerHTML = active ? 'Commonly &phi;/2 to 2&phi;/3' : 'Keep &delta; &le; &phi;/2 for passive';
+  const kh = currentKh();
+  $('khNote').innerHTML = pga && kh !== undefined ? `k<sub>h</sub> = ${fmt(num('khRatio') ?? 0.5)} &times; ${fmt(num('pga'), 3)} = <strong>${fmt(kh, 3)}</strong>` : '';
+}
+
+function loadPreset(p) {
+  Object.keys(SELECTS).forEach((k) => ($(k).value = p[k] ?? SELECTS[k]));
+  FIELDS.forEach((k) => ($(k).value = p[k] ?? ''));
+  setMode();
+  calculate();
+}
+
+function clearAll() {
+  Object.keys(SELECTS).forEach((k) => ($(k).value = SELECTS[k]));
+  FIELDS.forEach((k) => ($(k).value = ''));
+  document.querySelectorAll('.input-error').forEach((el) => el.classList.remove('input-error'));
+  $('formMsg').textContent = '';
+  $('resultsArea').classList.add('hidden');
+  setMode();
+}
+
+function calculate() {
+  document.querySelectorAll('.input-error').forEach((el) => el.classList.remove('input-error'));
+  const msg = $('formMsg');
+  msg.textContent = '';
+  const required = ['H', 'gamma', 'phi', ...($('khMode').value === 'direct' ? ['kh'] : ['pga'])];
+  if ($('water').value === 'submerged') required.push('gammaSat');
+  const missing = required.filter((id) => $(id).value.trim() === '');
+  missing.forEach((id) => $(id).classList.add('input-error'));
+  if (missing.length) {
+    msg.textContent = 'Fill in the highlighted fields.';
+    $('resultsArea').classList.add('hidden');
+    return;
+  }
+
+  let r;
+  try {
+    r = calculateSeismicEarthPressure({
+      state: $('state').value,
+      H: num('H'),
+      gamma: num('gamma'),
+      phi: num('phi'),
+      delta: num('delta') ?? 0,
+      beta: num('beta') ?? 0,
+      theta: num('theta') ?? 0,
+      kh: currentKh(),
+      kv: num('kv') ?? 0,
+      surcharge: num('surcharge') ?? 0,
+      water: $('water').value,
+      gammaSat: num('gammaSat'),
+      dynamicHeightRatio: num('dynamicHeightRatio') ?? 0.6,
+    });
+  } catch (e) {
+    msg.textContent = e.message;
+    $('resultsArea').classList.add('hidden');
+    return;
+  }
+  render(r);
+}
+
+function render(r) {
+  const H = num('H');
+  const kh = currentKh();
+  const active = r.state === 'active';
+  const box = (title, value, sub) => `<div class="stat-box"><div class="stat-label">${title}</div><div class="stat-val">${value}</div><div class="stat-sub">${sub}</div></div>`;
+  let boxes;
+  if (active) {
+    boxes = [
+      box('Seismic Thrust, P<sub>AE,h</sub>', fmt(r.totalH, 1), r.Pw > 0 ? `kN/m: earth ${fmt(r.PEh, 1)} + water ${fmt(r.Pw, 1)}` : 'kN/m, horizontal'),
+      box('Dynamic Increment, &Delta;P<sub>AE,h</sub>', fmt(r.dPh, 1), `kN/m, +${fmt((r.dPh / r.Ph) * 100, 0)}% over static ${fmt(r.Ph, 1)}`),
+      box('Resultant Height', `${fmt(r.resultantHeight)} m`, `${fmt(r.resultantHeight / H, 3)} H above the base`),
+      box('K<sub>AE</sub>', fmt(r.KE, 4), `Static K<sub>A</sub> = ${fmt(r.K, 4)}`),
+      box('Inertia Angle, &psi;', `${fmt(r.psi)}&deg;`, `k<sub>h</sub> = ${fmt(kh, 3)}, k<sub>v</sub> = ${fmt(num('kv') ?? 0, 3)}`),
+      box('Limiting k<sub>h</sub>', fmt(r.khLimit, 3), 'Where &phi; &minus; &beta; &minus; &psi; = 0'),
+      box('Failure Wedge Angle', `${fmt(r.criticalAngle, 1)}&deg;`, `Static ${fmt(r.criticalAngleStatic, 1)}&deg; from horizontal`),
+      box('Wedge Reach Behind Wall', `${fmt(r.wedgeWidth)} m`, `Static ${fmt(r.wedgeWidthStatic)} m`),
+    ];
+  } else {
+    boxes = [
+      box('Seismic Passive, P<sub>PE,h</sub>', fmt(r.PEh, 1), 'kN/m, horizontal'),
+      box('Reduction from Static', `${fmt((1 - r.PE / r.P) * 100, 1)}%`, `Static P<sub>P,h</sub> = ${fmt(r.Ph, 1)} kN/m`),
+      box('K<sub>PE</sub>', fmt(r.KE, 4), `Static K<sub>P</sub> = ${fmt(r.K, 4)}`),
+      box('Inertia Angle, &psi;', `${fmt(r.psi)}&deg;`, `Failure wedge at ${fmt(r.criticalAngle, 1)}&deg; from horizontal`),
+    ];
+  }
+  $('resultsGrid').innerHTML = boxes.join('');
+  $('warnings').innerHTML = r.warnings.length ? `<ul>${r.warnings.map((w) => `<li>${w}</li>`).join('')}</ul>` : '';
+  $('pressureWrap').classList.toggle('hidden', !active);
+
+  renderSteps(r.steps);
+  $('resultsArea').classList.remove('hidden');
+  plotCharts(r, kh);
+}
+
+// step titles and notes use $...$ for inline maths; MathJax here reads \( ... \)
+const inlineMath = (text) => text.replace(/\$([^$]+)\$/g, '\\($1\\)');
+
+function renderSteps(steps) {
+  const stepsEl = $('stepsContainer');
+  stepsEl.innerHTML = '';
+  steps.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'step';
+    const h = document.createElement('h4');
+    h.textContent = `${i + 1}. ${inlineMath(s.title)}`;
+    const f = document.createElement('div');
+    f.textContent = `\\[ ${s.formula} \\]`;
+    div.append(h, f);
+    if (s.explanation) {
+      const p = document.createElement('p');
+      p.className = 'step-note';
+      p.textContent = inlineMath(s.explanation);
+      div.append(p);
+    }
+    stepsEl.append(div);
+  });
+  if (window.MathJax && MathJax.typesetPromise) {
+    MathJax.typesetClear && MathJax.typesetClear([stepsEl]);
+    MathJax.typesetPromise([stepsEl]).catch((err) => console.error('MathJax typeset failed:', err));
+  }
+}
+
+function plotCharts(r, kh) {
+  const S = window.GEO_SERIES;
+  const active = r.state === 'active';
+  charts.forEach((c) => c.destroy());
+  charts = [];
+  const line = (label, data, color, dash = [], width = 2.25) => ({ label, data, borderColor: color, borderDash: dash, borderWidth: width, showLine: true, pointRadius: 0 });
+  if (active) {
+    const p = r.profile;
+    const datasets = [
+      line('Total (seismic)', p.map((pt) => ({ x: pt.total, y: pt.depth })), S[0], [], 3),
+      line('Static earth pressure', p.map((pt) => ({ x: pt.static, y: pt.depth })), S[3], [5, 5]),
+      line('Dynamic increment', p.map((pt) => ({ x: pt.dynamic, y: pt.depth })), S[1], [10, 5]),
+    ];
+    if (r.Pw > 0) datasets.push(line('Hydrostatic water', p.map((pt) => ({ x: pt.water, y: pt.depth })), S[5], [2, 2]));
+    charts.push(
+      new Chart($('pressureChart'), {
+        type: 'scatter',
+        data: { datasets },
+        options: {
+          plugins: { title: { display: true, text: `Seismic lateral pressure (horizontal), dynamic increment at ${fmt(num('dynamicHeightRatio') ?? 0.6)}H` } },
+          scales: {
+            x: { type: 'linear', min: 0, title: { display: true, text: 'Lateral pressure (kPa)' } },
+            y: { type: 'linear', reverse: true, min: 0, title: { display: true, text: 'Depth below top of wall (m)' } },
+          },
+        },
+      })
+    );
+  }
+  const K = active ? 'K_AE' : 'K_PE';
+  charts.push(
+    new Chart($('curveChart'), {
+      type: 'scatter',
+      data: {
+        datasets: [
+          line(`${K} (Mononobe–Okabe)`, r.curve.map((c) => ({ x: c.kh, y: c.K })), S[0], [], 2.5),
+          { label: `Design point (kh = ${fmt(kh, 3)})`, data: [{ x: kh, y: r.KE }], borderColor: S[1], backgroundColor: S[1], pointRadius: 6, showLine: false },
+        ],
+      },
+      options: {
+        plugins: { title: { display: true, text: `${K} vs. horizontal seismic coefficient` } },
+        scales: {
+          x: { type: 'linear', min: 0, title: { display: true, text: 'Horizontal seismic coefficient kh' } },
+          y: { type: 'linear', title: { display: true, text: K } },
+        },
+      },
+    })
+  );
+}
+
+document.querySelectorAll('[data-preset]').forEach((b) => b.addEventListener('click', () => loadPreset(PRESETS[+b.dataset.preset])));
+$('clearBtn').addEventListener('click', clearAll);
+['state', 'khMode', 'water'].forEach((id) => $(id).addEventListener('change', () => {
+  setMode();
+  $('resultsArea').classList.add('hidden');
+}));
+$('calcBtn').addEventListener('click', () => {
+  calculate();
+  if (!$('resultsArea').classList.contains('hidden')) $('resultsArea').scrollIntoView({ behavior: 'smooth' });
+});
+document.addEventListener('input', (e) => {
+  if (e.target.classList && e.target.classList.contains('input-error')) e.target.classList.remove('input-error');
+  setMode();
+});
+
+setMode();
+</script>
+
+</body>
+</html>
