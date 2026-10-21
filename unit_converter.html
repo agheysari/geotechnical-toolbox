@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Convert geotechnical units: pressure (kPa, psf, tsf), unit weight (kN/m³, pcf), hydraulic conductivity, cv, force, moment, subgrade modulus, flow and slope.">
+<title>Geotechnical Unit Converter | Geotechnical Toolbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>window.MathJax = { chtml: { displayAlign: 'left', displayIndent: '0' } };</script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+const DASH_PATTERNS = [[], [5,5], [2,2], [10,5], [5,2,2,2], [10,2,2,2], [5,2,2,2,2,2], [3,3], [8,4]];
+
+/* ==========================================================================
+   Geotechnical Tools: shared figure theme
+   Identical on every page that draws a plot. Gives all charts one look:
+   Inter type, muted slate ink, hairline grid, and a consistent series
+   palette, so a figure can be pasted straight into a report.
+   ========================================================================== */
+(function () {
+  var FONT  = "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+  var INK   = '#0f172a';
+  var MUTED = '#475569';
+  var GRID  = '#e8edf3';
+  var AXIS  = '#cbd5e1';
+  var SERIES = ['#0284c7', '#dc2626', '#059669', '#d97706', '#7c3aed', '#0f766e', '#be185d', '#475569'];
+  window.GEO_SERIES = SERIES;
+
+  /* ---- Chart.js ---------------------------------------------------------- */
+  if (typeof Chart !== 'undefined') {
+    var d = Chart.defaults;
+    d.font.family = FONT;
+    d.font.size = 12;
+    d.color = MUTED;
+    d.responsive = true;
+    d.maintainAspectRatio = false;      /* fill the figure box, not a 2:1 slab */
+    d.layout.padding = 4;
+    d.elements.line.borderWidth = 2.25;
+    d.elements.point.hitRadius = 8;
+    d.elements.point.borderWidth = 1.5;
+
+    d.plugins.title.color = INK;
+    d.plugins.title.font = { family: FONT, size: 13, weight: '700' };
+    d.plugins.title.padding = { top: 2, bottom: 14 };
+    d.plugins.legend.labels.usePointStyle = false;
+    d.plugins.legend.labels.boxHeight = 2;
+    d.plugins.legend.labels.boxWidth = 36;
+    d.plugins.legend.labels.padding = 14;
+    d.plugins.legend.labels.color = MUTED;
+    d.plugins.legend.labels.font = { family: FONT, size: 11 };
+    d.plugins.tooltip.backgroundColor = 'rgba(15,23,42,0.92)';
+    d.plugins.tooltip.padding = 10;
+    d.plugins.tooltip.cornerRadius = 8;
+    d.plugins.tooltip.titleFont = { family: FONT, size: 12, weight: '700' };
+    d.plugins.tooltip.bodyFont = { family: FONT, size: 12 };
+    d.plugins.tooltip.displayColors = false;
+
+    if (d.scale) {
+      d.scale.grid.color = GRID;
+      d.scale.grid.lineWidth = 1;
+      d.scale.grid.tickColor = AXIS;
+      d.scale.border = d.scale.border || {};
+      d.scale.border.color = AXIS;
+      d.scale.ticks.color = MUTED;
+      d.scale.ticks.padding = 6;
+      d.scale.ticks.font = { family: FONT, size: 11 };
+      d.scale.title.color = INK;
+      d.scale.title.font = { family: FONT, size: 12, weight: '600' };
+    }
+  }
+
+  /* ---- Plotly ------------------------------------------------------------ */
+  if (typeof Plotly !== 'undefined') {
+    var axisBase = {
+      gridcolor: GRID,
+      zerolinecolor: AXIS,
+      linecolor: AXIS,
+      linewidth: 1,
+      ticks: 'outside',
+      tickcolor: AXIS,
+      ticklen: 5,
+      tickfont: { family: FONT, size: 11, color: MUTED },
+      title: { font: { family: FONT, size: 12, color: INK } },
+      automargin: true
+    };
+    window.GEO_PLOTLY_LAYOUT = {
+      font: { family: FONT, size: 12, color: MUTED },
+      plot_bgcolor: '#ffffff',
+      paper_bgcolor: '#ffffff',
+      colorway: SERIES,
+      margin: { t: 54, b: 58, l: 72, r: 28 },
+      title: { font: { family: FONT, size: 13, color: INK }, x: 0, xanchor: 'left',
+               y: 0.96, yanchor: 'top', pad: { l: 16, t: 12 } },
+      legend: { font: { family: FONT, size: 11, color: MUTED },
+                bgcolor: 'rgba(255,255,255,0.88)', bordercolor: '#e2e8f0', borderwidth: 1 },
+      hoverlabel: { bgcolor: INK, bordercolor: INK,
+                    font: { family: FONT, size: 12, color: '#ffffff' } },
+      xaxis: axisBase,
+      yaxis: axisBase
+    };
+    window.GEO_PLOTLY_CONFIG = {
+      responsive: true,
+      displaylogo: false,
+      modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+      toImageButtonOptions: { format: 'png', scale: 2 }
+    };
+    function mergeTitle(base, t) {
+      if (typeof t === 'string') return Object.assign({}, base, { text: t });
+      if (t && typeof t === 'object') return Object.assign({}, base, t);
+      return Object.assign({}, base);
+    }
+    function mergeAxis(base, ax) {
+      var out = Object.assign({}, base, ax || {});
+      out.tickfont = Object.assign({}, base.tickfont, (ax || {}).tickfont);
+      out.title = mergeTitle(base.title, (ax || {}).title);
+      return out;
+    }
+    /* Merge a page's own layout over the shared theme, preserving its specifics. */
+    window.geoLayout = function (layout) {
+      layout = layout || {};
+      var B = window.GEO_PLOTLY_LAYOUT;
+      var out = Object.assign({}, B, layout);
+      out.font = Object.assign({}, B.font, layout.font);
+      out.margin = Object.assign({}, B.margin, layout.margin);
+      out.legend = Object.assign({}, B.legend, layout.legend);
+      out.hoverlabel = Object.assign({}, B.hoverlabel, layout.hoverlabel);
+      out.title = mergeTitle(B.title, layout.title);
+      ['xaxis', 'yaxis', 'xaxis2', 'yaxis2'].forEach(function (k) {
+        if (layout[k] || k === 'xaxis' || k === 'yaxis') {
+          out[k] = mergeAxis(k.charAt(0) === 'x' ? B.xaxis : B.yaxis, layout[k]);
+        }
+      });
+      return out;
+    };
+  }
+})();
+</script>
+<style>
+    /* ==========================================================================
+       Geotechnical Tools: shared shell
+       This block is identical on every page. Edit it in one page and mirror the
+       change to the rest; page-specific rules live in the section below it.
+       ========================================================================== */
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --surface: #ffffff;
+      --background: #f8fafc;
+      --surface-alt: #f1f5f9;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #059669;
+      --success-bg: #ecfdf5;
+      --warning: #b45309;
+      --warning-bg: #fffbeb;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 28px 16px 8px;
+      background: var(--background);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container { max-width: 1100px; margin: 0 auto; }
+
+    /* --- Page header ------------------------------------------------------- */
+    .tool-header { margin-bottom: 20px; }
+    .tool-header h1 {
+      margin: 0;
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: -0.015em;
+      line-height: 1.25;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .tool-header .subtitle {
+      margin: 8px 0 0;
+      max-width: 90ch;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .tool-header .back-link {
+      display: inline-block;
+      margin-bottom: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .tool-header .back-link:hover { color: var(--primary); }
+    .tool-header h1 .tool-icon { flex: none; border-radius: 9px; }
+
+    /* --- Surfaces ---------------------------------------------------------- */
+    .card {
+      min-width: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+    .card + .card { margin-top: 16px; }
+    /* the two-column pages stack several components inside one card; give them
+       an even rhythm instead of whatever margins each component brings */
+    .layout-grid .card > * { margin-top: 0; margin-bottom: 0; }
+    .layout-grid .card > * + * { margin-top: 18px; }
+    .card-title {
+      margin: 0 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-title {
+      margin: 26px 0 14px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+    .section-title:first-child { margin-top: 0; }
+
+    /* --- Input groups -------------------------------------------------------
+       Convention: a grey bordered panel is something you fill in; a white or
+       tinted box is a result the tool gives back. Legacy group names below are
+       aliases so older markup picks up the same treatment. */
+    .field-set,
+    .panel, .control-group, .settings-panel, .manual-entry {
+      margin: 0 0 18px;
+      padding: 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .field-set > :first-child,
+    .panel > :first-child, .control-group > :first-child,
+    .settings-panel > :first-child, .manual-entry > :first-child { margin-top: 0; }
+    .field-set > :last-child,
+    .panel > :last-child, .control-group > :last-child,
+    .settings-panel > :last-child, .manual-entry > :last-child { margin-bottom: 0; }
+
+    /* legacy grid names share the responsive form grid */
+    .grid-2, .grid-3, .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .grid-2 > *, .grid-3 > *, .grid-container > * { min-width: 0; }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 10px;
+    }
+    .checkbox-group:last-child { margin-bottom: 0; }
+    .checkbox-group label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    h1, h2, h3, h4 { font-family: var(--font); color: var(--text); }
+    h2 { font-size: 19px; font-weight: 700; margin: 0 0 12px; }
+    h3 { font-size: 15px; font-weight: 700; margin: 0 0 10px; }
+    h4 { font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+
+    /* --- Forms ------------------------------------------------------------- */
+    .form-row { display: flex; gap: 16px; margin-bottom: 16px; }
+    .form-row > * { flex: 1 1 0; min-width: 0; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    /* grid/flex children default to min-width:auto, which refuses to shrink and
+       pushes the page wider than the viewport on phones */
+    .layout-grid > *, .form-grid > *, .results-grid > *, .form-row > * { min-width: 0; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    @media (max-width: 768px) { .form-row { flex-direction: column; gap: 12px; } }
+
+    label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 12px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    input[type="checkbox"], input[type="radio"] { width: auto; }
+    textarea {
+      min-height: 170px;
+      resize: none;
+      line-height: 1.55;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+    input[type="range"] { padding: 0; }
+    .input-error { border-color: var(--danger) !important; background: var(--danger-bg) !important; }
+
+    .hint, .help-text, .note {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    /* block footnote under a results panel, not an inline field hint */
+    .note { display: block; margin-top: 18px; }
+
+    /* row of buttons that acts on the table above it */
+    .table-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      margin: 16px 0 4px;
+    }
+    .table-actions .spacer { margin-left: auto; }
+
+    /* --- Buttons ----------------------------------------------------------- */
+    button, .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 16px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: var(--primary);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    button:hover:not(:disabled), .btn:hover:not(:disabled) { background: var(--primary-dark); }
+    button:disabled, .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+    .calc-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .btn-secondary { background: var(--surface-alt); color: #475569; border: 1px solid var(--border); }
+    .btn-secondary:hover:not(:disabled) { background: #e2e8f0; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; font-weight: 600; }
+    .btn-success { background: var(--success); }
+    .btn-success:hover:not(:disabled) { background: #047857; }
+    .btn-danger, .btn-clear { background: var(--danger); }
+    .btn-danger:hover:not(:disabled), .btn-clear:hover:not(:disabled) { background: #b91c1c; }
+
+    /* --- Tabs -------------------------------------------------------------- */
+    .tab-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      background: var(--surface-alt);
+      border-radius: 8px;
+    }
+    .tab-btn:hover:not(.active) { background: #e2e8f0; }
+    .tab-btn.active { background: var(--primary); color: #fff; }
+    .tab-panel { display: none; }
+    .tab-panel.active {
+      display: block;
+      margin-bottom: 18px;
+      padding: 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .tab-panel.active > :first-child { margin-top: 0; }
+    .tab-panel.active > :last-child { margin-bottom: 0; }
+
+    /* --- Results ----------------------------------------------------------- */
+    .result-box {
+      margin-top: 20px;
+      padding: 18px 20px;
+      background: var(--primary-light);
+      border: 1px solid #bae6fd;
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .result-box.success { background: var(--success-bg); border-color: #a7f3d0; border-left-color: var(--success); }
+    .result-box.warning { background: var(--warning-bg); border-color: #fde68a; border-left-color: #f59e0b; }
+    .result-box.danger  { background: var(--danger-bg);  border-color: #fecaca; border-left-color: var(--danger); }
+    .result-value {
+      margin: 6px 0 0;
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--primary-dark);
+    }
+    .success .result-value { color: var(--success); }
+    .warning .result-value { color: var(--warning); }
+    .danger  .result-value { color: var(--danger); }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .stat-box {
+      padding: 14px 12px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      text-align: center;
+    }
+    .stat-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+    .stat-val {
+      margin: 5px 0 0;
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+    .stat-sub { font-size: 10px; color: var(--text-muted); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+    }
+
+    .formula-box {
+      margin: 18px 0;
+      padding: 16px 18px;
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-x: auto;
+      font-size: 13px;
+    }
+    .formula-box h3, .formula-box h4 {
+      margin: 0 0 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    /* --- Tables ------------------------------------------------------------ */
+    .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+    th {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      background: var(--background);
+    }
+    td input, td select { padding: 6px 8px; font-size: 13px; }
+
+    /* --- Figures ------------------------------------------------------------ */
+    .chart-container, .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 380px;
+      margin: 22px 0 4px;
+      padding: 14px 14px 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    @media (max-width: 600px) {
+      .chart-container, .chart-wrapper { height: 320px; padding: 10px 8px 6px; }
+    }
+
+    /* --- Uploads ------------------------------------------------------------ */
+    .upload-area {
+      margin-bottom: 16px;
+      padding: 24px;
+      text-align: center;
+      background: var(--background);
+      border: 2px dashed #cbd5e1;
+      border-radius: var(--radius);
+      transition: border-color 0.15s ease;
+    }
+    .upload-area:hover { border-color: var(--primary); }
+    .upload-area input { width: auto; max-width: 100%; }
+    .upload-area input[type="file"] { width: 100%; }
+
+    /* --- Support line & footer ---------------------------------------------- */
+    .support-note {
+      margin: 20px 0 22px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .support-note a {
+      color: var(--primary);
+      text-decoration: none;
+      border-bottom: 1px solid var(--primary-light);
+    }
+    .support-note a:hover { border-bottom-color: var(--primary); }
+
+    .site-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 32px;
+      padding: 22px 12px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .site-footer a { color: var(--text-muted); text-decoration: none; }
+    .site-footer a:hover { color: var(--primary); }
+    .site-footer .sep { color: #cbd5e1; }
+    .site-footer .social { display: inline-flex; align-items: center; gap: 9px; }
+    .site-footer .social a { display: inline-flex; color: var(--text-muted); }
+    .site-footer .social a:hover { color: var(--primary); }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 600px) {
+      body { padding: 20px 12px 8px; }
+      .card { padding: 18px 16px; }
+      th, td { padding: 8px 9px; }
+    }
+
+    /* ==========================================================================
+       Page-specific styles
+       ========================================================================== */
+    .preset-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 18px; }
+    .preset-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-right: 2px; }
+    .btn-clear-inputs { background: transparent !important; color: var(--danger) !important; border: 1px dashed #fca5a5 !important; }
+    .btn-clear-inputs:hover:not(:disabled) { background: var(--danger-bg) !important; }
+    .grid-container .hint a { color: var(--primary); }
+    td input:disabled { background: var(--surface-alt); }
+    td.layer-no { font-weight: 700; color: var(--text-muted); }
+    .step { margin: 0 0 12px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow-x: auto; }
+    .step h4 { margin: 0 0 6px; font-size: 13px; }
+    .step .step-note { margin: 6px 0 0; font-size: 12px; color: var(--text-muted); }
+    #warnings:empty { display: none; }
+    #warnings { margin-top: 16px; padding: 12px 16px; background: var(--warning-bg); border: 1px solid #fde68a; border-left: 4px solid #f59e0b; border-radius: var(--radius); font-size: 13px; color: var(--warning); }
+    #warnings ul { margin: 0; padding-left: 18px; }
+    .sketch { max-width: 640px; margin: 0 auto 8px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+    .sketch svg { display: block; width: 100%; height: auto; }
+    .chart-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 0 16px; }
+    .chart-pair > * { min-width: 0; height: 420px; }
+    #categoryBar { margin-bottom: 12px; }
+    th.num, td.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+    td.per-unit, th.per-unit { color: var(--text-muted); font-size: 12px; }
+    .unit-name { margin-left: 6px; font-size: 12px; color: var(--text-muted); }
+    tr.from-row td { background: var(--primary-light); }
+    #quickBody th { width: 150px; text-transform: none; letter-spacing: 0; font-size: 12px; }
+    .related { margin: 0 0 14px; padding: 12px 16px; background: var(--primary-light); border: 1px solid #bae6fd; border-radius: var(--radius); font-size: 13px; }
+    .related p { margin: 0; }
+    @media (max-width: 600px) { .per-unit, .unit-name { display: none; } }
+  </style>
+<style id="formula-style">
+/* formula cards: accent bar; equations sit flush left, including the left-hand column of aligned equations */
+.formula-box { border-left: 3px solid var(--primary, #2143aa); border-radius: 0 var(--radius, 8px) var(--radius, 8px) 0; }
+mjx-container[display="true"] mjx-mtable { margin-left: 0 !important; }
+mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; padding-left: 0 !important; }
+</style>
+<style id="fullsite-style">
+.fullsite { margin: 12px 0 0; font-size: 13px; }
+.fullsite a {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;
+  border: 1px solid var(--border, #e2e8f0); border-radius: 999px;
+  color: var(--primary, #0284c7); font-weight: 600; text-decoration: none;
+}
+.fullsite a:hover { border-color: var(--primary, #0284c7); }
+</style>
+<!-- seo:start -->
+<link rel="canonical" href="https://agheysari.github.io/geotechnical-toolbox/unit_converter.html">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="author" content="Ali Gheysari">
+<meta name="theme-color" content="#2143AA">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta property="og:site_name" content="Geotechnical Toolbox">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Geotechnical Unit Converter">
+<meta property="og:description" content="Convert geotechnical units: pressure (kPa, psf, tsf), unit weight (kN/m³, pcf), hydraulic conductivity, cv, force, moment, subgrade modulus, flow and slope.">
+<meta property="og:url" content="https://agheysari.github.io/geotechnical-toolbox/unit_converter.html">
+<meta property="og:image" content="https://agheysari.github.io/geotechnical-toolbox/og/unit_converter.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Geotechnical Unit Converter: free online calculator">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Geotechnical Unit Converter">
+<meta name="twitter:description" content="Convert geotechnical units: pressure (kPa, psf, tsf), unit weight (kN/m³, pcf), hydraulic conductivity, cv, force, moment, subgrade modulus, flow and slope.">
+<meta name="twitter:image" content="https://agheysari.github.io/geotechnical-toolbox/og/unit_converter.png">
+<script type="application/ld+json">[{"@context": "https://schema.org", "@type": "WebApplication", "name": "Geotechnical Unit Converter", "url": "https://agheysari.github.io/geotechnical-toolbox/unit_converter.html", "description": "Convert geotechnical units: pressure (kPa, psf, tsf), unit weight (kN/m³, pcf), hydraulic conductivity, cv, force, moment, subgrade modulus, flow and slope.", "applicationCategory": "EngineeringApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "Requires JavaScript", "isAccessibleForFree": true, "inLanguage": "en", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "license": "https://github.com/agheysari/geotechnical-toolbox/blob/main/LICENSE", "author": {"@type": "Person", "name": "Ali Gheysari", "url": "https://github.com/agheysari", "sameAs": ["https://github.com/agheysari", "https://www.linkedin.com/in/aligheysari/"]}, "isPartOf": {"@type": "WebSite", "name": "Geotechnical Toolbox", "url": "https://agheysari.github.io/geotechnical-toolbox/"}}, {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "All calculators", "item": "https://agheysari.github.io/geotechnical-toolbox/"}, {"@type": "ListItem", "position": 2, "name": "Geotechnical Unit Converter", "item": "https://agheysari.github.io/geotechnical-toolbox/unit_converter.html"}]}]</script>
+<!-- seo:end -->
+</head>
+<body>
+
+<div class="container">
+
+  <header class="tool-header">
+    <a class="back-link" href="index.html">&larr; All calculators</a>
+    <h1><svg width="38" height="38" class="tool-icon" aria-hidden="true" focusable="false" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"> <rect width="64" height="64" rx="14" fill="#F0F9FF" /> <rect x="8" y="40" width="48" height="12" rx="2" fill="#FDE68A" stroke="#D97706" stroke-width="1.5" /> <path d="M14 40V45M20 40V47M26 40V45M32 40V47M38 40V45M44 40V47M50 40V45" stroke="#B45309" stroke-width="1.5" stroke-linecap="round" /> <path d="M14 16H48M48 16L43 11M48 16L43 21" stroke="#0284C7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /> <path d="M50 30H16M16 30L21 25M16 30L21 35" stroke="#0EA5E9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" /> </svg>Geotechnical Unit Converter</h1>
+    <p class="subtitle">Convert geotechnical units: pressure (kPa, psf, tsf), unit weight (kN/m³, pcf), hydraulic conductivity, cv, force, moment, subgrade modulus, flow and slope.</p>
+    <p class="fullsite"><a href="https://geotechnica.ca/tools/unit-converter">Open the full version on geotechnica.ca &rarr;</a></p>
+  </header>
+
+  <main class="card">
+    <div class="preset-row">
+      <span class="preset-label">Demo:</span>
+      <button class="btn btn-secondary btn-sm" data-preset="0">2 tsf bearing pressure</button>
+      <button class="btn btn-secondary btn-sm" data-preset="1">120 pcf fill</button>
+      <button class="btn btn-secondary btn-sm" data-preset="2">1e-5 cm/s clay</button>
+      <button class="btn btn-secondary btn-sm" data-preset="3">2H:1V slope</button>
+      <button class="btn btn-secondary btn-sm btn-clear-inputs" id="clearBtn">Clear</button>
+    </div>
+
+    <section class="field-set">
+      <div class="section-title">1. Quantity</div>
+      <div class="tab-bar" id="categoryBar" role="group" aria-label="Quantity"></div>
+      <p class="hint" id="categoryNote" style="margin: 0;"></p>
+    </section>
+
+    <section class="field-set">
+      <div class="section-title">2. Value to Convert</div>
+      <div class="grid-container" style="margin-bottom: 0;">
+        <div class="form-group">
+          <label for="value">Value</label>
+          <input type="number" id="value" step="any" placeholder="e.g., 100">
+        </div>
+        <div class="form-group">
+          <label for="fromUnit">From Unit</label>
+          <select id="fromUnit"></select>
+        </div>
+        <div class="form-group">
+          <label for="sig">Significant Figures</label>
+          <select id="sig">
+            <option>3</option><option>4</option><option selected>5</option><option>6</option><option>8</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <p id="formMsg" class="hint" style="color: var(--danger); margin: 0 0 12px;"></p>
+
+    <div id="resultsArea" class="hidden">
+      <div class="section-title">Results</div>
+      <div class="related" id="related"></div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Unit</th>
+              <th class="num" id="valueHead">Value</th>
+              <th class="num per-unit" id="perHead">1 unit =</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top: 26px;">Common Geotechnical Conversions</div>
+    <div class="table-scroll">
+      <table>
+        <tbody id="quickBody"></tbody>
+      </table>
+    </div>
+
+    <div class="formula-box">
+      <h4>Definitions used</h4>
+      \( x_{to} = x_{from}\, f_{from} / f_{to} \): each unit is stored as its size \( f \) in the SI unit of its quantity, so any pair converts through SI. Slope and temperature scales are not proportional and use their own formulae.<br>
+      Exact definitions: \( 1\ \text{ft} = 0.3048\ \text{m} \), \( 1\ \text{lb} = 0.45359237\ \text{kg} \), \( g = 9.80665\ \text{m/s}^2 \), \( 1\ \text{lbf} = 4.4482216\ \text{N} \); kip = 1000 lbf, US (short) ton = 2000 lb, kgf = 9.80665 N, US gallon = 231 in³, year = 365.25 days.<br>
+      \( \gamma = \rho g \); intrinsic permeability \( k = K\mu/(\rho_w g) \) for water at 20 °C (\( \mu = 1.002 \times 10^{-3} \) Pa·s, \( \rho_w = 998.2 \) kg/m³).
+    </div>
+
+    <p class="support-note">Free and open-source. You can <a href="https://buymeacoffee.com/agheysari" target="_blank" rel="noopener noreferrer">buy me a coffee <span aria-hidden="true">☕</span></a> to support this project.</p>
+  </main>
+
+  <footer class="site-footer">
+    <span>&copy; 2026 <strong>Ali Gheysari, PhD P.Eng.</strong></span>
+    <span class="social">
+      <a href="https://github.com/agheysari" target="_blank" rel="noopener noreferrer" aria-label="Ali Gheysari on GitHub" title="GitHub"><svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg></a>
+      <a href="https://www.linkedin.com/in/aligheysari/" target="_blank" rel="noopener noreferrer" aria-label="Ali Gheysari on LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.55V9h3.57v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0Z"/></svg></a>
+    </span>
+    <span class="sep">&bull;</span>
+    <a href="index.html">All calculators</a>
+    <span class="sep">&bull;</span>
+    <a href="https://geotechnica.ca/tools/unit-converter">geotechnica.ca</a>
+    <span class="sep">&bull;</span>
+    <a href="https://github.com/agheysari/geotechnical-toolbox" target="_blank" rel="noopener noreferrer">Source</a>
+    <span class="sep">&bull;</span>
+    <a href="index.html#disclaimer">Disclaimer</a>
+    <span class="sep">&bull;</span>
+    <a href="LICENSE">GNU GPL v3.0</a>
+  </footer>
+
+</div>
+
+<script>
+/* ==========================================================================
+   Calculation: port of lib/calculations/unitConverter.ts (types removed).
+   Keep the two in sync.
+   ========================================================================== */
+/**
+ * Geotechnical Unit Converter
+ * Every unit is defined by its size in the SI base unit of its quantity (Pa, N/m³, m/s, ...),
+ * from exact definitions: ft = 0.3048 m, lb = 0.45359237 kg, g = 9.80665 m/s², US gal = 231 in³.
+ * Slope and temperature are not proportional, so those units carry their own conversion functions.
+ */
+// exact defining constants
+const G0 = 9.80665; // m/s², standard gravity
+const FT = 0.3048; // m
+const IN = 0.0254; // m
+const LB = 0.45359237; // kg
+const LBF = LB * G0; // N
+const KGF = G0; // N
+const US_GAL = 231 * IN ** 3; // m³
+const IMP_GAL = 4.54609e-3; // m³
+const MIN = 60;
+const HR = 3600;
+const DAY = 86400;
+const YR = 365.25 * DAY; // Julian year
+const UNIT_CATEGORIES = [
+  {
+    id: 'pressure',
+    label: 'Pressure & stress',
+    base: 'Pa',
+    units: [
+      { id: 'Pa', label: 'Pascal', symbol: 'Pa', factor: 1 },
+      { id: 'kPa', label: 'Kilopascal', symbol: 'kPa', factor: 1e3 },
+      { id: 'MPa', label: 'Megapascal', symbol: 'MPa', factor: 1e6 },
+      { id: 'GPa', label: 'Gigapascal', symbol: 'GPa', factor: 1e9 },
+      { id: 'bar', label: 'Bar', symbol: 'bar', factor: 1e5 },
+      { id: 'atm', label: 'Standard atmosphere', symbol: 'atm', factor: 101325 },
+      { id: 'kgfcm2', label: 'Kilogram-force per cm²', symbol: 'kgf/cm²', factor: KGF / 1e-4 },
+      { id: 'tm2', label: 'Tonne-force per m² (metric)', symbol: 't/m²', factor: (1000 * KGF) / 1 },
+      { id: 'psf', label: 'Pound-force per ft²', symbol: 'psf', factor: LBF / FT ** 2 },
+      { id: 'ksf', label: 'Kip per ft²', symbol: 'ksf', factor: (1000 * LBF) / FT ** 2 },
+      { id: 'tsf', label: 'US (short) ton-force per ft²', symbol: 'tsf', factor: (2000 * LBF) / FT ** 2 },
+      { id: 'psi', label: 'Pound-force per in²', symbol: 'psi', factor: LBF / IN ** 2 },
+      { id: 'ksi', label: 'Kip per in²', symbol: 'ksi', factor: (1000 * LBF) / IN ** 2 },
+      { id: 'mH2O', label: 'Metre of water (conventional)', symbol: 'm H₂O', factor: 1000 * G0 },
+      { id: 'ftH2O', label: 'Foot of water (conventional)', symbol: 'ft H₂O', factor: 1000 * G0 * FT },
+      { id: 'mmHg', label: 'Millimetre of mercury', symbol: 'mmHg', factor: 133.322387415 },
+    ],
+    note: 'Water heads use the conventional density of 1000 kg/m³ and standard gravity. tsf is the US short ton (2000 lbf) per ft²; t/m² is the metric tonne-force per m².',
+  },
+  {
+    id: 'unitweight',
+    label: 'Unit weight',
+    base: 'N/m³',
+    units: [
+      { id: 'kNm3', label: 'Kilonewton per m³', symbol: 'kN/m³', factor: 1e3 },
+      { id: 'Nm3', label: 'Newton per m³', symbol: 'N/m³', factor: 1 },
+      { id: 'MNm3', label: 'Meganewton per m³', symbol: 'MN/m³', factor: 1e6 },
+      { id: 'tfm3', label: 'Tonne-force per m³', symbol: 'tf/m³', factor: 1000 * KGF },
+      { id: 'gfcm3', label: 'Gram-force per cm³', symbol: 'gf/cm³', factor: (1e-3 * KGF) / 1e-6 },
+      { id: 'pcf', label: 'Pound-force per ft³', symbol: 'pcf', factor: LBF / FT ** 3 },
+      { id: 'kcf', label: 'Kip per ft³', symbol: 'kcf', factor: (1000 * LBF) / FT ** 3 },
+      { id: 'pci', label: 'Pound-force per in³', symbol: 'pci', factor: LBF / IN ** 3 },
+    ],
+    note: 'Unit weight γ = ρg. The same dimensions (force per volume) apply to the modulus of subgrade reaction k.',
+  },
+  {
+    id: 'density',
+    label: 'Density',
+    base: 'kg/m³',
+    units: [
+      { id: 'kgm3', label: 'Kilogram per m³', symbol: 'kg/m³', factor: 1 },
+      { id: 'Mgm3', label: 'Megagram (tonne) per m³', symbol: 'Mg/m³', factor: 1e3 },
+      { id: 'gcm3', label: 'Gram per cm³', symbol: 'g/cm³', factor: 1e3 },
+      { id: 'lbft3', label: 'Pound (mass) per ft³', symbol: 'lb/ft³', factor: LB / FT ** 3 },
+      { id: 'lbin3', label: 'Pound (mass) per in³', symbol: 'lb/in³', factor: LB / IN ** 3 },
+      { id: 'slugft3', label: 'Slug per ft³', symbol: 'slug/ft³', factor: (LBF / FT) / FT ** 3 },
+    ],
+    note: 'Density ρ is mass per volume; multiply by g = 9.80665 m/s² for unit weight.',
+  },
+  {
+    id: 'conductivity',
+    label: 'Hydraulic conductivity',
+    base: 'm/s',
+    units: [
+      { id: 'ms', label: 'Metre per second', symbol: 'm/s', factor: 1 },
+      { id: 'cms', label: 'Centimetre per second', symbol: 'cm/s', factor: 1e-2 },
+      { id: 'mms', label: 'Millimetre per second', symbol: 'mm/s', factor: 1e-3 },
+      { id: 'mday', label: 'Metre per day', symbol: 'm/day', factor: 1 / DAY },
+      { id: 'myr', label: 'Metre per year', symbol: 'm/yr', factor: 1 / YR },
+      { id: 'fts', label: 'Foot per second', symbol: 'ft/s', factor: FT },
+      { id: 'ftmin', label: 'Foot per minute', symbol: 'ft/min', factor: FT / MIN },
+      { id: 'ftday', label: 'Foot per day', symbol: 'ft/day', factor: FT / DAY },
+      { id: 'ftyr', label: 'Foot per year', symbol: 'ft/yr', factor: FT / YR },
+      { id: 'inhr', label: 'Inch per hour', symbol: 'in/hr', factor: IN / HR },
+      { id: 'gpdft2', label: 'US gallon per day per ft² (Meinzer)', symbol: 'gpd/ft²', factor: US_GAL / DAY / FT ** 2 },
+    ],
+    note: 'Hydraulic conductivity K (the engineering "permeability") depends on the fluid. Intrinsic permeability, a property of the soil alone, is in its own category.',
+  },
+  {
+    id: 'intrinsic',
+    label: 'Intrinsic permeability',
+    base: 'm²',
+    units: [
+      { id: 'm2', label: 'Square metre', symbol: 'm²', factor: 1 },
+      { id: 'cm2', label: 'Square centimetre', symbol: 'cm²', factor: 1e-4 },
+      { id: 'um2', label: 'Square micrometre', symbol: 'µm²', factor: 1e-12 },
+      { id: 'darcy', label: 'Darcy', symbol: 'D', factor: 9.869233e-13 },
+      { id: 'mdarcy', label: 'Millidarcy', symbol: 'mD', factor: 9.869233e-16 },
+      { id: 'ft2', label: 'Square foot', symbol: 'ft²', factor: FT ** 2 },
+    ],
+    note: 'For water at 20 °C, k = Kμ/(ρg) with μ = 1.002 × 10⁻³ Pa·s and ρ = 998.2 kg/m³, so 1 m/s ≈ 1.02 × 10⁻⁷ m² ≈ 1.04 × 10⁵ D.',
+  },
+  {
+    id: 'cv',
+    label: 'Coefficient of consolidation',
+    base: 'm²/s',
+    units: [
+      { id: 'm2s', label: 'Square metre per second', symbol: 'm²/s', factor: 1 },
+      { id: 'm2day', label: 'Square metre per day', symbol: 'm²/day', factor: 1 / DAY },
+      { id: 'm2yr', label: 'Square metre per year', symbol: 'm²/yr', factor: 1 / YR },
+      { id: 'cm2s', label: 'Square centimetre per second', symbol: 'cm²/s', factor: 1e-4 },
+      { id: 'cm2min', label: 'Square centimetre per minute', symbol: 'cm²/min', factor: 1e-4 / MIN },
+      { id: 'mm2min', label: 'Square millimetre per minute', symbol: 'mm²/min', factor: 1e-6 / MIN },
+      { id: 'ft2day', label: 'Square foot per day', symbol: 'ft²/day', factor: FT ** 2 / DAY },
+      { id: 'ft2yr', label: 'Square foot per year', symbol: 'ft²/yr', factor: FT ** 2 / YR },
+      { id: 'in2min', label: 'Square inch per minute', symbol: 'in²/min', factor: IN ** 2 / MIN },
+    ],
+    note: 'Also applies to the coefficient of secondary consolidation rate and other diffusivities. A year is taken as 365.25 days.',
+  },
+  {
+    id: 'force',
+    label: 'Force',
+    base: 'N',
+    units: [
+      { id: 'N', label: 'Newton', symbol: 'N', factor: 1 },
+      { id: 'kN', label: 'Kilonewton', symbol: 'kN', factor: 1e3 },
+      { id: 'MN', label: 'Meganewton', symbol: 'MN', factor: 1e6 },
+      { id: 'kgf', label: 'Kilogram-force', symbol: 'kgf', factor: KGF },
+      { id: 'tf', label: 'Tonne-force (metric)', symbol: 'tf', factor: 1000 * KGF },
+      { id: 'lbf', label: 'Pound-force', symbol: 'lbf', factor: LBF },
+      { id: 'kip', label: 'Kip (1000 lbf)', symbol: 'kip', factor: 1000 * LBF },
+      { id: 'tonUS', label: 'US (short) ton-force', symbol: 'ton', factor: 2000 * LBF },
+      { id: 'tonUK', label: 'UK (long) ton-force', symbol: 'LT', factor: 2240 * LBF },
+    ],
+  },
+  {
+    id: 'lineload',
+    label: 'Line load (force per length)',
+    base: 'N/m',
+    units: [
+      { id: 'kNm', label: 'Kilonewton per metre', symbol: 'kN/m', factor: 1e3 },
+      { id: 'Nm', label: 'Newton per metre', symbol: 'N/m', factor: 1 },
+      { id: 'tfm', label: 'Tonne-force per metre', symbol: 'tf/m', factor: 1000 * KGF },
+      { id: 'plf', label: 'Pound-force per foot', symbol: 'lbf/ft (plf)', factor: LBF / FT },
+      { id: 'klf', label: 'Kip per foot', symbol: 'kip/ft (klf)', factor: (1000 * LBF) / FT },
+      { id: 'lbfin', label: 'Pound-force per inch', symbol: 'lbf/in', factor: LBF / IN },
+    ],
+    note: 'Thrust, anchor force or shear per unit length of wall or strip footing.',
+  },
+  {
+    id: 'moment',
+    label: 'Moment',
+    base: 'N·m',
+    units: [
+      { id: 'Nm', label: 'Newton-metre', symbol: 'N·m', factor: 1 },
+      { id: 'kNm', label: 'Kilonewton-metre', symbol: 'kN·m', factor: 1e3 },
+      { id: 'tfm', label: 'Tonne-force-metre', symbol: 'tf·m', factor: 1000 * KGF },
+      { id: 'lbfft', label: 'Pound-force-foot', symbol: 'lbf·ft', factor: LBF * FT },
+      { id: 'kipft', label: 'Kip-foot', symbol: 'kip·ft', factor: 1000 * LBF * FT },
+      { id: 'kipin', label: 'Kip-inch', symbol: 'kip·in', factor: 1000 * LBF * IN },
+    ],
+    note: 'Per unit length of wall, kN·m/m and kip·ft/ft convert with the line-load factor: 1 kip·ft/ft = 4.448 kN·m/m.',
+  },
+  {
+    id: 'subgrade',
+    label: 'Subgrade modulus',
+    base: 'N/m³',
+    units: [
+      { id: 'kNm3', label: 'Kilonewton per m³', symbol: 'kN/m³', factor: 1e3 },
+      { id: 'MNm3', label: 'Meganewton per m³', symbol: 'MN/m³', factor: 1e6 },
+      { id: 'kgfcm3', label: 'Kilogram-force per cm³', symbol: 'kgf/cm³', factor: KGF / 1e-6 },
+      { id: 'pci', label: 'Pound-force per in³', symbol: 'pci', factor: LBF / IN ** 3 },
+      { id: 'kcf', label: 'Kip per ft³', symbol: 'kcf', factor: (1000 * LBF) / FT ** 3 },
+    ],
+    note: 'Modulus of subgrade reaction k (plate load, beams on elastic foundation, rigid pavement).',
+  },
+  {
+    id: 'sectionmodulus',
+    label: 'Section modulus per length',
+    base: 'm³/m',
+    units: [
+      { id: 'cm3m', label: 'Cubic centimetre per metre', symbol: 'cm³/m', factor: 1e-6 },
+      { id: 'mm3m', label: 'Cubic millimetre per metre', symbol: 'mm³/m', factor: 1e-9 },
+      { id: 'm3m', label: 'Cubic metre per metre', symbol: 'm³/m', factor: 1 },
+      { id: 'in3ft', label: 'Cubic inch per foot', symbol: 'in³/ft', factor: IN ** 3 / FT },
+    ],
+    note: 'Sheet pile and wall section properties are quoted per metre (cm³/m) or per foot (in³/ft) of wall.',
+  },
+  {
+    id: 'length',
+    label: 'Length',
+    base: 'm',
+    units: [
+      { id: 'mm', label: 'Millimetre', symbol: 'mm', factor: 1e-3 },
+      { id: 'cm', label: 'Centimetre', symbol: 'cm', factor: 1e-2 },
+      { id: 'm', label: 'Metre', symbol: 'm', factor: 1 },
+      { id: 'km', label: 'Kilometre', symbol: 'km', factor: 1e3 },
+      { id: 'in', label: 'Inch', symbol: 'in', factor: IN },
+      { id: 'ft', label: 'Foot', symbol: 'ft', factor: FT },
+      { id: 'usft', label: 'US survey foot', symbol: 'US ft', factor: 1200 / 3937 },
+      { id: 'yd', label: 'Yard', symbol: 'yd', factor: 3 * FT },
+      { id: 'mi', label: 'Mile', symbol: 'mi', factor: 5280 * FT },
+    ],
+  },
+  {
+    id: 'area',
+    label: 'Area',
+    base: 'm²',
+    units: [
+      { id: 'mm2', label: 'Square millimetre', symbol: 'mm²', factor: 1e-6 },
+      { id: 'cm2', label: 'Square centimetre', symbol: 'cm²', factor: 1e-4 },
+      { id: 'm2', label: 'Square metre', symbol: 'm²', factor: 1 },
+      { id: 'ha', label: 'Hectare', symbol: 'ha', factor: 1e4 },
+      { id: 'km2', label: 'Square kilometre', symbol: 'km²', factor: 1e6 },
+      { id: 'in2', label: 'Square inch', symbol: 'in²', factor: IN ** 2 },
+      { id: 'ft2', label: 'Square foot', symbol: 'ft²', factor: FT ** 2 },
+      { id: 'yd2', label: 'Square yard', symbol: 'yd²', factor: (3 * FT) ** 2 },
+      { id: 'acre', label: 'Acre', symbol: 'acre', factor: 43560 * FT ** 2 },
+    ],
+  },
+  {
+    id: 'volume',
+    label: 'Volume',
+    base: 'm³',
+    units: [
+      { id: 'cm3', label: 'Cubic centimetre', symbol: 'cm³', factor: 1e-6 },
+      { id: 'L', label: 'Litre', symbol: 'L', factor: 1e-3 },
+      { id: 'm3', label: 'Cubic metre', symbol: 'm³', factor: 1 },
+      { id: 'in3', label: 'Cubic inch', symbol: 'in³', factor: IN ** 3 },
+      { id: 'ft3', label: 'Cubic foot', symbol: 'ft³', factor: FT ** 3 },
+      { id: 'yd3', label: 'Cubic yard', symbol: 'yd³', factor: (3 * FT) ** 3 },
+      { id: 'usgal', label: 'US gallon', symbol: 'US gal', factor: US_GAL },
+      { id: 'impgal', label: 'Imperial gallon', symbol: 'Imp gal', factor: IMP_GAL },
+    ],
+  },
+  {
+    id: 'flow',
+    label: 'Flow rate',
+    base: 'm³/s',
+    units: [
+      { id: 'm3s', label: 'Cubic metre per second', symbol: 'm³/s', factor: 1 },
+      { id: 'm3hr', label: 'Cubic metre per hour', symbol: 'm³/hr', factor: 1 / HR },
+      { id: 'm3day', label: 'Cubic metre per day', symbol: 'm³/day', factor: 1 / DAY },
+      { id: 'Ls', label: 'Litre per second', symbol: 'L/s', factor: 1e-3 },
+      { id: 'Lmin', label: 'Litre per minute', symbol: 'L/min', factor: 1e-3 / MIN },
+      { id: 'cfs', label: 'Cubic foot per second', symbol: 'cfs', factor: FT ** 3 },
+      { id: 'usgpm', label: 'US gallon per minute', symbol: 'US gpm', factor: US_GAL / MIN },
+      { id: 'impgpm', label: 'Imperial gallon per minute', symbol: 'Imp gpm', factor: IMP_GAL / MIN },
+      { id: 'usgpd', label: 'US gallon per day', symbol: 'US gpd', factor: US_GAL / DAY },
+    ],
+    note: 'Pumping tests, dewatering and seepage quantities.',
+  },
+  {
+    id: 'mass',
+    label: 'Mass',
+    base: 'kg',
+    units: [
+      { id: 'g', label: 'Gram', symbol: 'g', factor: 1e-3 },
+      { id: 'kg', label: 'Kilogram', symbol: 'kg', factor: 1 },
+      { id: 't', label: 'Tonne (metric)', symbol: 't', factor: 1e3 },
+      { id: 'lb', label: 'Pound', symbol: 'lb', factor: LB },
+      { id: 'tonUS', label: 'US (short) ton', symbol: 'ton', factor: 2000 * LB },
+      { id: 'tonUK', label: 'UK (long) ton', symbol: 'LT', factor: 2240 * LB },
+      { id: 'slug', label: 'Slug', symbol: 'slug', factor: LBF / FT },
+    ],
+  },
+  {
+    id: 'acceleration',
+    label: 'Acceleration',
+    base: 'm/s²',
+    units: [
+      { id: 'ms2', label: 'Metre per second squared', symbol: 'm/s²', factor: 1 },
+      { id: 'g', label: 'Standard gravity', symbol: 'g', factor: G0 },
+      { id: 'gal', label: 'Gal (cm/s²)', symbol: 'Gal', factor: 1e-2 },
+      { id: 'fts2', label: 'Foot per second squared', symbol: 'ft/s²', factor: FT },
+    ],
+    note: 'Peak ground acceleration is usually quoted in g; 1 g = 9.80665 m/s² = 980.665 Gal.',
+  },
+  {
+    id: 'slope',
+    label: 'Slope & angle',
+    base: 'rad',
+    units: [
+      { id: 'deg', label: 'Degrees from horizontal', symbol: '°', factor: Math.PI / 180 },
+      { id: 'rad', label: 'Radians', symbol: 'rad', factor: 1 },
+      { id: 'pct', label: 'Percent grade (V/H × 100)', symbol: '%', toBase: (v) => Math.atan(v / 100), fromBase: (a) => Math.tan(a) * 100 },
+      { id: 'hv', label: 'Horizontal : vertical (x H : 1V)', symbol: 'H:1V', toBase: (v) => Math.atan(1 / v), fromBase: (a) => 1 / Math.tan(a) },
+      { id: 'vh', label: 'Vertical : horizontal (x V : 1H)', symbol: 'V:1H', toBase: (v) => Math.atan(v), fromBase: (a) => Math.tan(a) },
+    ],
+    note: 'A 2H:1V slope is 26.57° or 50%. Slopes are measured from the horizontal and must be between 0° and 90°.',
+  },
+  {
+    id: 'temperature',
+    label: 'Temperature',
+    base: 'K',
+    units: [
+      { id: 'C', label: 'Degree Celsius', symbol: '°C', toBase: (v) => v + 273.15, fromBase: (k) => k - 273.15 },
+      { id: 'F', label: 'Degree Fahrenheit', symbol: '°F', toBase: (v) => ((v - 32) * 5) / 9 + 273.15, fromBase: (k) => ((k - 273.15) * 9) / 5 + 32 },
+      { id: 'K', label: 'Kelvin', symbol: 'K', factor: 1 },
+    ],
+    note: 'For frost depth and freezing index work, a temperature difference of 1 °C equals 1.8 °F.',
+  },
+];
+function getCategory(id) {
+  const c = UNIT_CATEGORIES.find((cat) => cat.id === id);
+  if (!c)
+    throw new Error(`Unknown quantity "${id}".`);
+  return c;
+}
+function getUnit(cat, id) {
+  const u = cat.units.find((unit) => unit.id === id);
+  if (!u)
+    throw new Error(`Unknown unit "${id}" for ${cat.label.toLowerCase()}.`);
+  return u;
+}
+const toBase = (u, v) => (u.toBase ? u.toBase(v) : v * u.factor);
+const fromBase = (u, v) => (u.fromBase ? u.fromBase(v) : v / u.factor);
+const proportional = (u) => !u.toBase;
+function convert(value, categoryId, fromId, toId) {
+  const cat = getCategory(categoryId);
+  return fromBase(getUnit(cat, toId), toBase(getUnit(cat, fromId), value));
+}
+/** Formats a value to `sig` significant figures, switching to scientific notation for very small or large values. */
+function formatValue(v, sig = 5) {
+  if (!Number.isFinite(v))
+    return '—';
+  if (v === 0)
+    return '0';
+  const a = Math.abs(v);
+  if (a < 1e-3 || a >= 1e9) {
+    const [m, e] = v.toExponential(sig - 1).split('e');
+    return `${String(Number(m))} × 10^${Number(e)}`;
+  }
+  return Number(v.toPrecision(sig)).toLocaleString('en-US', { maximumFractionDigits: 12 });
+}
+function convertAll(value, categoryId, fromId, sig = 5) {
+  const category = getCategory(categoryId);
+  const from = getUnit(category, fromId);
+  if (!Number.isFinite(value))
+    throw new Error('Enter a number to convert.');
+  if (category.id === 'slope' && (from.id === 'hv' ? value <= 0 : value < 0)) {
+    throw new Error('Slope must be greater than zero.');
+  }
+  if (category.id === 'temperature' && toBase(from, value) < 0)
+    throw new Error('Temperature is below absolute zero.');
+  const baseValue = toBase(from, value);
+  if (category.id === 'slope' && !(baseValue >= 0 && baseValue <= Math.PI / 2 + 1e-12)) {
+    throw new Error('Slope angle must be between 0° and 90°.');
+  }
+  const rows = category.units.map((unit) => ({
+    unit,
+    value: fromBase(unit, baseValue),
+    perUnit: proportional(unit) && proportional(from) ? from.factor / unit.factor : null,
+  }));
+  const steps = [];
+  const s = (v) => formatValue(v, sig).replace(/ × 10\^(-?\d+)/, ' \\times 10^{$1}').replace(/,/g, '{,}');
+  const tex = (sym) => `\\text{${sym.replace(/%/g, '\\%')}}`;
+  if (proportional(from)) {
+    steps.push({
+      title: `Convert to the SI unit (${category.base})`,
+      formula: `\\begin{aligned}
+    x_{SI} &= x \\times f_{from} = ${s(value)}\\ ${tex(from.symbol)} \\times ${s(from.factor)}\\ ${tex(`${category.base}/${from.symbol}`)} = \\mathbf{${s(baseValue)}}\\ ${tex(category.base)}
+    \\end{aligned}`,
+      explanation: `1 ${from.symbol} = ${formatValue(from.factor, 10)} ${category.base}, from the exact definitions listed below.`,
+    });
+  }
+  else {
+    steps.push({
+      title: `Convert to ${category.base}`,
+      formula: `\\begin{aligned} x_{${category.base}} &= \\mathbf{${s(baseValue)}}\\ ${tex(category.base)} \\end{aligned}`,
+      explanation: category.id === 'slope' ? 'Angle from horizontal: θ = tan⁻¹(V/H).' : 'Offset scales: K = °C + 273.15, °F = 1.8 °C + 32.',
+    });
+  }
+  steps.push({
+    title: 'Convert from the SI unit to each unit',
+    formula: `\\begin{aligned} x_{to} &= \\frac{x_{SI}}{f_{to}} \\end{aligned}`,
+    explanation: 'Each row of the results table divides the SI value by that unit’s size in SI units.',
+  });
+  const related = [];
+  if (category.id === 'density') {
+    const gamma = baseValue * G0;
+    related.push({ label: 'Unit weight γ = ρg', value: `${formatValue(gamma / 1e3, sig)} kN/m³ = ${formatValue(gamma / (LBF / FT ** 3), sig)} pcf` });
+  }
+  if (category.id === 'unitweight') {
+    const rho = baseValue / G0;
+    related.push({ label: 'Density ρ = γ/g', value: `${formatValue(rho / 1e3, sig)} Mg/m³ = ${formatValue(rho / (LB / FT ** 3), sig)} lb/ft³` });
+  }
+  if (category.id === 'conductivity') {
+    const k = (baseValue * 1.002e-3) / (998.2 * G0);
+    related.push({ label: 'Intrinsic permeability (water, 20 °C)', value: `${formatValue(k, sig)} m² = ${formatValue(k / 9.869233e-13, sig)} D` });
+  }
+  if (category.id === 'intrinsic') {
+    const K = (baseValue * 998.2 * G0) / 1.002e-3;
+    related.push({ label: 'Hydraulic conductivity (water, 20 °C)', value: `${formatValue(K, sig)} m/s = ${formatValue(K * 100, sig)} cm/s` });
+  }
+  if (category.id === 'pressure') {
+    related.push({ label: 'Equivalent height of water', value: `${formatValue(baseValue / (1000 * G0), sig)} m = ${formatValue(baseValue / (1000 * G0 * FT), sig)} ft` });
+  }
+  return { category, from, baseValue, rows, steps, related };
+}
+/** Everyday geotechnical conversions, as [quantity, statement] pairs. */
+const QUICK_REFERENCE = [
+  ['Pressure', '1 tsf = 95.76 kPa ≈ 1 kgf/cm² ≈ 1 bar'],
+  ['Pressure', '1 ksf = 47.88 kPa;  1 psf = 0.04788 kPa'],
+  ['Pressure', '1 psi = 6.895 kPa;  100 kPa = 2.089 ksf = 14.50 psi'],
+  ['Unit weight', '1 kN/m³ = 6.366 pcf;  100 pcf = 15.71 kN/m³'],
+  ['Unit weight', 'Water: 9.81 kN/m³ = 62.4 pcf'],
+  ['Density', '1 Mg/m³ = 1 g/cm³ = 62.43 lb/ft³ → γ = 9.81 kN/m³'],
+  ['Conductivity', '1 cm/s = 10⁻² m/s = 864 m/day = 2835 ft/day'],
+  ['Conductivity', '1 m/s ≈ 1.04 × 10⁵ darcy (water, 20 °C)'],
+  ['Consolidation', '1 m²/yr = 3.169 × 10⁻⁸ m²/s = 10.76 ft²/yr'],
+  ['Line load', '1 kip/ft = 14.59 kN/m;  1 kN/m = 68.52 lbf/ft'],
+  ['Moment', '1 kip·ft = 1.356 kN·m;  1 kip·ft/ft = 4.448 kN·m/m'],
+  ['Subgrade modulus', '1 pci = 271.4 kN/m³;  1 MN/m³ = 3.684 pci'],
+  ['Section modulus', '1 in³/ft = 53.76 cm³/m'],
+  ['Acceleration', '1 g = 9.807 m/s² = 980.7 Gal = 32.17 ft/s²'],
+];
+
+/* ==========================================================================
+   Page logic
+   ========================================================================== */
+const PRESETS = [
+  { category: 'pressure', from: 'tsf', value: 2, sig: 5 },
+  { category: 'unitweight', from: 'pcf', value: 120, sig: 5 },
+  { category: 'conductivity', from: 'cms', value: 1e-5, sig: 4 },
+  { category: 'slope', from: 'hv', value: 2, sig: 4 },
+];
+
+const $ = (id) => document.getElementById(id);
+let currentCategory = 'pressure';
+
+const escapeHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+// "3.528 × 10^-6" with real superscripts
+const sup = (text) => escapeHtml(text).replace(/ × 10\^(-?\d+)/g, ' × 10<sup>$1</sup>');
+
+function selectCategory(id, fromId) {
+  currentCategory = id;
+  const cat = getCategory(id);
+  document.querySelectorAll('#categoryBar .tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.cat === id));
+  $('fromUnit').innerHTML = cat.units.map((u) => `<option value="${u.id}">${escapeHtml(u.symbol)}: ${escapeHtml(u.label)}</option>`).join('');
+  $('fromUnit').value = fromId ?? cat.units[0].id;
+  $('categoryNote').textContent = cat.note ?? '';
+  update();
+}
+
+function update() {
+  const msg = $('formMsg');
+  msg.textContent = '';
+  const raw = $('value').value.trim();
+  if (raw === '') {
+    $('resultsArea').classList.add('hidden');
+    return;
+  }
+  const sig = +$('sig').value;
+  let r;
+  try {
+    r = convertAll(parseFloat(raw), currentCategory, $('fromUnit').value, sig);
+  } catch (e) {
+    msg.textContent = e.message;
+    $('resultsArea').classList.add('hidden');
+    return;
+  }
+  $('related').innerHTML = r.related.map((x) => `<p><strong>${escapeHtml(x.label)}:</strong> ${sup(x.value)}</p>`).join('');
+  $('related').classList.toggle('hidden', r.related.length === 0);
+  $('valueHead').innerHTML = `${sup(formatValue(parseFloat(raw), sig))} ${escapeHtml(r.from.symbol)} =`;
+  $('perHead').innerHTML = `1 ${escapeHtml(r.from.symbol)} =`;
+  $('resultsBody').innerHTML = r.rows
+    .map((row) => {
+      const copy = String(Number(row.value.toPrecision(sig)));
+      return `<tr class="${row.unit.id === r.from.id ? 'from-row' : ''}">
+        <td><strong>${escapeHtml(row.unit.symbol)}</strong> <span class="unit-name">${escapeHtml(row.unit.label)}</span></td>
+        <td class="num">${sup(formatValue(row.value, sig))}</td>
+        <td class="num per-unit">${row.perUnit === null ? '—' : sup(formatValue(row.perUnit, sig))}</td>
+        <td><button class="btn btn-secondary btn-sm copy-btn" data-copy="${copy}" title="Copy value">Copy</button></td>
+      </tr>`;
+    })
+    .join('');
+  $('resultsArea').classList.remove('hidden');
+}
+
+function loadPreset(p) {
+  $('value').value = p.value;
+  $('sig').value = p.sig;
+  selectCategory(p.category, p.from);
+}
+
+function clearAll() {
+  $('value').value = '';
+  $('sig').value = '5';
+  selectCategory('pressure', 'kPa');
+}
+
+$('categoryBar').innerHTML = UNIT_CATEGORIES.map((c) => `<button class="tab-btn" data-cat="${c.id}">${escapeHtml(c.label)}</button>`).join('');
+$('categoryBar').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-cat]');
+  if (b) selectCategory(b.dataset.cat);
+});
+$('quickBody').innerHTML = QUICK_REFERENCE.map(([q, text]) => `<tr><th>${escapeHtml(q)}</th><td>${escapeHtml(text)}</td></tr>`).join('');
+$('resultsBody').addEventListener('click', async (e) => {
+  const b = e.target.closest('.copy-btn');
+  if (!b) return;
+  try {
+    await navigator.clipboard.writeText(b.dataset.copy);
+    b.textContent = 'Copied';
+    setTimeout(() => (b.textContent = 'Copy'), 1500);
+  } catch {
+    // clipboard unavailable (e.g. opened from file://)
+  }
+});
+document.querySelectorAll('[data-preset]').forEach((b) => b.addEventListener('click', () => loadPreset(PRESETS[+b.dataset.preset])));
+$('clearBtn').addEventListener('click', clearAll);
+['value', 'fromUnit', 'sig'].forEach((id) => $(id).addEventListener('input', update));
+
+selectCategory('pressure', 'kPa');
+</script>
+
+</body>
+</html>
