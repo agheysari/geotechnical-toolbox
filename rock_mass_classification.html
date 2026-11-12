@@ -745,7 +745,7 @@ mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; paddi
         const container = document.getElementById('formula-container');
         container.innerHTML = formula;
         
-        if (window.MathJax) {
+        if (window.MathJax && MathJax.typesetPromise) {
             MathJax.typesetPromise([container]).catch(err => console.error('MathJax typeset failed:', err));
         }
     }

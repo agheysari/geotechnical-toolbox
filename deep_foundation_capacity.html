@@ -951,16 +951,18 @@ function calculateDrilledShaft(inputs) {
       : 'Straight-sided shaft: bearing area equals shaft cross-section.',
   });
 
-  const topExcl = 1.5 * D;
+  // O'Neill & Reese (1999) and AASHTO LRFD 10.8.3.5.1b, alpha-method in cohesive soil only:
+  // no side resistance in the top 1.5 m (5 ft) or within one shaft diameter of the base.
+  const topExcl = 1.5;
   const botExclTop = L - 1.0 * D;
 
   steps.push({
-    title: "Skin Friction Exclusion Zones (O'Neill & Reese §11.3.2)",
+    title: 'Side Resistance Exclusion Zones in Clay',
     formula: `\\begin{aligned}
-    \\text{Top exclusion} &= 1.5D = 1.5 \\times ${D.toFixed(3)} = \\mathbf{${topExcl.toFixed(3)}} \\text{ m} \\\\
-    \\text{Bottom exclusion} &= 1.0D = 1.0 \\times ${D.toFixed(3)} = \\mathbf{${(L - botExclTop).toFixed(3)}} \\text{ m from tip}
+    \\text{Top exclusion} &= \\mathbf{1.50} \\text{ m} \\quad (5 \\text{ ft}) \\\\
+    \\text{Bottom exclusion} &= 1.0D = \\mathbf{${(L - botExclTop).toFixed(3)}} \\text{ m above the base}
     \\end{aligned}`,
-    explanation: 'Skin friction is neglected in the top 1.5D (soil disturbance during construction) and bottom 1D (soil compression / load transfer to base).',
+    explanation: "Alpha-method (O'Neill & Reese 1999; AASHTO LRFD 10.8.3.5.1b): side resistance in clay is neglected over the top 1.5 m and within one shaft diameter of the base. Sand, IGM and rock layers are not reduced.",
   });
 
   let Qs = 0;
@@ -973,15 +975,17 @@ function calculateDrilledShaft(inputs) {
     const layerBot = Math.min(L, layer.bottom);
     if (layerBot <= layerTop) { currentZ = layer.bottom; continue; }
 
-    // Split the layer at the exclusion-zone boundaries
+    // Split clay layers at the exclusion-zone boundaries; the exclusions belong to the
+    // alpha-method, so other soil types stay whole
     const segments = [];
     let segStart = layerTop;
-    const boundaries = [topExcl, botExclTop > 0 ? botExclTop : Infinity, layerBot];
+    const isClay = layer.type === 'clay';
+    const boundaries = isClay ? [topExcl, botExclTop > 0 ? botExclTop : Infinity, layerBot] : [layerBot];
     for (const boundary of boundaries) {
       const segEnd = Math.min(boundary, layerBot);
       if (segEnd > segStart) {
         const midpoint = (segStart + segEnd) / 2;
-        const excl = midpoint < topExcl || (botExclTop > 0 && midpoint > botExclTop);
+        const excl = isClay && (midpoint < topExcl || (botExclTop > 0 && midpoint > botExclTop));
         segments.push({ top: segStart, bot: segEnd, excluded: excl });
         segStart = segEnd;
       }
@@ -1360,16 +1364,20 @@ function calculateDrivenPile(inputs) {
 
   const Qu = Qs + Qb;
   const Wp = area * L * pileGamma;
-  const Qup = Qs * upliftReduction + Wp;
+  // In uplift only the buoyant weight resists below the water table
+  const subLen = Number.isFinite(gwDepth) ? Math.max(0, L - Math.max(0, gwDepth)) : 0;
+  const Weff = Wp - area * subLen * (inputs.gwGamma ?? 9.81);
+  const Qup = Qs * upliftReduction + Weff;
 
   steps.push({
     title: 'Total Ultimate Capacities',
     formula: `\\begin{aligned}
     Q_{ult} &= Q_s + Q_b = ${Qs.toFixed(1)} + ${Qb.toFixed(1)} = \\mathbf{${Qu.toFixed(1)}} \\text{ kN (Compression)} \\\\
-    W_{pile} &= A \\cdot L \\cdot \\gamma_{pile} = (${area.toFixed(3)})(${L})(${pileGamma}) = \\mathbf{${Wp.toFixed(1)}} \\text{ kN} \\\\
-    Q_{up} &= (R_{up} \\cdot Q_s) + W_{pile} = (${upliftReduction} \\cdot ${Qs.toFixed(1)}) + ${Wp.toFixed(1)} = \\mathbf{${Qup.toFixed(1)}} \\text{ kN (Uplift)}
+    W_{pile} &= A \\cdot L \\cdot \\gamma_{pile} = (${area.toFixed(3)})(${L})(${pileGamma}) = \\mathbf{${Wp.toFixed(1)}} \\text{ kN} \\\\${subLen > 0 ? `
+    W'_{pile} &= W_{pile} - A \\cdot L_{sub} \\cdot \\gamma_w = \\mathbf{${Weff.toFixed(1)}} \\text{ kN (buoyant)} \\\\` : ''}
+    Q_{up} &= (R_{up} \\cdot Q_s) + W'_{pile} = (${upliftReduction} \\cdot ${Qs.toFixed(1)}) + ${Weff.toFixed(1)} = \\mathbf{${Qup.toFixed(1)}} \\text{ kN (Uplift)}
     \\end{aligned}`,
-    explanation: 'Sum of shaft and tip resistance for compression, and reduced shaft resistance + self-weight for uplift.',
+    explanation: 'Sum of shaft and tip resistance for compression, and reduced shaft resistance plus the pile weight (buoyant below the water table) for uplift.',
   });
 
   const cumulativeQs = [{ x: 0, y: 0 }];
@@ -1455,7 +1463,7 @@ function setMode() {
   document.getElementById('diameterLabel').innerHTML = driven ? 'Diameter / Width, B (m)' : 'Shaft Diameter, D (m)';
   document.getElementById('intro').innerHTML = driven
     ? 'Assumes consistent SI units (kN, m, kPa). Driven piles use the static &alpha; / &lambda; (clay) and &beta; (sand) methods with no exclusion zones, and also report uplift capacity.'
-    : 'Assumes consistent SI units (kN, m, kPa). Skin friction is neglected over the top 1.5D and the bottom 1D of the shaft (or the bell height).';
+    : 'Assumes consistent SI units (kN, m, kPa). In clay layers, side resistance is neglected over the top 1.5 m (5 ft) and within one shaft diameter of the base; sand, IGM and rock are not reduced.';
   // IGM and rock are drilled-shaft materials
   layersBody.querySelectorAll('.l-type option').forEach(o => {
     if (o.value === 'igm' || o.value === 'rock') { o.hidden = driven; o.disabled = driven; }
@@ -1628,7 +1636,7 @@ function profileWarnings(inp) {
   const deepest = Math.max(...sorted.map(l => l.bottom));
   if (deepest < inp.length) w.push(`The profile ends at ${deepest} m, above the tip (${inp.length} m). The deepest layer is used for base resistance.`);
   if (inp.installation === 'drilled') {
-    if (inp.length <= 2.5 * inp.diameter) w.push('L &le; 2.5D: the exclusion zones cover the whole shaft, so side resistance is zero.');
+    if (inp.length <= 1.5 + inp.diameter) w.push('L &le; 1.5 m + D: the exclusion zones cover the whole shaft, so clay layers give no side resistance.');
     if (inp.bellDiameter && inp.bellDiameter <= inp.diameter) w.push('Bell diameter is not larger than the shaft diameter and was ignored.');
   }
   return w;

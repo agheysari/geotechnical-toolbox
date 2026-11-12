@@ -788,7 +788,7 @@ mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; paddi
             <i>Calculated analytically for a single homogeneous layer.</i></small>`;
         }
         document.getElementById('formula-container').innerHTML = formula;
-        if (window.MathJax) MathJax.typesetPromise([document.getElementById('formula-container')]);
+        if (window.MathJax && MathJax.typesetPromise) MathJax.typesetPromise([document.getElementById('formula-container')]);
     }
 
     // Linear Interpolation helper

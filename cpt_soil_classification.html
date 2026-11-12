@@ -801,8 +801,8 @@ function loadPreset(id) {
         document.getElementById('cpt_gamma').value = "18.5";
     } else if (id === 4) { // Sensitive Clay
         document.getElementById('cpt_z').value = "10.0";
-        document.getElementById('cpt_qc').value = "0.55";
-        document.getElementById('cpt_fs').value = "2.5";
+        document.getElementById('cpt_qc').value = "0.45";
+        document.getElementById('cpt_fs').value = "1.5";
         document.getElementById('cpt_u2').value = "250.0";
         document.getElementById('cpt_dw').value = "0.5";
         document.getElementById('cpt_gamma').value = "16.5";
@@ -811,21 +811,21 @@ function loadPreset(id) {
 }
 
 function classifyZone(ic, qtn, fr) {
-    if (fr < 0.5 && qtn < 20 && ic > 3.0) return ZONES[1];
-    if (qtn > 300 && fr > 3.0) return ZONES[8];
-    if (qtn > 300 && fr <= 1.0) return ZONES[9];
-    if (ic > 3.60) {
-        if (fr > 4.5) return ZONES[2];
-        return ZONES[3];
-    } else if (ic > 2.95) {
-        return ZONES[4];
-    } else if (ic > 2.60) {
-        return ZONES[5];
-    } else if (ic > 2.05) {
-        return ZONES[6];
-    } else {
-        return ZONES[7];
+    // Zone 1, sensitive fine-grained: below Qtn = 12 exp(-1.4 Fr) (Robertson 2010)
+    if (qtn < 12 * Math.exp(-1.4 * fr)) return ZONES[1];
+    // Zones 8 and 9, very stiff soils: Fr > 1.5% and Qtn above
+    // 1 / [0.005 (Fr - 1) - 0.0003 (Fr - 1)^2 - 0.002]; zone 8 below Fr = 4.5%, zone 9 above
+    if (fr > 1.5) {
+        const d = 0.005 * (fr - 1) - 0.0003 * Math.pow(fr - 1, 2) - 0.002;
+        if (d > 0 && qtn > 1 / d) return fr < 4.5 ? ZONES[8] : ZONES[9];
     }
+    // Zones 2 to 7 by the soil behaviour type index (Robertson 1990, 2009)
+    if (ic > 3.60) return ZONES[2];
+    if (ic > 2.95) return ZONES[3];
+    if (ic > 2.60) return ZONES[4];
+    if (ic > 2.05) return ZONES[5];
+    if (ic > 1.31) return ZONES[6];
+    return ZONES[7];
 }
 
 function renderChartSVG(fr, qtn) {

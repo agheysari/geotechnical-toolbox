@@ -715,7 +715,7 @@ mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; paddi
         const container = document.getElementById('formula-container');
         container.innerHTML = formula + factors;
 
-        if (window.MathJax) {
+        if (window.MathJax && MathJax.typesetPromise) {
             MathJax.typesetPromise([container]).catch(function (err) {
                 console.error('MathJax typeset failed:', err);
             });
@@ -936,17 +936,19 @@ mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; paddi
             let tanAlpha = Math.tan(alphaRad);
             
             if (method === 'meyerhof') {
-                iq = Math.pow(1 - alpha / 90, 2);
+                // Bases are clamped at zero before raising to a power: an even power would
+                // otherwise turn a load inclined past the limit back into capacity.
+                iq = Math.pow(Math.max(0, 1 - alpha / 90), 2);
                 ic = iq;
-                ig = phi > 0 ? Math.max(0, Math.pow(1 - alpha / phi, 2)) : 0;
+                ig = phi > 0 ? Math.pow(Math.max(0, 1 - alpha / phi), 2) : 0;
             } else if (method === 'hansen') {
-                iq = Math.max(0, Math.pow(1 - 0.5 * tanAlpha, 5));
-                ig = Math.max(0, Math.pow(1 - 0.7 * tanAlpha, 5));
-                ic = (phi === 0) ? (1 - alpha / 90) : (iq - (1 - iq) / (Nq - 1));
+                iq = Math.pow(Math.max(0, 1 - 0.5 * tanAlpha), 5);
+                ig = Math.pow(Math.max(0, 1 - 0.7 * tanAlpha), 5);
+                ic = (phi === 0) ? Math.max(0, 1 - alpha / 90) : Math.max(0, iq - (1 - iq) / (Nq - 1));
             } else if (method === 'vesic') {
-                iq = Math.max(0, Math.pow(1 - tanAlpha, 2));
-                ig = Math.max(0, Math.pow(1 - tanAlpha, 3));
-                ic = (phi === 0) ? (1 - alpha / 90) : (iq - (1 - iq) / (Nq - 1));
+                iq = Math.pow(Math.max(0, 1 - tanAlpha), 2);
+                ig = Math.pow(Math.max(0, 1 - tanAlpha), 3);
+                ic = (phi === 0) ? Math.max(0, 1 - alpha / 90) : Math.max(0, iq - (1 - iq) / (Nq - 1));
             }
             
             if (isNaN(ic)) ic = 1.0;

@@ -864,20 +864,23 @@ mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; paddi
                     const gamma = parseFloat(document.getElementById('gammaSand').value);
                     const k = parseFloat(document.getElementById('kSand').value);
 
-                    // API RP 2A Sand coefficients approximated
-                    const phis = [25, 30, 35, 40];
-                    const c1s = [1.5, 2.0, 3.0, 5.0];
-                    const c2s = [2.0, 2.5, 3.0, 4.0];
-                    const c3s = [30, 50, 80, 130];
-
-                    let C1 = interp(phi, phis, c1s);
-                    let C2 = interp(phi, phis, c2s);
-                    let C3 = interp(phi, phis, c3s);
+                    // API RP 2A sand coefficients from the equations behind the API chart
+                    // (O'Neill & Murchison 1983): alpha = phi/2, beta = 45 + phi/2, K0 = 0.4.
+                    // At phi = 30 these give C1 = 1.91, C2 = 2.67, C3 = 28.7.
+                    const pr = phi * Math.PI / 180, al = pr / 2, be = Math.PI / 4 + pr / 2;
+                    const K0 = 0.4, Ka = Math.pow(Math.tan(Math.PI / 4 - pr / 2), 2);
+                    const tb = Math.tan(be), tbp = Math.tan(be - pr);
+                    let C1 = (K0 * Math.tan(pr) * Math.sin(be)) / (tbp * Math.cos(al))
+                           + (tb * tb * Math.tan(al)) / tbp
+                           + K0 * tb * (Math.tan(pr) * Math.sin(be) - Math.tan(al));
+                    let C2 = tb / tbp - Ka;
+                    let C3 = Ka * (Math.pow(tb, 8) - 1) + K0 * Math.tan(pr) * Math.pow(tb, 4);
 
                     let pus = (C1 * x + C2 * D) * gamma * x;
                     let pud = C3 * D * gamma * x;
                     let pu = Math.min(pus, pud);
-                    let A = 0.9; // Static loading coefficient
+                    // Static loading: A = 3.0 - 0.8 z/D >= 0.9 (0.9 throughout is the cyclic value)
+                    let A = Math.max(0.9, 3.0 - 0.8 * x / D);
 
                     for(let i=0; i<=steps; i++) {
                         let y = (i / steps) * yMaxMeters;

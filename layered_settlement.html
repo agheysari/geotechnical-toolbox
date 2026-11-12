@@ -1000,8 +1000,8 @@ mjx-container mjx-mtr > mjx-mtd:first-child { text-align: left !important; paddi
                     }
                     layerSettlementMeters += S_sub;
                 }
-                cumS += (layerSettlementMeters * 1000 - (plotSettlements[plotSettlements.length-1] || 0)); 
-                // Re-sync cumulative array at bottom of sublayer
+                // running total: the layers above plus this layer so far
+                cumS = totalSettlement + layerSettlementMeters * 1000;
                 plotDepths.push(layer.top + (i + 1) * dz);
                 plotSettlements.push(cumS);
             }
